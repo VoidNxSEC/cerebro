@@ -6,19 +6,19 @@
 
 # Run all tests
 test:
-    poetry run pytest
+    pytest
 
 # Run unit tests only
 test-unit:
-    poetry run pytest tests/ -v --ignore=tests/integration --cov=src/phantom --cov-report=term
+    pytest tests/ -v --ignore=tests/integration --cov=src/phantom --cov-report=term
 
 # Run integration tests only
 test-integration:
-    poetry run pytest tests/integration/ -v -m integration
+    pytest tests/integration/ -v -m integration
 
 # Run Vertex AI limit tests
 test-vertex-limits:
-    poetry run pytest tests/integration/test_vertex_limits.py -v -m integration
+    pytest tests/integration/test_vertex_limits.py -v -m integration
 
 # ============================================================================
 # CODE QUALITY
@@ -26,19 +26,19 @@ test-vertex-limits:
 
 # Run linting with ruff
 lint:
-    poetry run ruff check src/ tests/
+    ruff check src/ tests/
 
 # Run linting and fix issues
 lint-fix:
-    poetry run ruff check --fix src/ tests/
+    ruff check --fix src/ tests/
 
 # Format code with ruff
 format:
-    poetry run ruff format src/ tests/
+    ruff format src/ tests/
 
 # Type checking with mypy
 type-check:
-    poetry run mypy src/phantom --ignore-missing-imports
+    mypy src/phantom --ignore-missing-imports
 
 # Run all quality checks (lint + format + tests)
 quality: lint format type-check test
@@ -59,9 +59,9 @@ ci-local:
 
 # Validate imports
 validate-imports:
-    poetry run python -c "from phantom.core import gcp"
-    poetry run python -c "from phantom.modules import credit_burner"
-    poetry run python -c "import typer; import rich"
+    python -c "from phantom.core import gcp"
+    python -c "from phantom.core.rag import engine"
+    python -c "import typer; import rich"
 
 # Validate syntax
 validate-syntax:
@@ -69,14 +69,22 @@ validate-syntax:
 
 # Run CLI tests
 test-cli:
-    poetry run cerebro --help
-    poetry run cerebro info
-    poetry run cerebro version
-    poetry run cerebro ops status
+    cerebro --help
+    cerebro info
+    cerebro version
+    cerebro ops status
 
 # ============================================================================
 # DASHBOARD
 # ============================================================================
+
+# Launch the web dashboard (React GUI → http://localhost:5173)
+dashboard:
+    cerebro dashboard
+
+# Launch the TUI (Textual terminal UI)
+tui:
+    cerebro tui
 
 # Lint the React dashboard
 dashboard-lint:
@@ -121,15 +129,15 @@ deploy-cloud-run:
 
 # Show Cerebro environment info
 info:
-    poetry run cerebro info
+    cerebro info
 
 # Run health check
 health:
-    poetry run cerebro ops health
+    cerebro ops health
 
 # Run code analysis on a repository
 analyze path context="General Review":
-    poetry run cerebro knowledge analyze {{path}} "{{context}}"
+    cerebro knowledge analyze {{path}} "{{context}}"
 
 # Sync data with GCS (Staging for Ingestion)
 sync local_dir="./data/analyzed":
@@ -137,15 +145,15 @@ sync local_dir="./data/analyzed":
 
 # Start RAG ingestion (Discovery Engine Import)
 ingest:
-    poetry run cerebro rag ingest
+    cerebro rag ingest
 
 # Query the knowledge base
 query question:
-    poetry run cerebro rag query "{{question}}"
+    cerebro rag query "{{question}}"
 
-# Setup environment (Poetry)
+# Setup environment
 install:
-    poetry install
+    poetry install --only main --no-interaction
 
 # Run full validation pipeline
 pipeline:

@@ -168,63 +168,107 @@ export CEREBRO_VECTOR_DB="$PWD/data/vector_db"
 export GCP_PROJECT_ID="gen-lang-client-0530325234"
 export GCP_REGION="us-central1"
 
-# Aliases for common cerebro commands
-alias cscan='cerebro metrics scan'
-alias canalyze='cerebro knowledge analyze'
-alias cingest='cerebro rag ingest'
-alias cquery='cerebro rag query'
-alias crerank='cerebro rag rerank'
+# ── Cerebro short commands (funções, não aliases — suportam $@ e completion) ──
+cscan()   { cerebro metrics scan "$@"; }
+canalyze(){ cerebro knowledge analyze "$@"; }
+cingest() { cerebro rag ingest "$@"; }
+cquery()  { cerebro rag query "$@"; }
+crerank() { cerebro rag rerank "$@"; }
+cstrat()  { cerebro strategy optimize "$@"; }
+chealth() { cerebro ops health "$@"; }
+cdash()   { cerebro dashboard "$@"; }   # React GUI → http://localhost:5173
+ctui()    { cerebro tui "$@"; }         # TUI Textual (terminal)
 
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🧠 PHANTOM CEREBRO - Development Environment (Nix-managed)"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "Python: $(python --version)"
-            echo "Nix:    Fully declarative, reproducible dependencies ⚡"
+# ── chelp: referência rápida de todos os atalhos ──────────────────────────────
+chelp() {
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🧠 CEREBRO — Quick Reference"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "SHORT COMMANDS (suportam --help e todos os flags):"
+  echo "  cscan   [opts]           cerebro metrics scan"
+  echo "  canalyze <path> [opts]   cerebro knowledge analyze"
+  echo "  cingest [file] [opts]    cerebro rag ingest"
+  echo "  cquery  \"<question>\"    cerebro rag query"
+  echo "  crerank <query> [opts]   cerebro rag rerank"
+  echo "  cstrat  [opts]           cerebro strategy optimize"
+  echo "  chealth                  cerebro ops health"
+  echo "  cdash                    Dashboard GUI  → http://localhost:5173"
+  echo "  ctui                     TUI Textual    (terminal interativo)"
+  echo ""
+  echo "JUST TARGETS:"
+  echo "  just test                Unit tests"
+  echo "  just lint                Ruff linter"
+  echo "  just format              Ruff format"
+  echo "  just pipeline            Full CI pipeline local"
+  echo "  just health              Health check"
+  echo "  just ingest              RAG ingest"
+  echo "  just query \"...\"        RAG query"
+  echo "  just analyze <path>      Code analysis"
+  echo ""
+  echo "CEREBRO GROUPS:"
+  echo "  cerebro knowledge --help   Análise de código (AST, batch)"
+  echo "  cerebro metrics --help     Métricas zero-token"
+  echo "  cerebro rag --help         RAG: ingest / query / rerank"
+  echo "  cerebro strategy --help    Strategy & salary intel"
+  echo "  cerebro gcp --help         GCP: burn, monitor, datastores"
+  echo "  cerebro ops --help         Health, status"
+  echo ""
+  echo "  cerebro --help             Todos os comandos"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+}
 
-            # Hybrid approach: Nix for base deps, Poetry for unavailable ones
+# ── Shell completion para cerebro (delegada às funções curtas via compdef) ────
+if command -v cerebro &>/dev/null; then
+  eval "$(cerebro --show-completion zsh 2>/dev/null)" 2>/dev/null || true
+  # Delegar completion das funções curtas ao cerebro
+  if command -v compdef &>/dev/null; then
+    compdef cscan='cerebro'
+    compdef canalyze='cerebro'
+    compdef cingest='cerebro'
+    compdef cquery='cerebro'
+    compdef crerank='cerebro'
+    compdef cstrat='cerebro'
+    compdef chealth='cerebro'
+  fi
+fi
+
+            # ── Instalação (apenas na primeira vez) ───────────────────────────
             if [ ! -f ".nix-installed" ]; then
               echo "📥 Installing cerebro (Nix base + Poetry fallback)..."
-
-              # Install missing deps via Poetry first (langchain, chromadb, google-cloud-*)
               if [ -f "pyproject.toml" ]; then
                 echo "⚡ Installing missing deps via Poetry..."
                 poetry install --no-root --only main --no-interaction 2>/dev/null || true
               fi
-
-              # Install project in dev mode (creates cerebro/phantom scripts)
               echo "📦 Installing cerebro scripts..."
               pip install -e . --no-build-isolation 2>/dev/null
-
               touch .nix-installed
               echo "✅ Cerebro ready!"
             fi
 
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🧠 CEREBRO — Development Environment (Nix)"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "Python: $(python --version 2>&1)"
             echo ""
-            echo "Available commands:"
-            echo "  cerebro ops health           - Verify GCP, Quotas and Environment"
-            echo "  cerebro knowledge analyze .  - Extract AST from current repo"
-            echo "  cerebro rag ingest           - Index artifacts to ChromaDB"
-            echo "  cerebro rag query \"...\"      - Query the Knowledge Base"
-            echo "  cerebro rag rerank           - Rerank retrieved documents with cross‑encoder"
-            echo "  just pipeline                - Run full validation (test + lint)"
-            echo "  pytest tests/                - Run unit tests"
-            echo ""
-            echo "Current status:"
+            echo "Status:"
             if [[ -f "./data/metrics/metrics_snapshot.json" ]]; then
               echo "  📊 Metrics snapshot present"
             else
-              echo "  📊 No metrics snapshot (run 'cscan')"
+              echo "  📊 No metrics snapshot  →  cscan"
             fi
             if [[ -f "./data/analyzed/all_artifacts.jsonl" ]]; then
               echo "  🧠 Artifacts ready"
             else
-              echo "  🧠 No artifacts (run 'canalyze')"
+              echo "  🧠 No artifacts         →  canalyze ."
             fi
             echo ""
-            echo "Data directories:"
-            echo "  ./data/analyzed     - Analyzed artifacts"
-            echo "  ./data/vector_db    - Vector database"
-            echo "  ./data/reports      - Analysis reports"
+            echo "Interfaces:"
+            echo "  cdash            → Dashboard GUI  (http://localhost:5173)"
+            echo "  ctui             → TUI Textual    (terminal)"
+            echo ""
+            echo "  chelp            → quick reference de todos os atalhos"
+            echo "  cerebro --help   → referência completa"
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           '';
         };
