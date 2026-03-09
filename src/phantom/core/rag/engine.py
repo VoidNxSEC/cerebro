@@ -117,19 +117,27 @@ class RigorousRAGEngine:
                 top_k=k
             )
 
+            citations = result.get("citations", [])
+            confidence = result.get("confidence", 0.0)
+            retrieved = len(citations)
+            hit_rate = f"{min(retrieved, k)}/{k} ({int(min(retrieved, k) / k * 100)}%)" if k > 0 else "0%"
+
             return {
                 "answer": result.get("answer", "Could not generate a summary from the retrieved documents."),
+                "error": False,
                 "metrics": {
-                    "avg_confidence": result.get("confidence", 0.0),
-                    "hit_rate_k": "100%" if result.get("citations") else "0%",
-                    "retrieved_docs": len(result.get("citations", [])),
-                    "top_source": result.get("citations", ["N/A"])[0] if result.get("citations") else "N/A",
-                    "citations": result.get("citations", []),
-                    "cost_estimate_usd": result.get("cost_estimate", 0.0)
+                    "avg_confidence": confidence,
+                    "hit_rate_k": hit_rate,
+                    "retrieved_docs": retrieved,
+                    "top_source": citations[0] if citations else "N/A",
+                    "citations": citations,
+                    "snippets": result.get("snippets", []),
+                    "cost_estimate_usd": result.get("cost_estimate", 0.0),
                 },
             }
         except Exception as e:
             return {
-                "answer": f"❌ Error querying Discovery Engine: {str(e)}",
+                "answer": f"Error querying Discovery Engine: {str(e)}",
+                "error": True,
                 "metrics": {"hit_rate_k": "ERR", "avg_confidence": 0.0, "top_source": "N/A"},
             }

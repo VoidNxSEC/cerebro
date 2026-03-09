@@ -29,6 +29,11 @@ class GroundedResponse:
     citations: List[str]
     results: List[SearchResult]
     cost_estimate: float  # USD
+    snippets: List[str] = None  # Short excerpts from top results
+
+    def __post_init__(self):
+        if self.snippets is None:
+            self.snippets = []
 
 
 class VertexAISearch:
@@ -117,17 +122,24 @@ class VertexAISearch:
             "page_size": page_size,
         }
 
-        # Add grounded generation if requested
+        # Add grounded generation if requested.
+        # summary_result_count max is 5 per Discovery Engine limits.
         if include_summary:
             request_kwargs["content_search_spec"] = (
                 discoveryengine.SearchRequest.ContentSearchSpec(
                     summary_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec(
-                        summary_result_count=5,
+                        summary_result_count=min(page_size, 5),
                         include_citations=True,
                         ignore_adversarial_query=True,
-                        ignore_non_summary_seeking_query=True,
+                        ignore_non_summary_seeking_query=False,
                         model_prompt_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec.ModelPromptSpec(
-                            preamble="You are a helpful assistant. Answer based on the provided context."
+                            preamble=(
+                                "You are Cerebro, an expert code analysis assistant. "
+                                "Answer questions about the codebase using only the provided context. "
+                                "Be concise and precise. Include relevant file paths, function names, "
+                                "and code snippets when available. If the context does not contain "
+                                "enough information to answer, say so clearly."
+                            ),
                         ),
                     ),
                     snippet_spec=discoveryengine.SearchRequest.ContentSearchSpec.SnippetSpec(
@@ -147,22 +159,36 @@ class VertexAISearch:
             if hasattr(response, 'summary') and response.summary:
                 summary_text = response.summary.summary_text
 
-                if hasattr(response.summary, 'summary_with_metadata'):
-                    citations = [
-                        getattr(ref, 'title', str(ref))
-                        for ref in response.summary.summary_with_metadata.references
-                    ]
+                # Extract citations from summary_with_metadata (preferred)
+                if hasattr(response.summary, 'summary_with_metadata') and \
+                        response.summary.summary_with_metadata:
+                    for ref in response.summary.summary_with_metadata.references:
+                        title = getattr(ref, 'title', None) or getattr(ref, 'uri', None)
+                        if title:
+                            citations.append(title)
+
+                # Fallback: extract from search results titles
+                if not citations and hasattr(response, 'results'):
+                    for result in response.results:
+                        doc = result.document
+                        title = doc.derived_struct_data.get('title') or \
+                                doc.derived_struct_data.get('link')
+                        if title:
+                            citations.append(title)
 
             # Parse results
             results = []
+            top_snippets = []
             for result in response.results:
                 doc = result.document
 
                 title = doc.derived_struct_data.get('title', 'Untitled')
 
                 # Extract snippet
-                snippets = doc.derived_struct_data.get('snippets', [])
-                snippet = snippets[0].get('snippet', '') if snippets else ''
+                raw_snippets = doc.derived_struct_data.get('snippets', [])
+                snippet = raw_snippets[0].get('snippet', '') if raw_snippets else ''
+                if snippet:
+                    top_snippets.append(snippet[:300])
 
                 link = doc.derived_struct_data.get('link')
 
@@ -180,7 +206,8 @@ class VertexAISearch:
                 summary=summary_text,
                 citations=citations,
                 results=results,
-                cost_estimate=cost_estimate
+                cost_estimate=cost_estimate,
+                snippets=top_snippets,
             )
 
         except Exception as e:

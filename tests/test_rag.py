@@ -7,13 +7,23 @@ import json
 import pytest
 from unittest.mock import MagicMock, patch, mock_open
 
-# Mock heavy dependencies at import time so the module loads cleanly
-with patch.dict("sys.modules", {
+# Mock heavy dependencies at import time so the module loads cleanly.
+# Must cover the full import chain that engine.py triggers:
+#   engine -> vertex_ai_llm -> google.cloud.discoveryengine_v1beta, google.auth
+#   engine -> chroma_vector_store (chromadb is lazy-imported inside __init__, OK)
+_GCP_MOCKS = {
+    "google": MagicMock(),
     "google.cloud": MagicMock(),
     "google.cloud.storage": MagicMock(),
+    "google.cloud.discoveryengine_v1beta": MagicMock(),
     "google.api_core": MagicMock(),
     "google.api_core.exceptions": MagicMock(),
-}):
+    "google.auth": MagicMock(),
+    "google.auth.credentials": MagicMock(),
+    "langchain_google_vertexai": MagicMock(),
+}
+
+with patch.dict("sys.modules", _GCP_MOCKS):
     from phantom.core.rag import engine as _rag_engine_mod
     RigorousRAGEngine = _rag_engine_mod.RigorousRAGEngine
 
@@ -116,8 +126,9 @@ def test_query_with_metrics_no_data(mock_llm_provider, mock_vector_store_provide
     result = engine.query_with_metrics("test query")
 
     assert "No answer" in result["answer"]
+    assert result["error"] is False
     assert result["metrics"]["avg_confidence"] == 0.0
-    assert result["metrics"]["hit_rate_k"] == "0%"
+    assert "0/5" in result["metrics"]["hit_rate_k"]
 
 
 def test_query_with_metrics_success(mock_llm_provider, mock_vector_store_provider):
@@ -137,6 +148,7 @@ def test_query_with_metrics_success(mock_llm_provider, mock_vector_store_provide
     result = engine.query_with_metrics("What does hello do?")
 
     assert "hello" in result["answer"]
+    assert result["error"] is False
     assert result["metrics"]["avg_confidence"] == 0.95
-    assert result["metrics"]["hit_rate_k"] == "100%"
+    assert "1/5" in result["metrics"]["hit_rate_k"]
     assert len(result["metrics"]["citations"]) > 0

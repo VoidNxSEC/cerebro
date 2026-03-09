@@ -456,6 +456,7 @@ def rag_ingest(source_file: str = "./data/analyzed/all_artifacts.jsonl"):
 def rag_query(
     question: str,
     rerank: bool = typer.Option(False, "--rerank", "-r", help="Rerank citations with cross‑encoder for better relevance"),
+    top_k: int = typer.Option(5, "--top-k", "-k", help="Number of results to retrieve"),
 ):
     """
     Query the Cloud RAG (Discovery Engine) with Grounded Generation.
@@ -464,50 +465,58 @@ def rag_query(
         from phantom.core.rag.engine import RigorousRAGEngine
     except ImportError:
         console.print(
-            "[red]❌ GCP dependencies missing. Install with: poetry install[/red]"
+            "[red]❌ GCP dependencies missing. Run: nix develop[/red]"
         )
         return
 
     engine = RigorousRAGEngine()
-    console.print(f"🔎 Searching cloud: [italic]{question}[/italic]...")
 
-    result = engine.query_with_metrics(question)
+    with console.status(f"[cyan]Searching: {question}[/cyan]", spinner="dots"):
+        result = engine.query_with_metrics(question, k=top_k)
 
-    if "❌ Erro" in result["answer"]:
-        console.print(result["answer"])
+    if result.get("error"):
+        console.print(f"[red]❌ {result['answer']}[/red]")
         return
 
     # Display Answer
     console.print(
-        Panel(result["answer"], title="🤖 CEREBRO (Grounded Answer)", border_style="green")
+        Panel(result["answer"], title="🤖 CEREBRO — Grounded Answer", border_style="green")
     )
 
-    # Display Cloud Metrics
+    # Display Metrics
     metrics = result["metrics"]
-    table = Table(title="Cloud RAG Metrics (GenAI App Builder Credits)")
+    table = Table(title="RAG Metrics")
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="magenta")
 
-    table.add_row("Hit Rate (@k=5)", metrics["hit_rate_k"])
-    table.add_row("Top Source", metrics["top_source"])
+    table.add_row("Hit Rate", metrics["hit_rate_k"])
+    table.add_row("Top Source", str(metrics["top_source"])[:80])
     table.add_row("Citations", str(len(metrics.get("citations", []))))
-    table.add_row("Est. Cost (Credits)", f"${metrics.get('cost_estimate_usd', 0.004):.4f}")
+    table.add_row("Est. Cost", f"${metrics.get('cost_estimate_usd', 0.004):.4f}")
 
     console.print(table)
+
+    # Show top snippet previews if available
+    snippets = metrics.get("snippets", [])
+    if snippets:
+        console.print("\n[bold]🔍 Relevant Excerpts:[/bold]")
+        for i, s in enumerate(snippets[:3], 1):
+            preview = s[:200] + "..." if len(s) > 200 else s
+            console.print(f"  [dim]{i}.[/dim] {preview}")
 
     if metrics.get("citations"):
         citations = metrics["citations"]
         if rerank:
             try:
-                from phantom.core.rerank import rerank as rerank_fn
+                from phantom.core.rerank_client import CerebroRerankerClient
             except ImportError:
-                console.print("[yellow]⚠️  sentence‑transformers not installed, skipping rerank.[/yellow]")
+                console.print("[yellow]⚠️  Reranker not available, skipping rerank.[/yellow]")
             else:
-                console.print("[cyan]🧠 Reranking citations with cross‑encoder...[/cyan]")
-                ranked = rerank_fn(question, citations, top_k=len(citations))
-                # Reorder citations by ranking
+                with console.status("[cyan]Reranking citations...[/cyan]", spinner="dots"):
+                    client = CerebroRerankerClient()
+                    ranked = client.rerank(question, citations, top_k=len(citations))
                 citations = [doc for _, _, doc in ranked]
-                # Optional: show scores in a separate table
+
         console.print("\n[bold]📚 Cited Sources:[/bold]")
         for c in citations:
             console.print(f"  • {c}")
@@ -520,12 +529,12 @@ def rag_rerank(
     top_k: int = typer.Option(10, "--top-k", "-k", help="Number of top results to return"),
 ):
     """
-    Rerank documents using a cross‑encoder model.
+    Rerank documents using a cross‑encoder model (service or local fallback).
     """
     try:
-        from phantom.core.rerank import rerank
+        from phantom.core.rerank_client import CerebroRerankerClient
     except ImportError:
-        console.print("[red]❌ sentence‑transformers not installed. Install with: poetry install[/red]")
+        console.print("[red]❌ Reranker not available. Run: nix develop[/red]")
         return
 
     import json
@@ -536,23 +545,34 @@ def rag_rerank(
         console.print(f"[red]❌ Documents file not found: {path}[/red]")
         return
 
-    # Load documents
+    # Load documents — support both flat {"content": "..."} and nested {"jsonData": "{...}"}
     documents = []
     with open(path, 'r') as f:
-        for line in f:
-            data = json.loads(line)
-            # Extract text from jsonData field
-            json_data = json.loads(data.get("jsonData", "{}"))
-            text = json_data.get("content", "")
-            if text:
-                documents.append(text)
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                data = json.loads(line)
+                # Flat content field
+                text = data.get("content", "")
+                # Nested jsonData field (double-encoded JSON)
+                if not text and "jsonData" in data:
+                    json_data = json.loads(data["jsonData"]) if isinstance(data["jsonData"], str) else data["jsonData"]
+                    text = json_data.get("content", "")
+                if text:
+                    documents.append(text)
+            except (json.JSONDecodeError, TypeError):
+                console.print(f"[yellow]⚠️  Skipping malformed line {line_num}[/yellow]")
 
     if not documents:
-        console.print("[yellow]⚠️  No documents with content found.[/yellow]")
+        console.print("[yellow]⚠️  No documents with content found in the file.[/yellow]")
         return
 
-    console.print(f"🔍 Reranking {len(documents)} documents for query: [cyan]{query}[/cyan]")
-    ranked = rerank(query, documents, top_k=top_k)
+    console.print(f"🔍 Reranking {len(documents)} documents for: [cyan]{query}[/cyan]")
+    with console.status("[cyan]Running cross‑encoder reranker...[/cyan]", spinner="dots"):
+        client = CerebroRerankerClient()
+        ranked = client.rerank(query, documents, top_k=top_k)
 
     table = Table(title=f"Reranked Results (Top‑{top_k})")
     table.add_column("Rank", style="dim")

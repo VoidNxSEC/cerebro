@@ -72,10 +72,8 @@
             fastapi
             uvicorn
 
-            # ML/AI (CPU-only)
-            torch-bin  # Prebuilt binary, faster (NO torch regular!)
-            transformers
-            # sentence-transformers  # Depende de torch, instalar via Poetry
+            # ML/AI: torch + transformers installed via Poetry (torch-bin quebrou no nixpkgs-unstable 2.10.0)
+            # sentence-transformers também via Poetry
 
             # Code Analysis
             tree-sitter
@@ -114,11 +112,8 @@
             pkgs.git
             pkgs.stdenv.cc.cc.lib
             pkgs.zlib
-            pkgs.llama-cpp # For local model testing
-          ]
-          ++ (pkgs.lib.optionals pkgs.stdenv.isLinux [
-            pkgs.cudaPackages.cudatoolkit
-          ]);
+            # pkgs.llama-cpp  # Removido: puxa CUDA pesado, instalar separado se necessário
+          ];
 
           shellHook = ''
             export PYTHONPATH="$PWD/src:$PYTHONPATH"

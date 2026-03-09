@@ -210,6 +210,7 @@ class VertexAILLMProvider(LLMProvider):
             return {
                 "answer": response.summary or "No answer could be generated from the available context.",
                 "citations": response.citations,
+                "snippets": response.snippets,
                 "confidence": 1.0 if response.summary else 0.0,
                 "cost_estimate": response.cost_estimate,
             }
