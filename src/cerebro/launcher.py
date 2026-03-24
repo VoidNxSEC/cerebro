@@ -84,7 +84,7 @@ def launch_gui():
 
         print("\n✅ Cerebro Dashboard is running!")
         print("   Backend:  http://localhost:8000")
-        print("   Frontend: http://localhost:5173")
+        print("   Frontend: http://localhost:18321")
         print("\nPress Ctrl+C to stop both servers\n")
 
         # Wait for user interrupt

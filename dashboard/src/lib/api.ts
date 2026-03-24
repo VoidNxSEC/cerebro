@@ -1,6 +1,6 @@
 /**
  * API Client for Cerebro Backend
- * Connects to Phantom Judge API (FastAPI) on localhost:8000
+ * Connects to Cerebro API (FastAPI) on localhost:8000
  */
 
 import type {
@@ -37,8 +37,8 @@ class ApiClient {
     }
 
     // Status & Health
-    async getStatus(): Promise<SystemStatus> {
-        return this.fetch<SystemStatus>('/status')
+    async getStatus(): Promise<EcosystemStatus> {
+        return this.fetch<EcosystemStatus>('/status')
     }
 
     async getHealth(): Promise<{ status: string; timestamp: string }> {
