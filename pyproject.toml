@@ -7,11 +7,11 @@ readme = "README.md"
 requires-python = ">=3.13"
 
 [project.scripts]
-phantom = "phantom.launcher:main"
-cerebro = "phantom.launcher:main"
+phantom = "cerebro.launcher:main"
+cerebro = "cerebro.launcher:main"
 
 [tool.poetry]
-packages = [{ include = "phantom", from = "src" }]
+packages = [{ include = "cerebro", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.15"

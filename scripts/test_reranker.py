@@ -11,7 +11,7 @@ from typing import List
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "../src"))
 
-from phantom.core.rerank import rerank, get_reranker_client
+from cerebro.core.rerank import rerank, get_reranker_client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,7 +47,7 @@ def test_reranking():
     logger.info("\n--- Testing Fallback (Invalid URL) ---")
     
     # Force a new client with bad URL
-    from phantom.core.rerank_client import CerebroRerankerClient
+    from cerebro.core.rerank_client import CerebroRerankerClient
     bad_client = CerebroRerankerClient(service_url="http://localhost:9999", timeout=0.5)
     
     try:

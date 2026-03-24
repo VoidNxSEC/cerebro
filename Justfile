@@ -10,7 +10,7 @@ test:
 
 # Run unit tests only
 test-unit:
-    pytest tests/ -v --ignore=tests/integration --cov=src/phantom --cov-report=term
+    pytest tests/ -v --ignore=tests/integration --cov=src/cerebro --cov-report=term
 
 # Run integration tests only
 test-integration:
@@ -38,7 +38,7 @@ format:
 
 # Type checking with mypy
 type-check:
-    mypy src/phantom --ignore-missing-imports
+    mypy src/cerebro --ignore-missing-imports
 
 # Run all quality checks (lint + format + tests)
 quality: lint format type-check test
@@ -59,13 +59,13 @@ ci-local:
 
 # Validate imports
 validate-imports:
-    python -c "from phantom.core import gcp"
-    python -c "from phantom.core.rag import engine"
+    python -c "from cerebro.core import gcp"
+    python -c "from cerebro.core.rag import engine"
     python -c "import typer; import rich"
 
 # Validate syntax
 validate-syntax:
-    find src/phantom/ -name "*.py" -exec python -m py_compile {} \;
+    find src/cerebro/ -name "*.py" -exec python -m py_compile {} \;
 
 # Run CLI tests
 test-cli:

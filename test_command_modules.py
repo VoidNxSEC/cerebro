@@ -20,7 +20,7 @@ def test_module(module_name: str, app_name: str):
         print(f"{'='*60}")
 
         # Import the module
-        module = __import__(f"phantom.commands.{module_name}", fromlist=[app_name])
+        module = __import__(f"cerebro.commands.{module_name}", fromlist=[app_name])
         app = getattr(module, app_name)
 
         # Try to access the app's info (this triggers Typer's internal validation)

@@ -41,22 +41,22 @@ echo ""
 
 # ── 1  Import checks ─────────────────────────────────────────────
 echo "  [Imports]"
-run "MetricsCollector" -c "from phantom.core.metrics_collector import MetricsCollector"
-run "RepoWatcher" -c "from phantom.core.watcher import RepoWatcher"
-run "core.__init__ (guarded gcp)" -c "import phantom.core"
+run "MetricsCollector" -c "from cerebro.core.metrics_collector import MetricsCollector"
+run "RepoWatcher" -c "from cerebro.core.watcher import RepoWatcher"
+run "core.__init__ (guarded gcp)" -c "import cerebro.core"
 echo ""
 
 # ── 2  Discovery ─────────────────────────────────────────────────
 echo "  [Discovery]"
 run "discover_repos returns >= 30 repos" -c "
-from phantom.core.metrics_collector import MetricsCollector
+from cerebro.core.metrics_collector import MetricsCollector
 repos = MetricsCollector('/home/kernelcore/arch').discover_repos()
 assert len(repos) >= 30, f'only {len(repos)} repos'
 print(f'{len(repos)} repos discovered')
 "
 
 run "no duplicate repo names" -c "
-from phantom.core.metrics_collector import MetricsCollector
+from cerebro.core.metrics_collector import MetricsCollector
 repos = MetricsCollector('/home/kernelcore/arch').discover_repos()
 names = [r.name for r in repos]
 dupes = [n for n in set(names) if names.count(n) > 1]
@@ -67,7 +67,7 @@ echo ""
 # ── 3  Full scan + snapshot ──────────────────────────────────────
 echo "  [Scan & Snapshot]"
 run "collect_all completes and saves snapshot" -c "
-from phantom.core.metrics_collector import MetricsCollector
+from cerebro.core.metrics_collector import MetricsCollector
 mc = MetricsCollector('/home/kernelcore/arch')
 results = mc.collect_all()
 assert len(results) >= 30, f'only {len(results)} results'
@@ -142,7 +142,7 @@ echo ""
 # ── 5  Watcher class smoke ───────────────────────────────────────
 echo "  [Watcher]"
 run "RepoWatcher instantiation + tracked_count" -c "
-from phantom.core.watcher import RepoWatcher
+from cerebro.core.watcher import RepoWatcher
 w = RepoWatcher(arch_path='/home/kernelcore/arch', poll_interval=10)
 # not started — tracked_count is 0 until start()
 assert w.tracked_count == 0
@@ -152,7 +152,7 @@ print('RepoWatcher constructed OK')
 "
 
 run "get_head_hash returns 40-char SHA (non-empty repo)" -c "
-from phantom.core.metrics_collector import MetricsCollector
+from cerebro.core.metrics_collector import MetricsCollector
 mc = MetricsCollector('/home/kernelcore/arch')
 for repo in mc.discover_repos():
     h = mc.get_head_hash(repo)

@@ -9,8 +9,8 @@ validate:imports:
     - curl -sSL https://install.python-poetry.org | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry install --no-root
-    - poetry run python -c "from phantom.core import gcp"
-    - poetry run python -c "from phantom.modules import credit_burner"
+    - poetry run python -c "from cerebro.core import gcp"
+    - poetry run python -c "from cerebro.modules import credit_burner"
     - poetry run python -c "import typer; import rich"
   cache:
     paths:
@@ -28,7 +28,7 @@ validate:syntax:
     - curl -sSL https://install.python-poetry.org | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry install --no-root
-    - find src/phantom/ -name "*.py" -exec python -m py_compile {} \;
+    - find src/cerebro/ -name "*.py" -exec python -m py_compile {} \;
   cache:
     paths:
       - .venv/

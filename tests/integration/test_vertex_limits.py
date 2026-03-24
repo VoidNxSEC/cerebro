@@ -13,8 +13,8 @@ import os
 from unittest.mock import MagicMock, patch
 from google.api_core import exceptions
 
-from phantom.providers.gcp.vertex_ai_llm import VertexAILLMProvider
-from phantom.interfaces.llm import LLMProvider
+from cerebro.providers.gcp.vertex_ai_llm import VertexAILLMProvider
+from cerebro.interfaces.llm import LLMProvider
 
 
 @pytest.mark.integration
@@ -34,7 +34,7 @@ class TestVertexAILimits:
         """Test that embed_batch implements exponential backoff on rate limit."""
         texts = ["text1", "text2", "text3"]
         
-        with patch("phantom.providers.gcp.vertex_ai_llm.VertexAIEmbeddings") as mock_embeddings:
+        with patch("cerebro.providers.gcp.vertex_ai_llm.VertexAIEmbeddings") as mock_embeddings:
             # Simulate rate limit on first call, success on retry
             mock_instance = mock_embeddings.return_value
             mock_instance.embed_documents.side_effect = [
@@ -51,7 +51,7 @@ class TestVertexAILimits:
         """Test that embed_batch raises error after max retries."""
         texts = ["text1", "text2"]
         
-        with patch("phantom.providers.gcp.vertex_ai_llm.VertexAIEmbeddings") as mock_embeddings:
+        with patch("cerebro.providers.gcp.vertex_ai_llm.VertexAIEmbeddings") as mock_embeddings:
             # Always fail with rate limit
             mock_instance = mock_embeddings.return_value
             mock_instance.embed_documents.side_effect = exceptions.ResourceExhausted(
@@ -69,7 +69,7 @@ class TestVertexAILimits:
         texts = [f"text{i}" for i in range(100)]
         batch_size = 20
         
-        with patch("phantom.providers.gcp.vertex_ai_llm.VertexAIEmbeddings") as mock_embeddings:
+        with patch("cerebro.providers.gcp.vertex_ai_llm.VertexAIEmbeddings") as mock_embeddings:
             mock_instance = mock_embeddings.return_value
             # Return appropriate number of embeddings for each batch
             mock_instance.embed_documents.side_effect = [
@@ -166,7 +166,7 @@ class TestCreditConsumption:
 
     def test_search_enterprise_cost_calculation(self):
         """Test that search cost is calculated correctly."""
-        from phantom.core.gcp.search import VertexAISearch
+        from cerebro.core.gcp.search import VertexAISearch
         
         search = VertexAISearch(
             project_id="test-project",
@@ -223,9 +223,9 @@ class TestBatchProcessing:
 
     def test_ingest_with_batching(self):
         """Test that ingest properly batches documents."""
-        from phantom.core.rag.engine import RigorousRAGEngine
-        from phantom.interfaces.llm import LLMProvider
-        from phantom.interfaces.vector_store import VectorStoreProvider
+        from cerebro.core.rag.engine import RigorousRAGEngine
+        from cerebro.interfaces.llm import LLMProvider
+        from cerebro.interfaces.vector_store import VectorStoreProvider
         
         # Create mock providers
         mock_llm = MagicMock(spec=LLMProvider)
@@ -257,7 +257,7 @@ class TestBatchProcessing:
             temp_path = f.name
         
         try:
-            with patch("phantom.core.rag.engine.storage.Client"):
+            with patch("cerebro.core.rag.engine.storage.Client"):
                 count = engine.ingest(temp_path)
                 assert count == 50
         finally:

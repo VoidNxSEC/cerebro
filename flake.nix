@@ -1,5 +1,5 @@
 {
-  description = "PHANTOM Cerebro - Knowledge Extraction & RAG Framework";
+  description = "Cerebro - Knowledge Extraction & RAG Framework";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

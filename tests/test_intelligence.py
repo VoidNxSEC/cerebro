@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from phantom.intelligence.core import (
+from cerebro.intelligence.core import (
     IntelligenceType,
     ThreatLevel,
     ProjectStatus,

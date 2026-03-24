@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 def measure_import_time():
     """Measure TUI import time."""
     start = time.time()
-    from phantom.tui.app import CerebroApp
+    from cerebro.tui.app import CerebroApp
     import_time = (time.time() - start) * 1000  # ms
     return import_time
 
@@ -32,7 +32,7 @@ def measure_memory():
 
 def benchmark_cache_performance():
     """Benchmark cache performance."""
-    from phantom.tui.performance import Cache
+    from cerebro.tui.performance import Cache
 
     cache = Cache(ttl=60)
 
@@ -61,7 +61,7 @@ def benchmark_cache_performance():
 
 def benchmark_ring_buffer():
     """Benchmark ring buffer performance."""
-    from phantom.tui.performance import RingBuffer
+    from cerebro.tui.performance import RingBuffer
 
     buffer = RingBuffer(maxlen=1000)
 

@@ -2,7 +2,7 @@
 
 from typer.testing import CliRunner
 
-from phantom.cli import app
+from cerebro.cli import app
 
 runner = CliRunner()
 
@@ -17,7 +17,7 @@ def test_info_command():
 def test_version_command():
     result = runner.invoke(app, ["version"])
     assert result.exit_code == 0
-    from phantom import __version__
+    from cerebro import __version__
     assert f"v{__version__}" in result.stdout
 
 

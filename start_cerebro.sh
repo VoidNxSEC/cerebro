@@ -63,9 +63,9 @@ start_backend() {
 
     # Check if poetry is available
     if command -v poetry &> /dev/null; then
-        poetry run uvicorn phantom.api.server:app --host 0.0.0.0 --port 8000 --reload &
+        poetry run uvicorn cerebro.api.server:app --host 0.0.0.0 --port 8000 --reload &
     else
-        python -m uvicorn phantom.api.server:app --host 0.0.0.0 --port 8000 --reload &
+        python -m uvicorn cerebro.api.server:app --host 0.0.0.0 --port 8000 --reload &
     fi
 
     BACKEND_PID=$!

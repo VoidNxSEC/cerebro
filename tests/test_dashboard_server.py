@@ -66,12 +66,12 @@ SAMPLE_SNAPSHOT = {
 @pytest.fixture
 def client():
     """Create a TestClient with mocked MetricsCollector."""
-    with patch("phantom.dashboard_server._collector") as mock_coll:
+    with patch("cerebro.dashboard_server._collector") as mock_coll:
         mock_coll.load_snapshot.return_value = SAMPLE_SNAPSHOT
         mock_coll.discover_repos.return_value = [MagicMock()] * 2
         mock_coll.collect_all.return_value = [MagicMock(), MagicMock()]
 
-        from phantom.dashboard_server import app
+        from cerebro.dashboard_server import app
         with TestClient(app) as c:
             yield c
 
@@ -79,11 +79,11 @@ def client():
 @pytest.fixture
 def empty_client():
     """TestClient where load_snapshot returns None (no data)."""
-    with patch("phantom.dashboard_server._collector") as mock_coll:
+    with patch("cerebro.dashboard_server._collector") as mock_coll:
         mock_coll.load_snapshot.return_value = None
         mock_coll.discover_repos.return_value = []
 
-        from phantom.dashboard_server import app
+        from cerebro.dashboard_server import app
         with TestClient(app) as c:
             yield c
 

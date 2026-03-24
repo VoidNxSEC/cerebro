@@ -32,8 +32,8 @@ cat > "$REPORT_FILE" <<'EOF'
 - [__STATUS_STATUS__] `cerebro status`
 
 ### Python Imports
-- [__STATUS_IMPORT_CORE__] `from phantom.core import gcp`
-- [__STATUS_IMPORT_MODULE__] `from phantom.modules import credit_burner`
+- [__STATUS_IMPORT_CORE__] `from cerebro.core import gcp`
+- [__STATUS_IMPORT_MODULE__] `from cerebro.modules import credit_burner`
 - [__STATUS_IMPORT_TYPER__] `import typer`
 - [__STATUS_IMPORT_RICH__] `import rich`
 

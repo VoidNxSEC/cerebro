@@ -24,11 +24,11 @@ _GCP_MOCKS = {
 }
 
 with patch.dict("sys.modules", _GCP_MOCKS):
-    from phantom.core.rag import engine as _rag_engine_mod
+    from cerebro.core.rag import engine as _rag_engine_mod
     RigorousRAGEngine = _rag_engine_mod.RigorousRAGEngine
 
-from phantom.interfaces.llm import LLMProvider
-from phantom.interfaces.vector_store import VectorStoreProvider
+from cerebro.interfaces.llm import LLMProvider
+from cerebro.interfaces.vector_store import VectorStoreProvider
 
 
 @pytest.fixture

@@ -97,17 +97,17 @@ echo "════════════════════════�
 echo "  BASIC COMMANDS"
 echo "═══════════════════════════════════════════════════════════"
 
-test_command "cerebro --help" "python -m phantom.cli --help"
-test_command "cerebro info" "python -m phantom.cli info"
-test_command "cerebro version" "python -m phantom.cli version"
+test_command "cerebro --help" "python -m cerebro.cli --help"
+test_command "cerebro info" "python -m cerebro.cli info"
+test_command "cerebro version" "python -m cerebro.cli version"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
 echo "  PYTHON IMPORTS"
 echo "═══════════════════════════════════════════════════════════"
 
-test_command "Import phantom.core" "python -c 'from phantom.core import rag'"
-test_command "Import phantom.modules" "python -c 'from phantom.cli import app'"
+test_command "Import cerebro.core" "python -c 'from cerebro.core import rag'"
+test_command "Import cerebro.modules" "python -c 'from cerebro.cli import app'"
 test_command "Import typer" "python -c 'import typer'"
 test_command "Import rich" "python -c 'import rich'"
 
@@ -116,7 +116,7 @@ echo "════════════════════════�
 echo "  INVALID COMMANDS (should fail)"
 echo "═══════════════════════════════════════════════════════════"
 
-test_command "cerebro invalid" "python -m phantom.cli invalid_command 2>&1 | grep -q 'Usage:'"
+test_command "cerebro invalid" "python -m cerebro.cli invalid_command 2>&1 | grep -q 'Usage:'"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

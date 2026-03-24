@@ -29,7 +29,7 @@ fi
 
 # Run the server
 cd "$(dirname "$0")"
-python -m uvicorn phantom.core.embedding_server:app \
+python -m uvicorn cerebro.core.embedding_server:app \
     --host 0.0.0.0 \
     --port "$PORT" \
     --log-level info \

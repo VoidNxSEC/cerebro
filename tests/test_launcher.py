@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from phantom.launcher import detect_environment
+from cerebro.launcher import detect_environment
 
 
 class TestDetectEnvironment:

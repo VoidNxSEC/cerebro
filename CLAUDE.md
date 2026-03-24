@@ -11,20 +11,14 @@
 | Scope | Name |
 |-------|------|
 | Product / CLI | **Cerebro** (`cerebro` command) |
-| Python package dir | `src/phantom/` (kept for backward compat — do NOT rename) |
+| Python package dir | `src/cerebro/` |
 | CLI entrypoints | Both `cerebro` and `phantom` work (backward compat) |
-| Imports in code | `from phantom.core...` (internal, not user-facing) |
+| Imports in code | `from cerebro.core...` |
 
-### Why `src/phantom/` still exists
+### Rename History
 
-The internal package is `phantom` for historical reasons. The product name is **Cerebro**.
-Renaming `src/phantom/` → `src/cerebro/` affects **71 Python files + CI/scripts** and is
-**deliberately postponed** until a dedicated migration sprint. Do NOT start a partial rename.
-
-When the rename happens it will be done atomically:
-1. `sed -i 's/from phantom\./from cerebro./g'` across all files
-2. Update `pyproject.toml` package declaration
-3. Update all shell scripts and CI refs in one commit
+The package was renamed from `src/phantom/` to `src/cerebro/` in March 2026.
+The `phantom` CLI entrypoint is kept as a backward-compat alias in pyproject.toml.
 
 ## Language Rules
 
@@ -41,7 +35,7 @@ When the rename happens it will be done atomically:
 ## Project Structure
 
 ```
-src/phantom/           # Python package (internal name)
+src/cerebro/           # Python package
   cli.py               # CLI entrypoint (Typer)
   tui/                 # Terminal UI (Textual)
   core/                # Business logic
@@ -63,14 +57,14 @@ docs/
 |---------|------|------|
 | **cerebro-reranker** | `~/master/cerebro-reranker` | Primary reranker (HybridEngine: MiniLM → Electra → DeBERTa). API: `POST /v1/rerank`. GCP Vertex Search is the **fallback**. |
 
-Integration point: `src/phantom/core/rerank_client.py` → `CerebroRerankerClient`.
+Integration point: `src/cerebro/core/rerank_client.py` → `CerebroRerankerClient`.
 Endpoint: `http://localhost:8000` (env: `CEREBRO_RERANKER_URL`).
 
 ## Dashboard Backend
 
-- Launcher (`src/phantom/launcher.py`) starts **`phantom.api.server:app`** on port 8000.
-- `src/phantom/dashboard_server.py` is a **legacy stub** — do NOT use or extend it.
-- All new dashboard endpoints go in `src/phantom/api/server.py`.
+- Launcher (`src/cerebro/launcher.py`) starts **`cerebro.api.server:app`** on port 8000.
+- `src/cerebro/dashboard_server.py` is a **legacy stub** — do NOT use or extend it.
+- All new dashboard endpoints go in `src/cerebro/api/server.py`.
 
 ## Key ADRs
 

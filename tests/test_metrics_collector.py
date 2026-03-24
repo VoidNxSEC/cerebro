@@ -8,7 +8,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from phantom.core.metrics_collector import (
+from cerebro.core.metrics_collector import (
     MetricsCollector,
     RepoMetricsSnapshot,
     LANG_EXTENSIONS,
@@ -115,7 +115,7 @@ class TestCollectGitMetrics:
     def test_git_output_timeout(self, tmp_arch):
         """_git_output returns empty string on timeout."""
         repo_path = tmp_arch / "my-project"
-        with patch("phantom.core.metrics_collector.subprocess.run", side_effect=subprocess.TimeoutExpired("git", 15)):
+        with patch("cerebro.core.metrics_collector.subprocess.run", side_effect=subprocess.TimeoutExpired("git", 15)):
             result = MetricsCollector._git_output(repo_path, ["log"])
             assert result == ""
 

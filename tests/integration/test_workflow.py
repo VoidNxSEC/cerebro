@@ -3,10 +3,10 @@ import os
 import shutil
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from phantom.core.extraction.analyze_code import HermeticAnalyzer, RepoMetrics
-from phantom.core.rag.engine import RigorousRAGEngine
-from phantom.interfaces.llm import LLMProvider
-from phantom.interfaces.vector_store import VectorStoreProvider
+from cerebro.core.extraction.analyze_code import HermeticAnalyzer, RepoMetrics
+from cerebro.core.rag.engine import RigorousRAGEngine
+from cerebro.interfaces.llm import LLMProvider
+from cerebro.interfaces.vector_store import VectorStoreProvider
 
 @pytest.mark.integration
 class TestPhantomWorkflow:
@@ -64,7 +64,7 @@ class TestPhantomWorkflow:
         mock_vector_store.add_documents.return_value = 1
         
         # Mock GCS storage
-        with patch("phantom.core.rag.engine.storage.Client") as mock_storage:
+        with patch("cerebro.core.rag.engine.storage.Client") as mock_storage:
             mock_bucket = MagicMock()
             mock_storage.return_value.get_bucket.return_value = mock_bucket
             

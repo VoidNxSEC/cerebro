@@ -42,11 +42,11 @@ echo "════════════════════════�
 echo "  Job: Import Tests"
 echo "═══════════════════════════════════════════════════════════"
 
-run_test "Import phantom.core.gcp" \
-  "nix develop -c python -c 'from phantom.core import gcp'"
+run_test "Import cerebro.core.gcp" \
+  "nix develop -c python -c 'from cerebro.core import gcp'"
 
-run_test "Import phantom.modules.credit_burner" \
-  "nix develop -c python -c 'from phantom.modules import credit_burner'"
+run_test "Import cerebro.modules.credit_burner" \
+  "nix develop -c python -c 'from cerebro.modules import credit_burner'"
 
 run_test "Import typer" \
   "nix develop -c python -c 'import typer'"
@@ -79,7 +79,7 @@ echo "  Job: Syntax Check"
 echo "═══════════════════════════════════════════════════════════"
 
 run_test "Check all Python files" \
-  "nix develop -c bash -c 'find src/phantom/ -name \"*.py\" -exec python -m py_compile {} \;'"
+  "nix develop -c bash -c 'find src/cerebro/ -name \"*.py\" -exec python -m py_compile {} \;'"
 
 # Job 4: Unit Tests
 echo ""

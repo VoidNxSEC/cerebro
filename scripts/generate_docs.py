@@ -5,13 +5,13 @@ from pathlib import Path
 def generate_docs():
     """
     Generates documentation for Cerebro CLI commands by parsing 
-    src/phantom/cli.py directly.
+    src/cerebro/cli.py directly.
     """
     print("📚 Starting Documentation Generation...")
     
-    cli_path = Path("src/phantom/cli.py")
+    cli_path = Path("src/cerebro/cli.py")
     if not cli_path.exists():
-        print("❌ src/phantom/cli.py not found.")
+        print("❌ src/cerebro/cli.py not found.")
         return
 
     content = cli_path.read_text()
@@ -153,7 +153,7 @@ def generate_docs():
 * `Exit Code 1`: Falha na execução ou dependência ausente.
 
 ## 6. Dependências
-* Módulo: `src/phantom/cli.py`
+* Módulo: `src/cerebro/cli.py`
 * Função: `{cmd['func_name']}`
 
 ## 7. Testes
