@@ -84,6 +84,13 @@ export interface Briefing {
   }>
 }
 
+export interface IntelligenceStats {
+  total: number
+  by_type: Record<string, number>
+  by_threat_level: Record<string, number>
+  indexer_stats: Record<string, unknown>
+}
+
 export interface QueryResult {
   query: string
   results: IntelligenceItem[]

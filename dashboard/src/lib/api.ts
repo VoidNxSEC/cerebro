@@ -4,7 +4,7 @@
  */
 
 import type {
-    SystemStatus,
+    EcosystemStatus,
     Project,
     IntelligenceItem,
     IntelligenceStats,

@@ -15,6 +15,17 @@
 | CLI entrypoints | Both `cerebro` and `phantom` work (backward compat) |
 | Imports in code | `from phantom.core...` (internal, not user-facing) |
 
+### Why `src/phantom/` still exists
+
+The internal package is `phantom` for historical reasons. The product name is **Cerebro**.
+Renaming `src/phantom/` → `src/cerebro/` affects **71 Python files + CI/scripts** and is
+**deliberately postponed** until a dedicated migration sprint. Do NOT start a partial rename.
+
+When the rename happens it will be done atomically:
+1. `sed -i 's/from phantom\./from cerebro./g'` across all files
+2. Update `pyproject.toml` package declaration
+3. Update all shell scripts and CI refs in one commit
+
 ## Language Rules
 
 - All user-facing strings (CLI output, TUI labels, docstrings) MUST be in **English**
@@ -45,6 +56,21 @@ docs/
   i18n/                # Portuguese translations
   commands/            # CLI command docs
 ```
+
+## Companion Services
+
+| Service | Repo | Role |
+|---------|------|------|
+| **cerebro-reranker** | `~/master/cerebro-reranker` | Primary reranker (HybridEngine: MiniLM → Electra → DeBERTa). API: `POST /v1/rerank`. GCP Vertex Search is the **fallback**. |
+
+Integration point: `src/phantom/core/rerank_client.py` → `CerebroRerankerClient`.
+Endpoint: `http://localhost:8000` (env: `CEREBRO_RERANKER_URL`).
+
+## Dashboard Backend
+
+- Launcher (`src/phantom/launcher.py`) starts **`phantom.api.server:app`** on port 8000.
+- `src/phantom/dashboard_server.py` is a **legacy stub** — do NOT use or extend it.
+- All new dashboard endpoints go in `src/phantom/api/server.py`.
 
 ## Key ADRs
 

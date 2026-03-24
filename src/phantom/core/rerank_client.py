@@ -33,7 +33,7 @@ class CerebroRerankerClient:
         Initialize the reranker client.
 
         Args:
-            service_url: URL of the reranker service (default: env CEREBRO_RERANKER_URL or localhost:8000)
+            service_url: URL of the reranker service (default: env CEREBRO_RERANKER_URL or localhost:8090)
             timeout: Request timeout in seconds (default: 1.0s)
             mode: Operation mode.
                   - 'service': Prefer service, fallback to local on error.
@@ -41,7 +41,7 @@ class CerebroRerankerClient:
                   - 'hybrid': (Reserved for future complex logic).
         """
         self.service_url = service_url or os.getenv(
-            "CEREBRO_RERANKER_URL", "http://localhost:8000"
+            "CEREBRO_RERANKER_URL", "http://localhost:8090"
         )
         self.timeout = timeout
         self.mode = mode or os.getenv("CEREBRO_RERANKER_MODE", "service")
@@ -93,36 +93,37 @@ class CerebroRerankerClient:
         top_k: Optional[int] = None,
     ) -> List[Tuple[int, float, str]]:
         """
-        Call the external FastAPI service.
-        Expects endpoint POST /rerank
-        Payload: { "query": str, "documents": [str], "top_k": int }
-        Response: { "results": [ { "index": int, "score": float, "document": str } ] }
+        Call the external cerebro-reranker FastAPI service.
+        Endpoint: POST /v1/rerank
+        Payload:  { "query": str, "documents": [str], "top_k": int }
+        Response: { "results": [ { "document": str, "score": float, "model": str, "confidence": float } ] }
         """
-        url = f"{self.service_url}/rerank"
+        url = f"{self.service_url}/v1/rerank"
         payload = {
             "query": query,
             "documents": documents,
-            "top_k": top_k
+            "top_k": top_k or len(documents),
         }
-        
+
+        # Build a reverse index for O(1) lookup
+        doc_to_index: dict[str, int] = {doc: i for i, doc in enumerate(documents)}
+
         start_time = time.time()
         response = requests.post(url, json=payload, timeout=self.timeout)
         response.raise_for_status()
         duration = time.time() - start_time
-        
+
         data = response.json()
         results = data.get("results", [])
-        
+
         logger.debug("Reranked %d docs via service in %.4fs", len(documents), duration)
-        
-        # Convert to expected tuple format: (index, score, document)
-        # The service should return this structure, but we validate/transform just in case
+
+        # Service returns {document, score, model, confidence} — no index field.
+        # Recover original index via reverse lookup; fall back to position in result list.
         formatted_results = []
-        for res in results:
-            formatted_results.append((
-                res["index"],
-                res["score"],
-                res.get("document", documents[res["index"]]) # Fallback to looking up doc if not returned
-            ))
-            
+        for pos, res in enumerate(results):
+            doc_text = res.get("document", "")
+            original_index = doc_to_index.get(doc_text, pos)
+            formatted_results.append((original_index, res["score"], doc_text))
+
         return formatted_results

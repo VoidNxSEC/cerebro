@@ -572,7 +572,7 @@ async def broadcast(message: Dict[str, Any]):
 
 # ==================== AI Features ====================
 
-@app.post("/summarize")
+@app.post("/actions/summarize/{project_name}")
 async def summarize_project(project_name: str):
     """Generate AI summary for a project."""
     if not cerebro:
@@ -589,25 +589,17 @@ async def summarize_project(project_name: str):
         limit=50,
     )
 
-    # Build summary (placeholder for LLM integration)
-    summary = {
-        "project": project_name,
-        "description": project.description,
-        "languages": project.languages,
-        "health_score": project.health_score,
-        "key_points": [
-            f"Primary languages: {', '.join(project.languages)}",
-            f"Health score: {project.health_score}%",
-            f"Status: {project.status.value}",
-            f"Intelligence items: {len(intel_items)}",
-        ],
-        "recommendations": [],
-    }
-
+    # Build summary text
+    lines = [
+        f"**{project_name}** — {project.description}",
+        f"Languages: {', '.join(project.languages) or 'N/A'}",
+        f"Health score: {project.health_score:.0f}%  |  Status: {project.status.value}",
+        f"Intelligence items: {len(intel_items)}",
+    ]
     if project.health_score < 50:
-        summary["recommendations"].append("Consider improving documentation and test coverage")
+        lines.append("Recommendation: improve documentation and test coverage.")
 
-    return summary
+    return {"summary": "\n".join(lines)}
 
 
 # ==================== Metrics ====================
