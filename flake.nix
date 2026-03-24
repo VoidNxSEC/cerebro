@@ -165,11 +165,11 @@
 # Project environment variables
 export CEREBRO_DATA_DIR="$PWD/data"
 export CEREBRO_VECTOR_DB="$PWD/data/vector_db"
-export GCP_PROJECT_ID="gen-lang-client-0530325234"
-export GCP_REGION="us-central1"
+export GCP_PROJECT_ID="${GCP_PROJECT_ID:-}"
+export GCP_REGION="${GCP_REGION:-us-central1}"
 
 # ── Interface shortcuts ───────────────────────────────────────────────────────
-cdash() { cerebro dashboard "$@"; }   # React GUI → http://localhost:5173
+cdash() { cerebro dashboard "$@"; }   # React GUI → http://localhost:18321
 ctui()  { cerebro tui "$@"; }         # TUI Textual (terminal)
 
 # ── chelp: referência rápida ──────────────────────────────────────────────────
@@ -180,7 +180,7 @@ chelp() {
   echo ""
   echo "INTERFACES:"
   echo "  cerebro <command>            CLI  (principal — cerebro --help)"
-  echo "  cdash                        Dashboard GUI  → http://localhost:5173"
+  echo "  cdash                        Dashboard GUI  → http://localhost:18321"
   echo "  ctui                         TUI Textual    (terminal interativo)"
   echo ""
   echo "CEREBRO COMMANDS:"
@@ -241,7 +241,7 @@ fi
             echo ""
             echo "Interfaces:"
             echo "  cerebro <cmd>    → CLI             (cerebro --help)"
-            echo "  cdash            → Dashboard GUI   (http://localhost:5173)"
+            echo "  cdash            → Dashboard GUI   (http://localhost:18321)"
             echo "  ctui             → TUI Textual     (terminal)"
             echo ""
             echo "  chelp            → quick reference"

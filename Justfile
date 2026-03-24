@@ -78,7 +78,7 @@ test-cli:
 # DASHBOARD
 # ============================================================================
 
-# Launch the web dashboard (React GUI → http://localhost:5173)
+# Launch the web dashboard (React GUI → http://localhost:18321)
 dashboard:
     cerebro dashboard
 

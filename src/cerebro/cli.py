@@ -116,6 +116,13 @@ def version():
     console.print(f"Cerebro CLI v{__version__}")
 
 
+@app.command("dashboard")
+def launch_dashboard():
+    """Launch the React Dashboard GUI (FastAPI backend + Vite frontend)."""
+    from cerebro.launcher import launch_gui
+    launch_gui()
+
+
 @app.command("tui")
 def launch_tui():
     """
