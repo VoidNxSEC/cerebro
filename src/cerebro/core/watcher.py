@@ -24,7 +24,7 @@ logger = logging.getLogger("cerebro.watcher")
 class RepoWatcher:
     def __init__(
         self,
-        arch_path: str = os.getenv("CEREBRO_ARCH_PATH", str(Path.home() / "arch")),
+        arch_path: str = os.getenv("CEREBRO_ARCH_PATH", str(Path.home() / "master")),
         poll_interval: int = 10,
         on_change: Callable[[dict[str, Any]], Coroutine] | None = None,
     ):

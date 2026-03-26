@@ -144,7 +144,7 @@ async def lifespan(app: FastAPI):
     global cerebro, scanner, indexer, analyzer, briefing_gen, metrics_collector, repo_watcher
 
     # Configuration
-    arch_path = os.getenv("CEREBRO_ARCH_PATH", "/home/kernelcore/arch")
+    arch_path = os.getenv("CEREBRO_ARCH_PATH", "/home/kernelcore/master")
     data_dir = os.getenv("CEREBRO_DATA_DIR", "./data/intelligence")
 
     logger.info("Initializing Cerebro Intelligence System...")
@@ -163,6 +163,9 @@ async def lifespan(app: FastAPI):
     briefing_gen = BriefingGenerator(cerebro)
 
     logger.info("Cerebro Intelligence System initialized")
+
+    # Initial project scan (background — does not block startup)
+    asyncio.ensure_future(_initial_project_scan())
 
     # ---------- metrics collector + watcher ----------
     metrics_collector = MetricsCollector(arch_path=arch_path)
@@ -601,6 +604,14 @@ async def summarize_project(project_name: str):
 
 
 # ==================== Metrics ====================
+
+
+async def _initial_project_scan():
+    """Background task: discover projects on first startup."""
+    if scanner:
+        loop = asyncio.get_running_loop()
+        projects = await loop.run_in_executor(None, scanner.scan)
+        logger.info(f"Initial project scan complete: {len(projects)} projects found")
 
 
 async def _initial_metrics_scan():

@@ -152,7 +152,7 @@ class MetricsCollector:
     """Zero-token metrics collector.  git + fs + regex, no LLM."""
 
     def __init__(self, arch_path: str | None = None):
-        self.arch_path = Path(arch_path or os.getenv("CEREBRO_ARCH_PATH", str(Path.home() / "arch")))
+        self.arch_path = Path(arch_path or os.getenv("CEREBRO_ARCH_PATH", str(Path.home() / "master")))
         self.metrics_dir = self.arch_path / "cerebro" / "data" / "metrics"
         self.metrics_dir.mkdir(parents=True, exist_ok=True)
 
