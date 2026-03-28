@@ -23,6 +23,7 @@ from cerebro.interfaces.llm import LLMProvider
 logger = logging.getLogger("cerebro.providers.llamacpp")
 
 _DEFAULT_URL = "http://localhost:8081"
+_DEFAULT_MODEL = "current-model"
 
 
 def _post(url: str, payload: dict, timeout: float) -> dict:
@@ -56,7 +57,7 @@ class LlamaCppProvider(LLMProvider):
         timeout: float = 120.0,
     ):
         self.base_url = (base_url or os.getenv("LLAMA_CPP_URL", _DEFAULT_URL)).rstrip("/")
-        self.model = model or os.getenv("LLAMA_CPP_MODEL", "local")
+        self.model = model or os.getenv("LLAMA_CPP_MODEL", _DEFAULT_MODEL)
         self.timeout = timeout
 
     # ------------------------------------------------------------------
@@ -70,11 +71,19 @@ class LlamaCppProvider(LLMProvider):
         results: list[list[float]] = []
         for i in range(0, len(texts), batch_size):
             batch = texts[i : i + batch_size]
-            data = _post(
-                f"{self.base_url}/v1/embeddings",
-                {"input": batch, "model": self.model},
-                self.timeout,
-            )
+            try:
+                data = _post(
+                    f"{self.base_url}/v1/embeddings",
+                    {"input": batch, "model": self.model},
+                    self.timeout,
+                )
+            except urllib.error.HTTPError as e:
+                if e.code == 501:
+                    raise RuntimeError(
+                        "llama.cpp server does not support embeddings. "
+                        "Restart with: llama-server --embeddings --port 8081"
+                    ) from e
+                raise
             ordered = sorted(data["data"], key=lambda x: x["index"])
             results.extend(item["embedding"] for item in ordered)
         return results
