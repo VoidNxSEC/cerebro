@@ -27,6 +27,7 @@ from cerebro.intelligence.core import (
     IntelligenceType,
     ThreatLevel,
 )
+from cerebro.providers.llamacpp import LlamaCppProvider
 from cerebro.registry.indexer import KnowledgeIndexer
 from cerebro.registry.scanner import ProjectScanner
 
@@ -40,6 +41,7 @@ analyzer: IntelligenceAnalyzer | None = None
 briefing_gen: BriefingGenerator | None = None
 metrics_collector: MetricsCollector | None = None
 repo_watcher: RepoWatcher | None = None
+llama: LlamaCppProvider | None = None
 
 # WebSocket connections and subscriptions
 active_connections: list[WebSocket] = []
@@ -141,7 +143,7 @@ class ScanRequest(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize and cleanup resources."""
-    global cerebro, scanner, indexer, analyzer, briefing_gen, metrics_collector, repo_watcher
+    global cerebro, scanner, indexer, analyzer, briefing_gen, metrics_collector, repo_watcher, llama
 
     # Configuration
     arch_path = os.getenv("CEREBRO_ARCH_PATH", "/home/kernelcore/master")
@@ -163,6 +165,13 @@ async def lifespan(app: FastAPI):
     briefing_gen = BriefingGenerator(cerebro)
 
     logger.info("Cerebro Intelligence System initialized")
+
+    # Local LLM (llama.cpp on port 8081)
+    llama = LlamaCppProvider()
+    if llama.health_check():
+        logger.info(f"LlamaCpp server online at {llama.base_url}")
+    else:
+        logger.warning(f"LlamaCpp server not reachable at {llama.base_url} — AI features degraded")
 
     # Initial project scan (background — does not block startup)
     asyncio.ensure_future(_initial_project_scan())
@@ -573,9 +582,22 @@ async def broadcast(message: dict[str, Any]):
 
 # ==================== AI Features ====================
 
+@app.get("/ai/health")
+async def ai_health():
+    """Check local LLM (llama.cpp) availability."""
+    if not llama:
+        return {"available": False, "url": None}
+    healthy = llama.health_check()
+    return {
+        "available": healthy,
+        "url": llama.base_url,
+        "model": llama.model,
+    }
+
+
 @app.post("/actions/summarize/{project_name}")
 async def summarize_project(project_name: str):
-    """Generate AI summary for a project."""
+    """Generate AI summary for a project using local LLM when available."""
     if not cerebro:
         raise HTTPException(status_code=503, detail="Service not initialized")
 
@@ -583,24 +605,40 @@ async def summarize_project(project_name: str):
     if not project:
         raise HTTPException(status_code=404, detail=f"Project not found: {project_name}")
 
-    # Get project intelligence
     intel_items = cerebro.query_intelligence(
         query="",
         projects=[project_name],
-        limit=50,
+        limit=20,
     )
 
-    # Build summary text
+    # Use local LLM if available
+    if llama and llama.health_check():
+        context_lines = [item.content for item in intel_items[:10] if item.content]
+        context = "\n".join(context_lines) if context_lines else "No intelligence collected yet."
+        prompt = (
+            f"Write a concise technical summary for the project '{project_name}'.\n\n"
+            f"Project info:\n"
+            f"- Description: {project.description or 'N/A'}\n"
+            f"- Languages: {', '.join(project.languages) or 'N/A'}\n"
+            f"- Health score: {project.health_score:.0f}%\n"
+            f"- Status: {project.status.value}\n\n"
+            f"Intelligence context:\n{context}\n\n"
+            f"Summary (2-3 sentences):"
+        )
+        loop = asyncio.get_running_loop()
+        summary = await loop.run_in_executor(None, llama.generate, prompt)
+        return {"summary": summary, "source": "llamacpp"}
+
+    # Fallback: static summary
     lines = [
-        f"**{project_name}** — {project.description}",
+        f"**{project_name}** — {project.description or 'No description'}",
         f"Languages: {', '.join(project.languages) or 'N/A'}",
         f"Health score: {project.health_score:.0f}%  |  Status: {project.status.value}",
         f"Intelligence items: {len(intel_items)}",
     ]
     if project.health_score < 50:
         lines.append("Recommendation: improve documentation and test coverage.")
-
-    return {"summary": "\n".join(lines)}
+    return {"summary": "\n".join(lines), "source": "static"}
 
 
 # ==================== Metrics ====================
