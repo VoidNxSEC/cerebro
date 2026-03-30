@@ -24,9 +24,13 @@ async def start_consumer() -> None:
     """Subscribe to ingest.file.sanitized.v1 and process incoming events."""
     global _subscription, _nc
     nats_url = os.environ.get("NATS_URL", "nats://localhost:4222")
+    nkey_seed = os.environ.get("NATS_NKEY_SEED", "").strip()
     try:
         import nats
-        _nc = await nats.connect(nats_url)
+        kwargs = {}
+        if nkey_seed:
+            kwargs["nkeys_seed"] = nkey_seed.encode()
+        _nc = await nats.connect(nats_url, **kwargs)
         _subscription = await _nc.subscribe(
             "ingest.file.sanitized.v1",
             cb=_handle_sanitized_file,

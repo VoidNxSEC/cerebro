@@ -19,11 +19,15 @@ async def connect() -> bool:
     """Connect to NATS. Non-fatal on failure."""
     global _nc, _loop
     nats_url = os.environ.get("NATS_URL", "nats://localhost:4222")
+    nkey_seed = os.environ.get("NATS_NKEY_SEED", "").strip()
     try:
         import nats
         _loop = asyncio.get_running_loop()
-        _nc = await nats.connect(nats_url)
-        logger.info("NATS publisher connected: %s", nats_url)
+        kwargs = {}
+        if nkey_seed:
+            kwargs["nkeys_seed"] = nkey_seed.encode()
+        _nc = await nats.connect(nats_url, **kwargs)
+        logger.info("NATS publisher connected: %s (nkey=%s)", nats_url, bool(nkey_seed))
         return True
     except Exception as exc:
         logger.warning("NATS publisher connection failed (non-fatal): %s", exc)
