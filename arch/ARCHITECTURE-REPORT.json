@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "version": "3.0.0",
+    "generated": "2026-04-02T03:58:23Z",
+    "location": "/home/kernelcore/master/cerebro",
+    "hostname": "nx"
+  },
+  "git": {
+    "branch": "main",
+    "commit": "6a1d093",
+    "commit_long": "6a1d093f505965465280d7b14e42fa29005198e8",
+    "commit_date": "2026-04-01 08:39:27",
+    "total_commits": 82,
+    "contributors": 3,
+    "last_tag": "none",
+    "repo_age_days": 0
+  },
+  "statistics": {
+    "files": {
+      "total": 16168,
+      "nix": 4,
+      "sh": 34,
+      "md": 220,
+      "yaml": 100
+    },
+    "lines": {
+      "nix": 789,
+      "sh": 4877,
+      "md": 49015
+    },
+    "directories": 5098,
+    "sizes": {
+      "modules": "N/A",
+      "docs": "700K",
+      "scripts": "384K",
+      "total": "8,3G"
+    }
+  },
+  "modules": {
+    "total": 0,
+    "categories": 12,
+    "by_category": {
+      "shell": {
+        "count": 0,
+        "lines": 0
+      },
+      "virtualization": {
+        "count": 0,
+        "lines": 0
+      },
+      "applications": {
+        "count": 0,
+        "lines": 0
+      },
+      "system": {
+        "count": 0,
+        "lines": 0
+      },
+      "hardware": {
+        "count": 0,
+        "lines": 0
+      },
+      "network": {
+        "count": 0,
+        "lines": 0
+      },
+      "development": {
+        "count": 0,
+        "lines": 0
+      },
+      "ml": {
+        "count": 0,
+        "lines": 0
+      },
+      "containers": {
+        "count": 0,
+        "lines": 0
+      },
+      "security": {
+        "count": 0,
+        "lines": 0
+      },
+      "packages": {
+        "count": 0,
+        "lines": 0
+      },
+      "services": {
+        "count": 0,
+        "lines": 0
+      }
+    },
+    "orphaned": 0
+  },
+  "health": {
+    "overall": 15,
+    "documentation": 0,
+    "security": 0
+  },
+  "security": {
+    "modules": 0,
+    "sops_secrets": 0,
+    "has_hardening": false
+  }
+}

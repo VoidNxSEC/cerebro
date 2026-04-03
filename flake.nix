@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    spider-nix.url = "path:/home/kernelcore/master/spider-nix";
   };
 
   outputs =
@@ -11,6 +12,7 @@
       self,
       nixpkgs,
       flake-utils,
+      spider-nix,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:

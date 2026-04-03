@@ -1,0 +1,154 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                  NIXOS ARCHITECTURE ANALYSIS REPORT                       ║
+║                        Professional Edition v3.0.0                        ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Generated:     2026-04-02 00:58:23 -03
+Location:      /home/kernelcore/master/cerebro
+Hostname:      nx
+Git Branch:    main
+Git Commit:    6a1d093 (2026-04-01 08:39:27)
+Total Commits: 82
+Contributors:  3
+Last Tag:      none
+Repo Age:      0 days
+
+═══════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ EXECUTIVE SUMMARY                                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Repository Overview:
+  • Total Files:           16168
+  • Total Directories:     5098
+  • Repository Size:       8,3G
+
+NixOS Configuration:
+  • .nix files:            4 (789 lines)
+  • Total modules:         0
+  • Module categories:     12
+  • Modules size:          N/A
+
+Documentation:
+  • .md files:             220 (49015 lines)
+  • Documentation size:    700K
+  • Doc coverage:          0%
+
+Scripts & Automation:
+  • .sh files:             34 (4877 lines)
+  • Scripts size:          384K
+
+Health Metrics:
+  • Overall Health:        15/100
+  • Security Score:        0/100
+  • Documentation:         0/100
+  • Orphaned modules:      0
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ MODULE BREAKDOWN BY CATEGORY                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  virtualization  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 VMs, QEMU, libvirt
+
+  system          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Core system configuration
+
+  shell           ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Shell configuration and aliases
+
+  services        ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 System services and daemons
+
+  security        ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Security hardening and policies
+
+  packages        ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Custom packages and overlays
+
+  network         ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Network configuration and services
+
+  ml              ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Machine learning infrastructure
+
+  hardware        ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Hardware configurations (GPU, CPU, peripherals)
+
+  development     ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Development environments and tools
+
+  containers      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 Docker, Podman, NixOS containers
+
+  applications    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0 modules (     0 lines)
+                 User applications and tools
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ SECURITY ANALYSIS                                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Security Configuration:
+  • Security modules:      0
+  • SOPS secrets:          0
+  • Hardening config:      No
+  • Security score:        0/100
+
+  Score: ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0%
+
+  Status: ✗ Needs immediate attention
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ ARCHITECTURE HEALTH SCORE                                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Component Scores:
+  • Documentation:         0/100
+  • Security:              0/100
+  • Structure:             0/100
+
+Overall Health:            15/100
+  ███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 15%
+
+  ✗ Critical - Immediate improvements required
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ RECOMMENDATIONS                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  📚 Documentation:
+    - Current coverage: 0%
+    - Target: 80%+
+    - Action: Add 'description' fields to module options
+    - Benefit: Better maintainability and onboarding
+
+  🔒 Security:
+    - Current score: 0/100
+    - Target: 80+
+    - Actions:
+      * Add more security modules (firewall, AppArmor, etc.)
+      * Implement SOPS for secret management
+      * Enable security hardening profiles
+    - Benefit: Enhanced system security posture
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+Generated by: NixOS Architecture Analysis Tool v3.0.0
+Report Date:  2026-04-02 00:58:23
+Script Path:  /home/kernelcore/master/arch-analyzer/generate-architecture-tree.sh
+
+To regenerate this report:
+  bash scripts/generate-architecture-tree.sh
+
+For more information:
+  • Repository: /home/kernelcore/master/cerebro
+  • Documentation: /home/kernelcore/master/cerebro/docs/
+  • Issues: https://github.com/VoidNxSEC/nixos/issues
+
+═══════════════════════════════════════════════════════════════════════════

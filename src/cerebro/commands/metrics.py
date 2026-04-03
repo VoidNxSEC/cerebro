@@ -195,9 +195,36 @@ def watch(
 # ---------------------------------------------------------------------------
 # report
 # ---------------------------------------------------------------------------
+def _print_markdown_report(repo_data: dict) -> None:
+    md = [
+        f"# {repo_data['name']}",
+        f"**Health:** {repo_data['health_score']} | **Status:** {repo_data['status']}",
+        "",
+        "## Architecture",
+        f"- **Frameworks:** {', '.join(repo_data.get('frameworks', [])) or 'None'}",
+        f"- **Entrypoints:** {', '.join(repo_data.get('entrypoints', [])) or 'None'}",
+        f"- **Infrastructure:** {', '.join(repo_data.get('infrastructure', [])) or 'None'}",
+        f"- **Databases:** {', '.join(repo_data.get('databases', [])) or 'None'}",
+        f"- **APIs:** {', '.join(repo_data.get('apis', [])) or 'None'}",
+        "",
+        "## Complexity",
+        f"- **Max Depth:** {repo_data.get('max_depth', 0)}",
+        f"- **Avg File Size:** {repo_data.get('avg_file_size', 0)} bytes",
+        "",
+        "## Code & Quality",
+        f"- **LoC:** {repo_data['total_loc']:,}",
+        f"- **Files:** {repo_data['total_files']:,}",
+        f"- **Security Score:** {repo_data['security_score']}%",
+        f"- **Dependencies:** {repo_data['dep_count']}",
+        f"- **Primary Language:** {repo_data.get('primary_language', 'None')}"
+    ]
+    print("\n".join(md))
+
+
 @metrics_app.command("report")
 def report(
     repo_name: str = typer.Argument(..., help="Repository name"),
+    format: str = typer.Option("cli", "--format", "-f", help="Output format: cli, json, markdown"),
 ) -> None:
     """Detailed metrics report for a single repository.
 
@@ -214,12 +241,40 @@ def report(
         console.print(f"[red]❌ '{repo_name}' not found.[/red]\nAvailable: {names}")
         raise typer.Exit(1)
 
+    if format == "json":
+        import json as _json
+        print(_json.dumps(repo_data, indent=2))
+        return
+    elif format == "markdown":
+        _print_markdown_report(repo_data)
+        return
+
     hc = "green" if repo_data["health_score"] >= 70 else "yellow" if repo_data["health_score"] >= 40 else "red"
     console.print(Panel(
         f"[bold cyan]{repo_data['name']}[/bold cyan]  |  "
         f"Health [{hc}]{repo_data['health_score']}[/{hc}]  |  Status: {repo_data['status']}",
         border_style="cyan",
     ))
+
+    # --- architecture ---
+    if any([repo_data.get("frameworks"), repo_data.get("entrypoints"), repo_data.get("infrastructure"), repo_data.get("databases"), repo_data.get("apis")]):
+        at = Table(title="Architecture", box=box.SIMPLE)
+        at.add_column("Category", style="cyan")
+        at.add_column("Details", style="bold")
+        if repo_data.get("frameworks"): at.add_row("Frameworks", ", ".join(repo_data.get("frameworks", [])))
+        if repo_data.get("entrypoints"): at.add_row("Entrypoints", ", ".join(repo_data.get("entrypoints", [])))
+        if repo_data.get("infrastructure"): at.add_row("Infrastructure", ", ".join(repo_data.get("infrastructure", [])))
+        if repo_data.get("databases"): at.add_row("Databases", ", ".join(repo_data.get("databases", [])))
+        if repo_data.get("apis"): at.add_row("APIs", ", ".join(repo_data.get("apis", [])))
+        console.print(at)
+
+    # --- complexity ---
+    ct = Table(title="Complexity", box=box.SIMPLE)
+    ct.add_column("Metric", style="cyan")
+    ct.add_column("Value", style="bold")
+    ct.add_row("Max Depth", str(repo_data.get("max_depth", 0)))
+    ct.add_row("Avg File Size", f"{repo_data.get('avg_file_size', 0)} bytes")
+    console.print(ct)
 
     # --- code ---
     t = Table(title="Code", box=box.SIMPLE)
@@ -272,3 +327,103 @@ def report(
     for label, key in [("README", "has_readme"), ("Tests", "has_tests"), ("CI/CD", "has_ci"), ("Docs", "has_docs"), ("Nix Flake", "has_flake")]:
         ok = repo_data.get(key, False)
         console.print(f"  {'[green]✓[/green]' if ok else '[red]✗[/red]'} {label}")
+
+
+# ---------------------------------------------------------------------------
+# compare
+# ---------------------------------------------------------------------------
+@metrics_app.command("compare")
+def compare(repo_name: str = typer.Argument(..., help="Repository name")) -> None:
+    """Compare the two most recent metrics snapshots for a repository."""
+    collector = _collector()
+    history_dir = collector.metrics_dir / "history"
+    if not history_dir.exists():
+        console.print("[red]❌ No history found.[/red]")
+        raise typer.Exit(1)
+        
+    files = sorted(history_dir.glob("metrics_snapshot_*.json"), reverse=True)
+    if len(files) < 2:
+        console.print("[red]❌ Need at least 2 historical snapshots to compare.[/red]")
+        raise typer.Exit(1)
+        
+    import json
+    try:
+        snap_new = json.loads(files[0].read_text())
+        snap_old = json.loads(files[1].read_text())
+    except Exception as e:
+        console.print(f"[red]❌ Error loading snapshots: {e}[/red]")
+        raise typer.Exit(1)
+        
+    repo_new = next((r for r in snap_new.get("repos", []) if r["name"] == repo_name), None)
+    repo_old = next((r for r in snap_old.get("repos", []) if r["name"] == repo_name), None)
+    
+    if not repo_new or not repo_old:
+        console.print(f"[red]❌ '{repo_name}' not found in both snapshots.[/red]")
+        raise typer.Exit(1)
+        
+    console.print(Panel(f"[bold cyan]Trend Analysis: {repo_name}[/bold cyan]", border_style="cyan"))
+    
+    t = Table(box=box.SIMPLE)
+    t.add_column("Metric", style="cyan")
+    t.add_column("Previous", style="dim")
+    t.add_column("Current", style="bold")
+    t.add_column("Delta")
+    
+    def _add_row(name, key, is_float=False):
+        old_val = repo_old.get(key, 0)
+        new_val = repo_new.get(key, 0)
+        if isinstance(old_val, (int, float)) and isinstance(new_val, (int, float)):
+            delta = new_val - old_val
+            color = "green" if delta > 0 else "red" if delta < 0 else "dim"
+            if key == "security_findings": color = "red" if delta > 0 else "green"
+            sign = "+" if delta > 0 else ""
+            delta_str = f"[{color}]{sign}{delta:.1f if is_float else delta}[/{color}]"
+            t.add_row(name, str(old_val), str(new_val), delta_str)
+            
+    _add_row("Health Score", "health_score", True)
+    _add_row("LoC", "total_loc")
+    _add_row("Files", "total_files")
+    _add_row("Dependencies", "dep_count")
+    
+    old_sec = len(repo_old.get("security_findings", []))
+    new_sec = len(repo_new.get("security_findings", []))
+    sec_delta = new_sec - old_sec
+    sec_color = "red" if sec_delta > 0 else "green" if sec_delta < 0 else "dim"
+    sec_sign = "+" if sec_delta > 0 else ""
+    t.add_row("Security Issues", str(old_sec), str(new_sec), f"[{sec_color}]{sec_sign}{sec_delta}[/{sec_color}]")
+
+    console.print(t)
+
+
+# ---------------------------------------------------------------------------
+# check
+# ---------------------------------------------------------------------------
+@metrics_app.command("check")
+def check(
+    min_health: float = typer.Option(0.0, "--min-health", help="Minimum health score"),
+    fail_on_secrets: bool = typer.Option(False, "--fail-on-secrets", help="Fail if any security findings exist"),
+    max_deps: int = typer.Option(0, "--max-deps", help="Maximum allowed dependencies"),
+) -> None:
+    """CI/CD Quality Gate based on the latest metrics snapshot."""
+    snapshot = _load()
+    if not snapshot:
+        console.print("[red]❌ No snapshot. Run: cerebro metrics scan[/red]")
+        raise typer.Exit(1)
+        
+    failed = False
+    for repo in snapshot.get("repos", []):
+        issues = []
+        if min_health > 0 and repo["health_score"] < min_health:
+            issues.append(f"health {repo['health_score']} < {min_health}")
+        if fail_on_secrets and repo.get("security_findings"):
+            issues.append(f"found {len(repo['security_findings'])} security secrets")
+        if max_deps > 0 and repo["dep_count"] > max_deps:
+            issues.append(f"deps {repo['dep_count']} > {max_deps}")
+            
+        if issues:
+            failed = True
+            console.print(f"[red]❌ {repo['name']} failed quality gate:[/red] {', '.join(issues)}")
+            
+    if failed:
+        raise typer.Exit(1)
+    console.print("[green]✅ All repositories passed the quality gates.[/green]")

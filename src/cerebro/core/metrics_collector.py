@@ -137,6 +137,18 @@ class RepoMetricsSnapshot:
     has_docs: bool = False
     has_flake: bool = False
 
+    # architecture (new)
+    frameworks: list[str] = field(default_factory=list)
+    entrypoints: list[str] = field(default_factory=list)
+    infrastructure: list[str] = field(default_factory=list)
+    databases: list[str] = field(default_factory=list)
+    apis: list[str] = field(default_factory=list)
+    
+    # complexity (new)
+    max_depth: int = 0
+    avg_file_size: int = 0
+    largest_files: list[dict[str, Any]] = field(default_factory=list)
+
     # derived
     health_score: float = 0.0
     status: str = "unknown"
@@ -229,6 +241,7 @@ class MetricsCollector:
         self._collect_dependencies(repo_path, snapshot)
         self._collect_security(repo_path, snapshot)
         self._collect_quality(repo_path, snapshot)
+        self._collect_architecture(repo_path, snapshot)
         snapshot.health_score = self._calculate_health(snapshot)
         snapshot.status = self._determine_status(snapshot)
         return snapshot
@@ -453,6 +466,81 @@ class MetricsCollector:
             snapshot.test_files = count
 
     # ------------------------------------------------------------------
+    # Architecture (True Knowledge)
+    # ------------------------------------------------------------------
+    def _collect_architecture(self, repo_path: Path, snapshot: RepoMetricsSnapshot) -> None:
+        frameworks = set()
+        entrypoints = set()
+        infrastructure = set()
+        databases = set()
+        apis = set()
+        
+        file_sizes = []
+        max_depth = 0
+        
+        # Determine from dependencies
+        deps = set(snapshot.dependencies)
+        for dep in deps:
+            if "fastapi" in dep or "starlette" in dep: frameworks.add("FastAPI")
+            if "django" in dep: frameworks.add("Django")
+            if "flask" in dep: frameworks.add("Flask")
+            if "react" in dep: frameworks.add("React")
+            if "next" in dep: frameworks.add("Next.js")
+            if "vue" in dep: frameworks.add("Vue")
+            if "svelte" in dep: frameworks.add("Svelte")
+            if "sqlalchemy" in dep or "prisma" in dep or "diesel" in dep or "gorm" in dep:
+                databases.add("ORM Detected")
+        
+        # Determine from files
+        for f in self._iter_files(repo_path):
+            try:
+                stat = f.stat()
+                file_sizes.append({"path": str(f.relative_to(repo_path)), "size": stat.st_size})
+            except OSError:
+                continue
+            
+            parts = f.relative_to(repo_path).parts
+            max_depth = max(max_depth, len(parts))
+            
+            name = f.name.lower()
+            if name in ["dockerfile", "docker-compose.yml", "docker-compose.yaml"]:
+                infrastructure.add("Docker")
+            elif name in ["makefile", "justfile"]:
+                entrypoints.add(f.name)
+            elif name in ["main.py", "manage.py", "index.ts", "main.go"]:
+                entrypoints.add(f.name)
+            elif name == "flake.nix":
+                infrastructure.add("Nix")
+            elif f.suffix in [".tf"]:
+                infrastructure.add("Terraform")
+            elif "k8s" in parts or "kubernetes" in parts:
+                infrastructure.add("Kubernetes")
+                
+            if name in ["openapi.yaml", "openapi.json", "swagger.json", "swagger.yaml"]:
+                apis.add("OpenAPI/Swagger")
+            elif f.suffix == ".proto":
+                apis.add("gRPC")
+            elif f.suffix == ".graphql":
+                apis.add("GraphQL")
+                
+            if "migrations" in parts or "alembic" in parts:
+                databases.add("Migrations")
+            if name == "schema.sql":
+                databases.add("Raw SQL Schema")
+
+        file_sizes.sort(key=lambda x: x["size"], reverse=True)
+        
+        snapshot.frameworks = sorted(list(frameworks))
+        snapshot.entrypoints = sorted(list(entrypoints))
+        snapshot.infrastructure = sorted(list(infrastructure))
+        snapshot.databases = sorted(list(databases))
+        snapshot.apis = sorted(list(apis))
+        
+        snapshot.max_depth = max_depth
+        snapshot.avg_file_size = sum(x["size"] for x in file_sizes) // len(file_sizes) if file_sizes else 0
+        snapshot.largest_files = file_sizes[:5]
+
+    # ------------------------------------------------------------------
     # Health / status
     # ------------------------------------------------------------------
     def _calculate_health(self, snapshot: RepoMetricsSnapshot) -> float:
@@ -535,11 +623,20 @@ class MetricsCollector:
     # Persistence
     # ------------------------------------------------------------------
     def _save_snapshot(self, snapshots: list[RepoMetricsSnapshot]) -> None:
+        now = datetime.now(UTC)
         data = {
-            "generated_at": datetime.now(UTC).isoformat(),
+            "generated_at": now.isoformat(),
             "repo_count": len(snapshots),
             "repos": [snap.to_dict() for snap in snapshots],
         }
+        
+        # Save timestamped history
+        history_dir = self.metrics_dir / "history"
+        history_dir.mkdir(exist_ok=True)
+        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        (history_dir / f"metrics_snapshot_{timestamp}.json").write_text(json.dumps(data, indent=2))
+        
+        # Save latest
         (self.metrics_dir / "metrics_snapshot.json").write_text(json.dumps(data, indent=2))
         logger.info("Saved metrics snapshot: %d repos", len(snapshots))
 

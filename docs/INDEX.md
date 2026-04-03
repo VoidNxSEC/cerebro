@@ -39,6 +39,7 @@
 
 ### Project Status & Planning
 - [Master Execution Plan](project/MASTER_EXECUTION_PLAN.md) — Active roadmap
+- [Agentic GPT Roadmap](project/AGENTIC_GPT_ROADMAP.md) — Capability evolution plan
 - [Current Status](project/STATUS.md) — Where we are now
 - [Coverage Gaps](project/COVERAGE_GAP.md) — Known gaps
 - [Next Steps](project/NEXT_STEPS.md) — What's next

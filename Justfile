@@ -43,18 +43,30 @@ type-check:
 # Run all quality checks (lint + format + tests)
 quality: lint format type-check test
 
-# ============================================================================
+# Comprehensive validation of everything
+validate-all: quality validate-cli-smoke
+    @echo "🚀 All validations passed! System is production-ready."
+
+# Smoke tests for each CLI command group to ensure they actually run
+validate-cli-smoke:
+    @echo "🔍 Running CLI smoke tests..."
+    nix develop --command cerebro --help > /dev/null
+    nix develop --command cerebro info
+    nix develop --command cerebro ops health
+    nix develop --command cerebro metrics --help > /dev/null
+    nix develop --command cerebro knowledge --help > /dev/null
+    nix develop --command cerebro rag --help > /dev/null
+    @echo "✅ CLI smoke tests passed!"
+
 # CI/CD SPECIFIC
 # ============================================================================
 
 # Run CI pipeline locally (simulates GitLab CI)
 ci-local:
     @echo "Running local CI pipeline..."
-    just validate-imports
     just validate-syntax
-    just lint
-    just format
-    just test-unit
+    just validate-imports
+    just validate-all
     @echo "✅ Local CI pipeline passed!"
 
 # Validate imports

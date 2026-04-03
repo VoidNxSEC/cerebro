@@ -1,0 +1,447 @@
+# NixOS Architecture Analysis Report
+
+> **Professional Edition v3.0.0**
+> **Generated**: 2026-04-02 00:58:23 -03
+> **Location**: `/home/kernelcore/master/cerebro`
+
+---
+
+## 📋 Table of Contents
+
+- [Executive Summary](#executive-summary)
+- [Module Breakdown](#module-breakdown)
+- [Security Analysis](#security-analysis)
+- [Health Score](#health-score)
+- [Recommendations](#recommendations)
+- [Statistics](#statistics)
+- [Architecture Tree](#architecture-tree)
+
+---
+
+## 🎯 Executive Summary
+
+### Repository Information
+
+| Metric | Value |
+|--------|-------|
+| **Total Files** | 16168 |
+| **Total Directories** | 5098 |
+| **Repository Size** | 8,3G |
+| **Git Branch** | `main` |
+| **Git Commit** | `6a1d093` |
+| **Total Commits** | 82 |
+| **Contributors** | 3 |
+| **Repository Age** | 0 days |
+
+### NixOS Configuration
+
+| Metric | Value |
+|--------|-------|
+| **.nix files** | 4 (789 lines) |
+| **Total modules** | 0 |
+| **Module categories** | 12 |
+| **Modules size** | N/A |
+
+### Health Metrics
+
+| Metric | Score | Status |
+|--------|-------|--------|
+| **Overall Health** | 15/100 | ⚠️ Needs Work |
+| **Security** | 0/100 | ⚠️ Needs Work |
+| **Documentation** | 0/100 | ⚠️ Needs Work |
+
+---
+
+## 📦 Module Breakdown
+
+| Category | Modules | Lines | Description |
+|----------|---------|-------|-------------|
+| **virtualization** | 0 | 0 | VMs, QEMU, libvirt |
+| **system** | 0 | 0 | Core system configuration |
+| **shell** | 0 | 0 | Shell configuration and aliases |
+| **services** | 0 | 0 | System services and daemons |
+| **security** | 0 | 0 | Security hardening and policies |
+| **packages** | 0 | 0 | Custom packages and overlays |
+| **network** | 0 | 0 | Network configuration and services |
+| **ml** | 0 | 0 | Machine learning infrastructure |
+| **hardware** | 0 | 0 | Hardware configurations (GPU, CPU, peripherals) |
+| **development** | 0 | 0 | Development environments and tools |
+| **containers** | 0 | 0 | Docker, Podman, NixOS containers |
+| **applications** | 0 | 0 | User applications and tools |
+
+---
+
+## 🔒 Security Analysis
+
+### Configuration
+
+- **Security modules**: 0
+- **SOPS secrets**: 0
+- **Hardening config**: ❌ Disabled
+
+### Security Score: 0/100
+
+**Status**: ❌ Needs immediate attention
+
+---
+
+## 📊 Health Score
+
+### Overall: 15/100
+
+| Component | Score |
+|-----------|-------|
+| Documentation | 0/100 |
+| Security | 0/100 |
+| Structure | 100/100 |
+
+**Status**: ❌ Needs improvement
+
+---
+
+## 💡 Recommendations
+
+### 📚 Documentation
+
+- **Current**: 0%
+- **Target**: 80%+
+- **Action**: Add `description` fields to module options
+- **Benefit**: Better maintainability and onboarding
+
+### 🔒 Security
+
+- **Current**: 0/100
+- **Target**: 80+
+- **Actions**:
+  - Add more security modules
+  - Implement SOPS for secrets
+  - Enable hardening profiles
+- **Benefit**: Enhanced security posture
+
+
+---
+
+## 📈 Statistics
+
+### Files by Type
+
+| Type | Count | Lines |
+|------|-------|-------|
+| .nix | 4 | 789 |
+| .sh | 34 | 4877 |
+| .md | 220 | 49015 |
+| .yaml | 100 | - |
+
+### Directory Sizes
+
+| Directory | Size |
+|-----------|------|
+| modules/ | N/A |
+| docs/ | 700K |
+| scripts/ | 384K |
+| **Total** | **8,3G** |
+
+---
+
+## 🌳 Architecture Tree
+
+```
+/home/kernelcore/master/cerebro/
+├── arch/
+│   ├── snapshots/
+│   ├── ARCHITECTURE-REPORT.md
+│   ├── ARCHITECTURE-REPORT.txt
+│   └── ARCHITECTURE-TREE.txt
+├── CLAUDE/
+│   ├── CHEATSHEET.md
+│   ├── EXAMPLES.md
+│   ├── RIGOR.md
+│   └── SKILL.md
+├── config/
+│   ├── examples/
+│   │   └── hooks-reference.yaml
+│   ├── gitlab-duo/
+│   └── repos.yaml
+├── dashboard/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── dashboard/
+│   │   │   └── ui/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   ├── pages/
+│   │   ├── stores/
+│   │   ├── types/
+│   │   └── index.css
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── pnpm-lock.yaml
+│   ├── README.md
+│   └── RELEASE_NOTES.md
+├── data/
+│   ├── analyzed/
+│   │   ├── cerebro/
+│   │   │   ├── artifacts.json
+│   │   │   └── metrics.json
+│   │   ├── core/
+│   │   │   ├── artifacts.json
+│   │   │   └── metrics.json
+│   │   ├── intelagent/
+│   │   │   ├── artifacts.json
+│   │   │   └── metrics.json
+│   │   └── all_artifacts.jsonl
+│   ├── embeddings/
+│   ├── metrics/
+│   │   └── metrics_snapshot.json
+│   ├── models/
+│   │   ├── models--cross-encoder--ms-marco-MiniLM-L-6-v2/
+│   │   │   ├── blobs/
+│   │   │   │   ├── 688882a79f44442ddc1f60d70334a7ff5df0fb47
+│   │   │   │   ├── 7520992f25914d962f0e2fd0e0566fc33d19ec59
+│   │   │   │   ├── 821d1aa69520101d6e0737f78a042ae25b19e5cb9160701909d10434f4aeb0ae
+│   │   │   │   ├── 88bc4f74b33a2073abc9a66cb532b889448ac3ed
+│   │   │   │   ├── a2435fedfac32b9ad70f052d4f84007730cd3109
+│   │   │   │   └── fb140275c155a9c7c5a3b3e0e77a9e839594a938
+│   │   │   ├── refs/
+│   │   │   │   └── main
+│   │   │   └── snapshots/
+│   │   │       └── c5ee24cb16019beea0893ab7796b1df96625c6b8/
+│   │   └── xet/
+│   │       └── https___cas_serv-tGqkUaZf_CBPHQ6h/
+│   │           └── staging/
+│   ├── reports/
+│   ├── vector_db/
+│   │   └── chroma.sqlite3
+│   └── cerebro_state.json
+├── docs/
+│   ├── architecture/
+│   │   ├── ADR_SUMMARY.md
+│   │   ├── ARCHITECTURE_DATA_FLOW.md
+│   │   ├── ARCHITECTURE.md
+│   │   └── PHOENIX_ARCHITECTURE_REPORT.md
+│   ├── commands/
+│   │   ├── cerebro_info.md
+│   │   ├── cerebro_knowledge_analyze.md
+│   │   ├── cerebro_knowledge_batch-analyze.md
+│   │   ├── cerebro_knowledge_summarize.md
+│   │   ├── cerebro_ops_health.md
+│   │   ├── cerebro_rag_query.md
+│   │   ├── cerebro_version.md
+│   │   └── README.md
+│   ├── features/
+│   │   ├── gcp-credits/
+│   │   │   ├── AUTOMATION_SYSTEMS.md
+│   │   │   ├── CREDIT_BURNER_DETAILED.md
+│   │   │   ├── HIGH_ROI_QUERIES.md
+│   │   │   ├── README.md
+│   │   │   └── README_SPEEDRUN.md
+│   │   ├── intelligence/
+│   │   │   ├── CAPABILITIES.md
+│   │   │   ├── INTEL_SOURCES.md
+│   │   │   ├── QUERY_MASTERY.md
+│   │   │   └── STACK_MASTERY.md
+│   │   └── strategy/
+│   │       ├── EXECUTIVE_SUMMARY.md
+│   │       └── HACKS_ROI.md
+│   ├── guides/
+│   │   ├── CHEATSHEET.md
+│   │   ├── CONTRIBUTING_DOCS.md
+│   │   ├── DASHBOARD_INTEGRATION.md
+│   │   ├── DASHBOARD_QUICK_SUMMARY.md
+│   │   ├── DASHBOARD_UI_UX_IMPROVEMENTS.md
+│   │   ├── GITLAB_CI_CD.md
+│   │   ├── GITLAB_CI_MIGRATION.md
+│   │   ├── KEYBOARD_SHORTCUTS.md
+│   │   ├── NIX_GITLAB_DUO_SETUP.md
+│   │   ├── QUICKSTART_KB.md
+│   │   ├── QUICK_START.md
+│   │   └── SETUP_COMPLETE.md
+│   ├── i18n/
+│   │   ├── helper.md
+│   │   └── RESUMO_EXECUTIVO.md
+│   ├── phases/
+│   │   ├── ADR_IMPLEMENTATION_COMPLETE.md
+│   │   ├── IMPLEMENTATION_SUMMARY.md
+│   │   ├── NEXT-STEPS.md
+│   │   ├── PERFORMANCE_REPORT.md
+│   │   ├── PHASE1_IMPLEMENTATION.md
+│   │   ├── PHASE1_VALIDATION.md
+│   │   ├── PHASE2_COMPLETE.md
+│   │   ├── PHASE2_ROADMAP.md
+│   │   ├── PHASE3_IMPLEMENTATION_COMPLETE.md
+│   │   ├── PHASE3_QUICK_START.md
+│   │   ├── PHASE3_STATUS.md
+│   │   ├── PHASE4_COMPLETE.md
+│   │   ├── PROJECT_COMPLETE.md
+│   │   └── QUICKSTART_PHASE1.md
+│   ├── project/
+│   │   ├── COVERAGE_GAP.md
+│   │   ├── HOOKS_AND_CAPABILITIES_IMPROVEMENTS.md
+│   │   ├── MASTER_EXECUTION_PLAN.md
+│   │   ├── MIGRATION_COMPLETE.md
+│   │   ├── NEXT_STEPS.md
+│   │   ├── PORTFOLIO_AUDIT.md
+│   │   ├── README_PORTFOLIO.md
+│   │   ├── RERANKER_INTEGRATION_PLAN.md
+│   │   ├── STATUS.md
+│   │   ├── TODO_PLAN.md
+│   │   └── VICTORY_PLAYBOOK.md
+│   ├── INDEX.md
+│   └── README.md
+├── scripts/
+│   ├── check_billing_table.sh*
+│   ├── ci-test.sh*
+│   ├── generate-docs.sh*
+│   ├── MASTER_EXECUTION_PLAN.md
+│   ├── pipeline.sh*
+│   ├── queries_salary_intel.txt
+│   ├── queries.txt
+│   ├── quick-start.sh
+│   ├── README_ARSENAL.md
+│   ├── README.md
+│   ├── report.sh*
+│   ├── setup_bigquery_export.sh*
+│   ├── setup_bigquery_simple.sh*
+│   ├── speedrun.sh*
+│   ├── sync_data.sh*
+│   ├── validate_metrics.sh
+│   └── validate.sh*
+├── skills/
+│   ├── agents/
+│   │   ├── Linux_Server_Master/
+│   │   │   ├── nixos-remote-cache-expert/
+│   │   │   │   ├── assets/
+│   │   │   │   ├── references/
+│   │   │   │   ├── scripts/
+│   │   │   │   └── SKILL.md
+│   │   │   ├── nixos-remote-cache-expert.skill
+│   │   │   └── nixos-remote-cache-master.skill
+│   │   ├── nix-expert/
+│   │   │   ├── nixos-linux-master/
+│   │   │   │   ├── assets/
+│   │   │   │   ├── references/
+│   │   │   │   ├── scripts/
+│   │   │   │   ├── README.md
+│   │   │   │   └── SKILL.md
+│   │   │   └── RESUMO-SKILL.md
+│   │   └── security-architect/
+│   │       ├── references/
+│   │       │   ├── compliance-frameworks.md
+│   │       │   ├── cryptography-guide.md
+│   │       │   └── secure-patterns.md
+│   │       └── SKILL.md
+│   ├── Linux_Server_Master/
+│   │   ├── nixos-remote-cache-expert/
+│   │   │   ├── assets/
+│   │   │   │   └── notion-project-template.md*
+│   │   │   ├── references/
+│   │   │   │   ├── best-practices.md*
+│   │   │   │   ├── hardware-optimization.md*
+│   │   │   │   └── troubleshooting.md*
+│   │   │   ├── scripts/
+│   │   │   │   ├── diagnose_system.sh*
+│   │   │   │   ├── monitor_performance.sh*
+│   │   │   │   └── setup_direct_network.sh*
+│   │   │   └── SKILL.md*
+│   │   ├── nixos-remote-cache-expert.skill*
+│   │   └── nixos-remote-cache-master.skill*
+│   ├── nix-expert/
+│   │   ├── nixos-linux-master/
+│   │   │   ├── assets/
+│   │   │   │   └── flake-templates/
+│   │   │   ├── references/
+│   │   │   │   ├── git-workflow.md*
+│   │   │   │   ├── linux-debug-cookbook.md*
+│   │   │   │   ├── nix-flakes-patterns.md*
+│   │   │   │   ├── packaging-guide.md*
+│   │   │   │   └── security-hardening.md*
+│   │   │   ├── scripts/
+│   │   │   │   ├── flake-scaffold.sh*
+│   │   │   │   ├── nix-build-debug.sh*
+│   │   │   │   └── system-analyzer.sh*
+│   │   │   ├── {scripts,references,assets/
+│   │   │   │   └── flake-templates}/
+│   │   │   ├── README.md*
+│   │   │   └── SKILL.md*
+│   │   └── RESUMO-SKILL.md*
+│   ├── security-architect/
+│   │   ├── references/
+│   │   │   ├── compliance-frameworks.md*
+│   │   │   ├── cryptography-guide.md*
+│   │   │   └── secure-patterns.md*
+│   │   └── SKILL.md*
+│   └── ux-agents/
+│       ├── flake.lock
+│       ├── flake.nix
+│       ├── ux-skill-template.md
+│       └── workflow-complete.md
+├── src/
+│   └── cerebro/
+│       ├── api/
+│       ├── commands/
+│       ├── core/
+│       │   ├── extraction/
+│       │   ├── gcp/
+│       │   ├── rag/
+│       │   └── utils/
+│       ├── intelligence/
+│       ├── interfaces/
+│       ├── modules/
+│       │   ├── credit_burner/
+│       │   ├── knowledge/
+│       │   └── nixos/
+│       ├── nats/
+│       ├── providers/
+│       │   ├── chroma/
+│       │   ├── gcp/
+│       │   ├── llamacpp/
+│       │   └── openai_compatible/
+│       ├── registry/
+│       └── tui/
+│           ├── commands/
+│           ├── screens/
+│           └── widgets/
+├── tests/
+│   └── integration/
+├── AGENTS.md
+├── build-core-v2.sh
+├── cerebro*
+├── CLAUDE.md
+├── CONTRIBUTING.md
+├── DISPLAY_SETUP.sh
+├── Dockerfile
+├── flake-inner.nix.backup
+├── flake.lock
+├── flake.nix
+├── Justfile
+├── LICENSE
+├── poetry.lock
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+├── ssh_sessions.db
+├── start_cerebro.sh*
+└── start_embedding_server.sh*
+
+105 directories, 172 files
+```
+
+---
+
+## 📝 Metadata
+
+- **Report Version**: 3.0.0
+- **Generated**: 2026-04-02 00:58:23 -03
+- **Tool**: NixOS Architecture Analysis Tool
+- **Repository**: /home/kernelcore/master/cerebro
+
+To regenerate this report:
+
+```bash
+bash scripts/generate-architecture-tree.sh
+```
+
+---
+
+*Generated with ❤️ by NixOS Architecture Analysis Tool*
