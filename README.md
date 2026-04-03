@@ -36,11 +36,11 @@ cerebro knowledge analyze ./your-project --format json
 # 2. Scan repository health — LOC, languages, dependencies, git activity, security
 cerebro metrics scan
 
-# 3. Index into vector database for semantic search
-cerebro rag ingest ./data/analyzed --backend vertex-ai
+# 3. Index into the local vector database for semantic search
+cerebro rag ingest ./data/analyzed/all_artifacts.jsonl
 
 # 4. Ask natural-language questions with grounded, cited answers
-cerebro rag query "Where is credit card validation handled?" --grounded --citations
+cerebro rag query "Where is credit card validation handled?"
 ```
 
 ---
@@ -86,7 +86,7 @@ cerebro rag query "Where is credit card validation handled?" --grounded --citati
 | **Code Analysis**      | Tree-Sitter + Python AST | —                          | Production     |
 | **Repository Metrics** | Git + filesystem scan    | —                          | Production     |
 | **Vector Store**       | ChromaDB (SQLite)        | Vertex AI Vector Search    | Both supported |
-| **LLM Interface**      | Local (Mistral-7B)       | Gemini via Vertex AI       | Both supported |
+| **LLM Interface**      | llama.cpp / local APIs   | Gemini via Vertex AI       | Both supported |
 | **Security Scanner**   | Regex + AST patterns     | —                          | Production     |
 | **Dashboard**          | Vite dev server          | —                          | Production     |
 | **TUI**                | Textual framework        | —                          | Production     |
@@ -158,11 +158,11 @@ Produces: language distribution, dependency graph, security findings, health sco
 
 ### Enterprise RAG Engine
 
-Production-ready vector search with cost controls:
+Production-ready vector search with local-first defaults:
 
-- Automatic batching (respects Vertex AI 250-doc limit)
+- Automatic batching for local embedding/index flows
 - Circuit breakers for rate limits
-- Pluggable providers (Vertex AI, ChromaDB, local LLMs)
+- Pluggable providers (llama.cpp, OpenAI-compatible local APIs, Vertex AI)
 - Grounded generation with citations (hallucination prevention)
 
 ### Security Scanner
@@ -347,7 +347,17 @@ docs/
 ### Environment Variables
 
 ```bash
-# GCP (never hardcode project IDs)
+# Local-first RAG
+export CEREBRO_LLM_PROVIDER="llamacpp"            # default local provider
+export LLAMA_CPP_URL="http://localhost:8081"
+export LLAMA_CPP_MODEL="current-model"
+
+# Supported aliases:
+# llamacpp | llama.cpp | local-llm
+# openai-compatible | openai-compatible-api | local-openai
+# vertex-ai | vertexai | gcp-vertex-ai
+
+# Optional Vertex AI backend
 export GCP_PROJECT_ID="<your-gcp-project-id>"
 export DATA_STORE_ID="<your-data-store-id>"
 

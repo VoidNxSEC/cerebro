@@ -439,21 +439,23 @@ def generate_docs(
 @rag_app.command("ingest")
 def rag_ingest(source_file: str = "./data/analyzed/all_artifacts.jsonl"):
     """
-    Cloud-native ingestion (Discovery Engine) - consumes GenAI credits.
+    Ingest artifacts into the active RAG backend.
     """
     try:
         from cerebro.core.rag.engine import RigorousRAGEngine
     except ImportError:
-        console.print("[red]❌ GCP/DiscoveryEngine dependencies missing.[/red]")
+        console.print("[red]❌ RAG dependencies missing. Run: nix develop --command cerebro rag ingest[/red]")
         return
 
     engine = RigorousRAGEngine()
-    console.print("🧠 [bold]Ingesting artifacts into Discovery Engine...[/bold]")
+    backend = "Vertex AI" if engine._uses_vertex_backend() else "local vector store"
+    console.print(f"🧠 [bold]Ingesting artifacts into {backend}...[/bold]")
     try:
         count = engine.ingest(source_file)
-        console.print(f"[green]✅ Processing started for {count} artifacts.[/green]")
-        console.print("[yellow]ℹ️  Indexing runs asynchronously on Google Cloud.[/yellow]")
-        console.print("💡 Monitor at: [link]https://console.cloud.google.com/gen-app-builder/data-stores[/link]")
+        console.print(f"[green]✅ Ingested {count} artifacts.[/green]")
+        if engine._uses_vertex_backend():
+            console.print("[yellow]ℹ️  Indexing runs asynchronously on Google Cloud.[/yellow]")
+            console.print("💡 Monitor at: [link]https://console.cloud.google.com/gen-app-builder/data-stores[/link]")
     except Exception as e:
         console.print(f"[red]❌ Error: {e}[/red]")
 
@@ -465,14 +467,12 @@ def rag_query(
     top_k: int = typer.Option(5, "--top-k", "-k", help="Number of results to retrieve"),
 ):
     """
-    Query the Cloud RAG (Discovery Engine) with Grounded Generation.
+    Query the active RAG backend with grounded generation.
     """
     try:
         from cerebro.core.rag.engine import RigorousRAGEngine
     except ImportError:
-        console.print(
-            "[red]❌ GCP dependencies missing. Run: nix develop[/red]"
-        )
+        console.print("[red]❌ RAG dependencies missing. Run: nix develop --command cerebro rag query[/red]")
         return
 
     engine = RigorousRAGEngine()
@@ -640,7 +640,7 @@ def health():
             except Exception as e:
                 table.add_row("Discovery Engine API", "[red]FAIL[/red]", f"DS ID set but API failed: {str(e)[:50]}...")
         else:
-            table.add_row("Discovery Engine API", "[yellow]MISSING[/yellow]", "DATA_STORE_ID not set. RAG will fail.")
+            table.add_row("Discovery Engine API", "[dim]OPTIONAL[/dim]", "DATA_STORE_ID not set. Local RAG remains available.")
 
         # 4. BigQuery Billing Export (FinOps)
         table.add_row("Billing Audit", "[dim]N/A[/dim]", "Enable BQ Export to monitor credits")
@@ -648,8 +648,8 @@ def health():
     console.print(table)
 
     if not ds_id or not final_project:
-        console.print("\n[bold red]⚠️  WARNING: INCOMPLETE CONFIGURATION[/bold red]")
-        console.print("To use GCP features, configure the following environment variables:")
+        console.print("\n[bold yellow]ℹ️  Optional GCP configuration[/bold yellow]")
+        console.print("Local RAG works without GCP. To enable Vertex features, configure:")
         console.print("  export GCP_PROJECT_ID='<your-gcp-project-id>'")
         console.print("  export DATA_STORE_ID='<your-data-store-id>'")
 

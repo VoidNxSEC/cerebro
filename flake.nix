@@ -62,7 +62,9 @@
             python-dotenv
             pyyaml
             click
-
+            chromadb
+            sentence-transformers
+            textual
             # Google Cloud (basic)
             google-auth
             google-api-core
