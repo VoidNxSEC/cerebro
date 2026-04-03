@@ -157,7 +157,7 @@ Constraints:
 - <$500/mês
 - 5 services, 20k req/day
 - No dedicated SRE
-- Self-hosted OK
+- Managed services preferred
 
 Arquitetura com Grafana + Loki + Prometheus no k3s."
 ```

@@ -11,7 +11,7 @@ This guide documents the migration from GitHub Actions to GitLab CI/CD for the C
 - **GitLab CI:** YAML with `stages`, `jobs`, `script` keywords
 
 ### Runners
-- **GitHub Actions:** `runs-on` specifies runner type (ubuntu-latest, self-hosted, etc.)
+- **GitHub Actions:** `runs-on` specifies runner type (`ubuntu-latest`, `macos-14`, etc.)
 - **GitLab CI:** `image` specifies Docker image or `tags` for runner selection
 
 ### Secrets
@@ -52,7 +52,7 @@ This guide documents the migration from GitHub Actions to GitLab CI/CD for the C
 ```yaml
 jobs:
   validate-commands:
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: chmod +x ./scripts/ci-test.sh && ./scripts/ci-test.sh
@@ -107,10 +107,10 @@ deploy:cloud-run:
    - Add GCP_PROJECT_ID, GCP_REGION, GCP_SERVICE_ACCOUNT_KEY, etc.
    - Mark sensitive variables as protected and masked
 
-3. **Set up GitLab Runner** (optional, for self-hosted)
-   - Install GitLab Runner on your infrastructure
-   - Configure executor (Docker, NixOS, etc.)
-   - Register runner with GitLab project
+3. **Verify runner availability**
+   - Prefer GitLab.com shared runners for default execution
+   - Confirm the project has runner capacity for Docker jobs
+   - Add tags only when a job explicitly requires them
 
 4. **Enable protected branches** for main branch
    - Go to Project Settings → Repository → Protected Branches

@@ -59,10 +59,10 @@ GCP_SERVICE_ACCOUNT_KEY = <base64-encoded-key>
 # Pipeline will automatically use shared runners
 ```
 
-**Option B: Use self-hosted NixOS runner**
+**Option B: Use a project-tagged runner**
 ```bash
-# Install GitLab Runner on NixOS
-# Configure to use NixOS executor
+# Ensure the project has an available tagged runner
+# Match job tags only when a pipeline requires them
 # See: https://docs.gitlab.com/runner/
 ```
 

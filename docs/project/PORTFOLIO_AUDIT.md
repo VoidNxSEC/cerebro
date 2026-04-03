@@ -112,7 +112,7 @@ Phase 3: Generate API docs
 
 ```yaml
 # .github/workflows/ci.yml
-- Runs on: self-hosted NixOS runner
+- Runs on: GitHub-hosted ubuntu-latest runner
 - Triggers: push to main, PRs
 - Steps:
   1. Checkout
