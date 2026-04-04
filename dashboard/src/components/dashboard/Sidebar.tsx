@@ -8,7 +8,7 @@ import {
   Search,
   FileText,
   Settings,
-  Activity,
+  MessageSquare,
   Shield,
   Radio,
   Users,
@@ -43,6 +43,11 @@ const navItems = [
     title: 'Briefing',
     href: '/briefing',
     icon: FileText,
+  },
+  {
+    title: 'AI Chat',
+    href: '/chat',
+    icon: MessageSquare,
   },
   {
     title: 'Settings',

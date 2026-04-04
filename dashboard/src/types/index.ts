@@ -167,6 +167,30 @@ export interface AiHealth {
   model: string | null
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface ChatRequest {
+  messages: ChatMessage[]
+  project?: string
+  use_rag?: boolean
+  max_context_items?: number
+}
+
+export interface ChatResponse {
+  message: ChatMessage
+  sources: Array<{
+    title: string
+    type: string
+    source: string
+    score?: number
+  }>
+  model: string | null
+  rag_used: boolean
+}
+
 // Store Types
 export interface DashboardState {
   timeRange: TimeRange

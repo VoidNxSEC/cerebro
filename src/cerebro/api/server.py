@@ -138,6 +138,28 @@ class ScanRequest(BaseModel):
     collect_intelligence: bool = Field(default=True)
 
 
+class ChatMessage(BaseModel):
+    """A single message in a conversation."""
+    role: str = Field(..., description="'user' or 'assistant'")
+    content: str
+
+
+class ChatRequest(BaseModel):
+    """Multi-turn chat request with optional RAG context."""
+    messages: list[ChatMessage] = Field(..., min_length=1)
+    project: str | None = Field(None, description="Scope RAG context to a specific project")
+    use_rag: bool = Field(default=True, description="Inject RAG context from the knowledge base")
+    max_context_items: int = Field(default=5, ge=1, le=20)
+
+
+class ChatResponse(BaseModel):
+    """Chat response with source attribution."""
+    message: ChatMessage
+    sources: list[dict[str, Any]] = Field(default_factory=list)
+    model: str | None = None
+    rag_used: bool = False
+
+
 # ==================== Lifespan ====================
 
 @asynccontextmanager
@@ -612,6 +634,102 @@ async def ai_health():
         "url": llama.base_url,
         "model": llama.model,
     }
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """
+    Multi-turn AI chat with optional RAG context.
+    Uses local LLM (llama.cpp on 8081) when available; falls back to a
+    deterministic rule-based response so the endpoint never errors out.
+    """
+    sources: list[dict[str, Any]] = []
+    rag_used = False
+
+    # Build system prompt with RAG context
+    system_parts = [
+        "You are CEREBRO, an intelligent assistant for the ~/master software ecosystem. "
+        "You help developers understand codebases, find relevant information, and make decisions."
+    ]
+
+    if request.use_rag and indexer and cerebro:
+        last_user_msg = next(
+            (m.content for m in reversed(request.messages) if m.role == "user"), ""
+        )
+        if last_user_msg:
+            try:
+                context_items = indexer.semantic_query(
+                    query=last_user_msg,
+                    top_k=request.max_context_items,
+                )
+                if context_items:
+                    rag_used = True
+                    context_text = "\n\n".join(
+                        f"[{item.get('type', 'intel').upper()}] {item.get('title', '')}\n{item.get('content', '')}"
+                        for item in context_items[:request.max_context_items]
+                        if isinstance(item, dict)
+                    )
+                    system_parts.append(
+                        f"\n\nRelevant context from the knowledge base:\n{context_text}"
+                    )
+                    sources = [
+                        {
+                            "title": item.get("title", ""),
+                            "type": item.get("type", ""),
+                            "source": item.get("source", ""),
+                            "score": item.get("score"),
+                        }
+                        for item in context_items
+                        if isinstance(item, dict)
+                    ]
+            except Exception as e:
+                logger.warning(f"RAG context retrieval failed: {e}")
+
+    system_prompt = "\n".join(system_parts)
+
+    # Use llamacpp if available
+    if llama and llama.health_check():
+        # Build OpenAI-compatible messages list
+        messages_payload = [{"role": "system", "content": system_prompt}]
+        messages_payload += [{"role": m.role, "content": m.content} for m in request.messages]
+
+        loop = asyncio.get_running_loop()
+        try:
+            reply = await loop.run_in_executor(
+                None,
+                lambda: llama.chat(messages_payload),
+            )
+        except Exception as e:
+            logger.error(f"LlamaCpp chat failed: {e}")
+            reply = _fallback_reply(request.messages)
+
+        return ChatResponse(
+            message=ChatMessage(role="assistant", content=reply),
+            sources=sources,
+            model=llama.model,
+            rag_used=rag_used,
+        )
+
+    # Fallback: rule-based response
+    reply = _fallback_reply(request.messages)
+    return ChatResponse(
+        message=ChatMessage(role="assistant", content=reply),
+        sources=sources,
+        model=None,
+        rag_used=rag_used,
+    )
+
+
+def _fallback_reply(messages: list[ChatMessage]) -> str:
+    """Return a helpful offline message when no LLM is available."""
+    last = next((m.content for m in reversed(messages) if m.role == "user"), "")
+    return (
+        f"I received your message: \"{last}\"\n\n"
+        "The local LLM (llama.cpp) is currently offline. "
+        "Start it with:\n\n"
+        "```\nllama-server --model /path/to/model.gguf --port 8081\n```\n\n"
+        "Once online, I'll be able to answer questions using your full knowledge base."
+    )
 
 
 @app.post("/actions/summarize/{project_name}")

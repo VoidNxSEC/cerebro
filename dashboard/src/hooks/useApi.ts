@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useDashboardStore } from '@/stores/dashboard'
 import api from '@/lib/api'
-import type { IntelligenceType, QueryResult, AiHealth } from '@/types'
+import type { IntelligenceType, QueryResult, AiHealth, ChatRequest } from '@/types'
 
 // Query keys
 export const queryKeys = {
@@ -160,6 +160,12 @@ export function useScanMetrics() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['metrics'] })
     },
+  })
+}
+
+export function useChatMutation() {
+  return useMutation({
+    mutationFn: (request: ChatRequest) => api.chat(request),
   })
 }
 

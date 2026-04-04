@@ -56,10 +56,35 @@ export function Intelligence() {
     )
   }
 
-  // Voice recognition (placeholder)
+  // Voice recognition via Web Speech API
   const toggleVoice = () => {
-    setIsListening(!isListening)
-    // TODO: Implement actual voice recognition
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) return
+
+    if (isListening) {
+      setIsListening(false)
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-US'
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setQuery(transcript)
+      setSearchQuery(transcript)
+      setSearchParams({ q: transcript })
+      setIsListening(false)
+    }
+
+    recognition.onerror = () => setIsListening(false)
+    recognition.onend = () => setIsListening(false)
+
+    recognition.start()
+    setIsListening(true)
   }
 
   return (

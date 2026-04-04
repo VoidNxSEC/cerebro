@@ -102,6 +102,17 @@ class LlamaCppProvider(LLMProvider):
         data = _post(f"{self.base_url}/v1/chat/completions", payload, self.timeout)
         return data["choices"][0]["message"]["content"]
 
+    def chat(self, messages: list[dict], **kwargs) -> str:
+        """Send a multi-turn conversation and return the assistant reply."""
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": kwargs.get("temperature", 0.7),
+            "max_tokens": kwargs.get("max_tokens", 2048),
+        }
+        data = _post(f"{self.base_url}/v1/chat/completions", payload, self.timeout)
+        return data["choices"][0]["message"]["content"]
+
     def grounded_generate(
         self,
         query: str,

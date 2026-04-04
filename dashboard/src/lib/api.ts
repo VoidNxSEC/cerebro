@@ -18,6 +18,8 @@ import type {
     RepoMetrics,
     WatcherStatus,
     AiHealth,
+    ChatRequest,
+    ChatResponse,
 } from '@/types'
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
@@ -134,6 +136,20 @@ class ApiClient {
     // AI / Local LLM
     async getAiHealth(): Promise<AiHealth> {
         return this.fetch<AiHealth>('/ai/health')
+    }
+
+    async chat(request: ChatRequest): Promise<ChatResponse> {
+        return this.fetch<ChatResponse>('/chat', {
+            method: 'POST',
+            body: JSON.stringify(request),
+        })
+    }
+
+    async getBriefingMarkdown(type: string): Promise<{ markdown: string }> {
+        return this.fetch('/briefing', {
+            method: 'POST',
+            body: JSON.stringify({ type, format: 'markdown' }),
+        })
     }
 }
 

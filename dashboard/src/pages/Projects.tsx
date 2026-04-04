@@ -10,13 +10,15 @@ import {
   ExternalLink,
   GitBranch,
   Clock,
+  Sparkles,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
-import { useProjects, useProject } from '@/hooks/useApi'
+import { useProjects, useProject, useSummarizeProject } from '@/hooks/useApi'
 import { getHealthColor, formatRelativeTime, cn } from '@/lib/utils'
 import type { Project } from '@/types'
 
@@ -261,6 +263,8 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
 }
 
 function ProjectDetail({ project, analysis }: { project: Project; analysis: any }) {
+  const summarizeMutation = useSummarizeProject()
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -279,10 +283,42 @@ function ProjectDetail({ project, analysis }: { project: Project; analysis: any 
             {project.description || 'No description available'}
           </p>
         </div>
-        <Badge variant={project.status as any} className="text-sm">
-          {project.status}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={project.status as any} className="text-sm">
+            {project.status}
+          </Badge>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => summarizeMutation.mutate(project.name)}
+            disabled={summarizeMutation.isPending}
+          >
+            {summarizeMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            AI Summary
+          </Button>
+        </div>
       </div>
+
+      {summarizeMutation.data && (
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Sparkles className="h-4 w-4 text-primary" />
+              AI Summary
+              {summarizeMutation.data.source === 'llamacpp' && (
+                <Badge variant="secondary" className="ml-auto text-xs">Local LLM</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm whitespace-pre-wrap">{summarizeMutation.data.summary}</p>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>

@@ -8,16 +8,19 @@ import {
   Download,
   RefreshCw,
   Volume2,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useDailyBriefing, useExecutiveBriefing } from '@/hooks/useApi'
 import { formatDate, getHealthColor, cn } from '@/lib/utils'
+import api from '@/lib/api'
 
 export function Briefing() {
   const [activeTab, setActiveTab] = useState<'daily' | 'executive'>('daily')
   const [isReading, setIsReading] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const { data: dailyBriefing, isLoading: dailyLoading, refetch: refetchDaily } = useDailyBriefing()
   const { data: executiveBriefing, isLoading: execLoading, refetch: refetchExec } = useExecutiveBriefing()
@@ -48,6 +51,24 @@ export function Briefing() {
     }
   }
 
+  const handleExport = async () => {
+    setIsExporting(true)
+    try {
+      const result = await api.getBriefingMarkdown(activeTab)
+      const blob = new Blob([result.markdown], { type: 'text/markdown' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `cerebro-${activeTab}-briefing-${new Date().toISOString().split('T')[0]}.md`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // silently fail — backend may not support markdown format
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -67,8 +88,12 @@ export function Briefing() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
             Export
           </Button>
         </div>

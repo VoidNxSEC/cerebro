@@ -1,11 +1,11 @@
 """
 cerebro.core.utils.logging
 ───────────────────────────
-Logger factory estruturado — substitui os 514 print() espalhados.
+Structured logger factory — replaces scattered print() calls.
 
-Suporta dois modos:
-  - LOCAL:    pretty console output com Rich (dev)
-  - CLOUDRUN: JSON estruturado com severity (prod)
+Supports two modes:
+  - LOCAL:      pretty console output with colors (dev)
+  - STRUCTURED: vendor-neutral JSON with severity (prod / any log aggregator)
 
 Usage:
     from cerebro.core.utils.logging import get_logger
@@ -21,10 +21,18 @@ import os
 import sys
 from typing import Any
 
-# ─── Detecção de ambiente ────────────────────────────────────────────────────
+# ─── Environment detection ───────────────────────────────────────────────────
 
-def _is_cloud_run() -> bool:
-    return bool(os.getenv("K_SERVICE") or os.getenv("K_REVISION"))
+def _is_structured_env() -> bool:
+    """Return True when running in a container / CI / any non-TTY environment."""
+    import sys
+    return bool(
+        os.getenv("K_SERVICE")        # Cloud Run
+        or os.getenv("K_REVISION")    # Cloud Run revision
+        or os.getenv("CI")            # CI pipelines
+        or os.getenv("CEREBRO_JSON_LOGS")  # explicit override
+        or not sys.stdout.isatty()    # piped / non-interactive
+    )
 
 def _is_rich_available() -> bool:
     try:
@@ -36,10 +44,11 @@ def _is_rich_available() -> bool:
 
 # ─── Formatters ─────────────────────────────────────────────────────────────
 
-class CloudRunFormatter(logging.Formatter):
+class StructuredFormatter(logging.Formatter):
     """
-    JSON structured logging para Cloud Run / GCP Cloud Logging.
-    Já existia em rag/server.py L29-43 — centralizado aqui.
+    Vendor-neutral JSON structured logging.
+    Works with any log aggregator (Loki, Elasticsearch, Datadog, Cloud Logging…).
+    Uses plain keys — no vendor-specific prefixes.
     """
     SEVERITY_MAP = {
         logging.DEBUG:    "DEBUG",
@@ -55,13 +64,13 @@ class CloudRunFormatter(logging.Formatter):
             "message":   record.getMessage(),
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
             "logger":    record.name,
-            "sourceLocation": {
+            "source_location": {
                 "file":     record.pathname,
                 "line":     record.lineno,
                 "function": record.funcName,
             },
         }
-        # Campos extras passados como kwargs no log call
+        # Extra fields passed as kwargs in the log call
         for key, val in record.__dict__.items():
             if key not in (
                 "name", "msg", "args", "levelname", "levelno",
@@ -78,10 +87,14 @@ class CloudRunFormatter(logging.Formatter):
         return json.dumps(payload, default=str)
 
 
+# Keep backward-compat alias so any existing import of CloudRunFormatter still works
+CloudRunFormatter = StructuredFormatter
+
+
 class LocalFormatter(logging.Formatter):
     """
-    Formato legível para desenvolvimento local.
-    Usa Rich se disponível, fallback para formato simples.
+    Human-readable colored output for local development.
+    Falls back to plain text if no TTY.
     """
     LEVEL_COLORS = {
         "DEBUG":    "\033[36m",   # cyan
@@ -127,9 +140,9 @@ _configured_loggers: set[str] = set()
 
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     """
-    Factory principal. Retorna logger configurado para o ambiente.
+    Main factory. Returns a logger configured for the current environment.
 
-    Exemplos:
+    Examples:
         logger = get_logger("cerebro.rag.engine")
         logger = get_logger("cerebro.gcp.billing", level=logging.DEBUG)
     """
@@ -144,8 +157,8 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
 
-    if _is_cloud_run():
-        handler.setFormatter(CloudRunFormatter())
+    if _is_structured_env():
+        handler.setFormatter(StructuredFormatter())
     else:
         handler.setFormatter(LocalFormatter())
 
@@ -156,8 +169,8 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
 
 def configure_root(level: int = logging.INFO):
     """
-    Configura o root logger do cerebro.
-    Chamar uma vez em cli.py ou launcher.py no startup.
+    Configure the root cerebro logger.
+    Call once in cli.py or launcher.py at startup.
     """
     root = get_logger("cerebro", level=level)
     return root
@@ -167,8 +180,8 @@ def configure_root(level: int = logging.INFO):
 
 class StructuredLogger:
     """
-    Wrapper que aceita kwargs como campos estruturados.
-    Padrão structlog-like sem a dep.
+    Thin wrapper that accepts kwargs as structured fields.
+    structlog-style API without the dependency.
 
     logger = StructuredLogger("cerebro.rag")
     logger.info("retrieved", k=20, latency_ms=12.4, reranked=True)
