@@ -1,24 +1,24 @@
 """
 cerebro.core.rag.evaluator
 ───────────────────────────
-RAG quality metrics sem ground truth.
+RAG quality metrics without ground truth.
 
-O problema de avaliar RAG em produção:
-  - Você não tem o "gabarito" (ground truth) para cada query
-  - Mas você tem proxies mensuráveis que correlacionam com qualidade
+The challenge of evaluating RAG in production:
+  - You don't have the "answer key" (ground truth) for each query
+  - But you have measurable proxies that correlate with quality
 
-Métricas implementadas (todas sem LLM extra):
+Implemented metrics (all without extra LLM calls):
   1. answer_relevance:   cosine(query_embed, answer_embed)
-                         — resposta fala sobre o que foi perguntado?
-  2. context_precision:  fração dos chunks citados na resposta
-                         — o modelo usou o contexto que você deu?
-  3. rerank_score_top1:  score do cross-encoder no chunk #1
-                         — o retrieval foi confiante?
-  4. latency_ms:         fim-a-fim
-  5. token_efficiency:   tokens_usados / tokens_disponíveis
-                         — você está desperdiçando context window?
+                         — does the answer address what was asked?
+  2. context_precision:  fraction of chunks cited in the answer
+                         — did the model use the context it was given?
+  3. rerank_score_top1:  cross-encoder score for chunk #1
+                         — was the retrieval confident?
+  4. latency_ms:         end-to-end
+  5. token_efficiency:   tokens_used / tokens_available
+                         — is context window being wasted?
 
-Para métricas com ground truth (RAGAS), integrar depois com:
+For ground-truth metrics (RAGAS), integrate later with:
   pip install ragas
   → faithfulness, answer_correctness, context_recall
 """
@@ -35,8 +35,8 @@ logger = logging.getLogger("cerebro.evaluator")
 @dataclass
 class RAGMetrics:
     """
-    Snapshot completo de uma query RAG.
-    Persistir isso no dashboard_server → você tem observabilidade real.
+    Complete snapshot of a RAG query.
+    Persist this to the dashboard server for real observability.
     """
     # Query
     query:              str
@@ -74,8 +74,8 @@ class RAGMetrics:
     @property
     def quality_score(self) -> float:
         """
-        Score composto 0-1 sem ground truth.
-        Proxy razoável para priorizar investigação de problemas.
+        Composite score 0-1 without ground truth.
+        Reasonable proxy for prioritizing problem investigation.
         """
         weights = {
             "answer_relevance":  0.40,
@@ -107,9 +107,9 @@ class RAGMetrics:
 
 class RAGEvaluator:
     """
-    Avaliador de qualidade RAG em tempo real (sem ground truth).
+    Real-time RAG quality evaluator (without ground truth).
 
-    Injeta no pipeline como observer — não bloqueia a resposta.
+    Injected into the pipeline as an observer — does not block the response.
     """
 
     def __init__(self, embedding_system=None):
@@ -127,10 +127,10 @@ class RAGEvaluator:
         context_budget: int = 16_000,
     ) -> RAGMetrics:
         """
-        Calcula métricas para uma query completada.
+        Compute metrics for a completed query.
 
-        Não lança exceção se qualquer métrica falhar —
-        degraded metrics > pipeline quebrado.
+        Does not raise if any individual metric fails —
+        degraded metrics > broken pipeline.
         """
         metrics = RAGMetrics(
             query=query,
@@ -177,11 +177,11 @@ class RAGEvaluator:
 
     def _compute_context_precision(self, answer: str, chunks: list) -> float:
         """
-        Fração dos chunks que têm overlap com a resposta.
-        Proxy lexical — sem LLM extra.
+        Fraction of chunks with lexical overlap in the answer.
+        Lexical proxy — no extra LLM call needed.
 
-        Alta precision → modelo usou o contexto recuperado.
-        Baixa precision → modelo "alucionou" ou ignorou o contexto.
+        High precision → model used the retrieved context.
+        Low precision → model hallucinated or ignored context.
         """
         if not chunks or not answer:
             return 0.0
@@ -192,15 +192,15 @@ class RAGEvaluator:
         for chunk in chunks:
             chunk_words = set(chunk.content.lower().split())
             overlap = len(answer_words & chunk_words) / max(len(chunk_words), 1)
-            if overlap > 0.05:  # threshold: 5% das palavras do chunk aparecem na resposta
+            if overlap > 0.05:  # threshold: 5% of chunk words appear in the answer
                 used += 1
 
         return used / len(chunks)
 
     def _compute_answer_relevance(self, query: str, answer: str) -> float:
         """
-        Cosine similarity entre query e answer embeddings.
-        Alta relevance → resposta fala sobre o que foi perguntado.
+        Cosine similarity between query and answer embeddings.
+        High relevance → answer addresses what was asked.
         """
         if not self._embed_system or not answer:
             return 0.0
@@ -208,7 +208,7 @@ class RAGEvaluator:
         try:
             import numpy as np
             q_vec = self._embed_system.embed_query(query)
-            a_vec = self._embed_system.embed_query(answer[:512])  # trunca resposta longa
+            a_vec = self._embed_system.embed_query(answer[:512])  # truncate long answers
 
             # Cosine similarity
             q_arr = np.array(q_vec)
@@ -217,13 +217,13 @@ class RAGEvaluator:
                 np.dot(q_arr, a_arr) /
                 (np.linalg.norm(q_arr) * np.linalg.norm(a_arr) + 1e-8)
             )
-            return max(0.0, cos_sim)  # clipar negativo
+            return max(0.0, cos_sim)  # clip negative values
         except Exception as e:
             logger.debug(f"answer_relevance failed: {e}")
             return 0.0
 
     def get_stats(self, last_n: int = 100) -> dict:
-        """Estatísticas agregadas das últimas N queries."""
+        """Aggregated statistics for the last N queries."""
         recent = self._history[-last_n:]
         if not recent:
             return {}
@@ -238,7 +238,7 @@ class RAGEvaluator:
         }
 
     def export_jsonl(self, path: str):
-        """Exporta histórico para JSONL — alimenta dashboard ou análise offline."""
+        """Export history to JSONL — feeds the dashboard or offline analysis."""
         import json
         with open(path, "w") as f:
             for m in self._history:

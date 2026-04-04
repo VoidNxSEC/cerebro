@@ -26,7 +26,7 @@ Real-time intelligence dashboard for the Cerebro RAG (Retrieval-Augmented Genera
 ```mermaid
 graph LR
     A[React Dashboard] -->|HTTP/REST| B[Vite Dev Proxy]
-    B -->|:3000/api → :8000| C[Phantom Backend]
+    B -->|:18321/api → :8009| C[Cerebro Backend]
     C --> D[Cerebro RAG Engine]
     D --> E[FAISS Vector Store]
     D --> F[ADR Knowledge Base]
@@ -59,7 +59,7 @@ graph LR
 
 - **Node.js**: 18+ (LTS recommended)
 - **npm**: 9+ or equivalent package manager
-- **Backend**: Phantom API running on `localhost:8000`
+- **Backend**: Cerebro API running on `localhost:8009`
 
 ### Installation
 
@@ -71,7 +71,7 @@ npm install
 ### Development
 
 ```bash
-# Start dev server (http://localhost:3000)
+# Start dev server (http://localhost:18321)
 npm run dev
 
 # Type check
@@ -90,13 +90,13 @@ Create `.env.local` (optional):
 
 ```env
 # Backend API base URL (default: proxied via Vite)
-VITE_API_BASE=http://localhost:8000/api
+VITE_API_BASE=http://localhost:8009
 
 # Enable debug mode
 VITE_DEBUG=true
 
 # Custom port
-VITE_PORT=3000
+VITE_PORT=18321
 ```
 
 ---
@@ -268,7 +268,7 @@ threat: {
 
 ### Backend Endpoints
 
-**Base URL**: `http://localhost:8000/api` (proxied from `:3000/api`)
+**Base URL**: `http://localhost:8009` (proxied from `:18321/api`)
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -475,13 +475,13 @@ VITE_WS_URL=wss://api.cerebro.example.com/ws
 
 ### Dashboard won't load
 
-1. **Check backend**: `curl http://localhost:8000/health`
+1. **Check backend**: `curl http://localhost:8009/health`
 2. **Verify proxy**: Check `vite.config.ts` proxy settings
 3. **Browser console**: Look for CORS or network errors
 
 ### API errors (500/404)
 
-1. **Backend running**: Ensure Phantom API is started
+1. **Backend running**: Ensure Cerebro API is started (`just api` or `uvicorn cerebro.api.server:app --port 8009`)
 2. **Endpoints exist**: Verify URL matches backend routes
 3. **Check logs**: Backend console for Python traceback
 

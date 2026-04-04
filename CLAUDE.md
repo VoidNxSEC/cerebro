@@ -58,7 +58,7 @@ docs/
 | **cerebro-reranker** | `~/master/cerebro-reranker` | Primary reranker (HybridEngine: MiniLM → Electra → DeBERTa). API: `POST /v1/rerank`. GCP Vertex Search is the **fallback**. |
 
 Integration point: `src/cerebro/core/rerank_client.py` → `CerebroRerankerClient`.
-Endpoint: `http://localhost:8000` (env: `CEREBRO_RERANKER_URL`).
+Endpoint: `http://localhost:8090` (env: `CEREBRO_RERANKER_URL`).
 
 ## Dashboard Backend
 

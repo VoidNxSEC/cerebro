@@ -1,56 +1,52 @@
 # Cerebro Documentation
 
-> **Cerebro v2.0.0** — Enterprise Knowledge Extraction Platform
+This directory contains the documentation for **Cerebro**, organized around a
+standalone, local-first product model with optional vendor-specific integrations.
 
-This directory contains all project documentation, organized by topic.
+## Documentation Layout
 
-## Directory Structure
-
-```
+```text
 docs/
-  architecture/     System design, data flow diagrams, ADR summary
-  commands/         CLI command reference with examples
-  features/         Feature-specific documentation
-    intelligence/   Code analysis, query mastery, stack capabilities
-    gcp-credits/    GCP credit management, automation, high-ROI queries
-    strategy/       Executive summaries, ROI analysis
-  guides/           Setup guides, cheatsheets, CI/CD, keyboard shortcuts
-  phases/           Phase implementation history (Phase 1-4)
-  project/          Status, roadmaps, audits, execution plans
-  i18n/             Translations (Portuguese)
+  architecture/   System design, ADRs, data flow
+  commands/       CLI command reference
+  features/       Feature-specific documentation
+    intelligence/ Core analysis and intelligence features
+    gcp-credits/  Optional GCP-specific workflows
+    strategy/     Planning and value documents
+  guides/         Setup, cheatsheets, CI/CD, dashboard, shortcuts
+  phases/         Historical implementation milestones
+  project/        Status, roadmap, audits, execution plans
+  i18n/           Portuguese reference material
 ```
 
-## Quick Navigation
+## Reading Order
 
-### Getting Started
-- [Quick Start](guides/QUICK_START.md) — Get running in 5 minutes
-- [Cheatsheet](guides/CHEATSHEET.md) — Daily reference
-- [CLI Commands](commands/README.md) — Full command reference
+### Core product
 
-### Architecture
-- [Architecture Overview](architecture/ARCHITECTURE.md) — System design
-- [Data Flow](architecture/ARCHITECTURE_DATA_FLOW.md) — Pipeline visualization
-- [ADR Summary](architecture/ADR_SUMMARY.md) — Architectural decisions
+- [Quick Start](guides/QUICK_START.md)
+- [CLI Commands](commands/README.md)
+- [Architecture Overview](architecture/ARCHITECTURE.md)
+- [ADR Summary](architecture/ADR_SUMMARY.md)
 
-### Features
-- [Capabilities](features/intelligence/CAPABILITIES.md) — What Cerebro can do
-- [GCP Credits](features/gcp-credits/README.md) — Credit management
-- [Strategy](features/strategy/EXECUTIVE_SUMMARY.md) — Executive overview
+### Interfaces and operations
 
-### Project Status
-- [Master Execution Plan](project/MASTER_EXECUTION_PLAN.md) — Active roadmap
-- [Agentic GPT Roadmap](project/AGENTIC_GPT_ROADMAP.md) — Capability evolution plan
-- [Status](project/STATUS.md) — Current status
-- [Coverage Gaps](project/COVERAGE_GAP.md) — Known gaps and planned features
+- [Keyboard Shortcuts](guides/KEYBOARD_SHORTCUTS.md)
+- [Dashboard Integration](guides/DASHBOARD_INTEGRATION.md)
+- [GitLab CI/CD](guides/GITLAB_CI_CD.md)
+- [Contributing](guides/CONTRIBUTING_DOCS.md)
 
-### Development
-- [Contributing](guides/CONTRIBUTING_DOCS.md) — Contribution guidelines
-- [GitLab CI/CD](guides/GITLAB_CI_CD.md) — Pipeline documentation
-- [Dashboard Integration](guides/DASHBOARD_INTEGRATION.md) — Web dashboard setup
-- [Keyboard Shortcuts](guides/KEYBOARD_SHORTCUTS.md) — TUI navigation
+### Integration-specific material
 
-### Phase History
-- [Phase 1](phases/PHASE1_IMPLEMENTATION.md) — Core extraction engine
-- [Phase 2](phases/PHASE2_COMPLETE.md) — RAG pipeline
-- [Phase 3](phases/PHASE3_IMPLEMENTATION_COMPLETE.md) — TUI + CLI commands
-- [Phase 4](phases/PHASE4_COMPLETE.md) — Metrics + dashboard
+- [GCP Credits Overview](features/gcp-credits/README.md)
+- [Automation Systems](features/gcp-credits/AUTOMATION_SYSTEMS.md)
+- [High-ROI Queries](features/gcp-credits/HIGH_ROI_QUERIES.md)
+
+These integration-specific documents describe optional workflows; they are not
+required to use the Cerebro core.
+
+### Planning and status
+
+- [Master Execution Plan](project/MASTER_EXECUTION_PLAN.md)
+- [Status](project/STATUS.md)
+- [Coverage Gaps](project/COVERAGE_GAP.md)
+- [Portfolio Audit](project/PORTFOLIO_AUDIT.md)

@@ -161,6 +161,12 @@ export interface WatcherStatus {
   poll_interval: number
 }
 
+export interface AiHealth {
+  available: boolean
+  url: string | null
+  model: string | null
+}
+
 // Store Types
 export interface DashboardState {
   timeRange: TimeRange

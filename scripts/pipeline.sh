@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -7,16 +7,31 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Starting PHANTOM Validation Pipeline${NC}"
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+cd "$REPO_ROOT"
+
+if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+    if ! command -v nix &> /dev/null; then
+        echo -e "${RED}❌ Nix is required to run this validation pipeline.${NC}"
+        exit 1
+    fi
+
+    echo -e "${BLUE}🧊 Entering Cerebro dev shell...${NC}"
+    exec nix develop --command bash "$SCRIPT_PATH" "$@"
+fi
+
+echo -e "${BLUE}🚀 Starting CEREBRO Validation Pipeline${NC}"
 echo "========================================"
 
 # 1. Environment Check
 echo -e "\n${BLUE}🔍 Checking Environment...${NC}"
 if ! command -v poetry &> /dev/null; then
-    echo -e "${RED}❌ Poetry is not installed.${NC}"
+    echo -e "${RED}❌ Poetry is not available in the current dev shell.${NC}"
     exit 1
 fi
-echo -e "${GREEN}✅ Poetry detected.${NC}"
+echo -e "${GREEN}✅ Dev shell detected.${NC}"
 
 # 2. Dependencies
 echo -e "\n${BLUE}📦 Verifying Dependencies...${NC}"
@@ -24,27 +39,23 @@ poetry check
 echo -e "${GREEN}✅ Dependencies are valid.${NC}"
 
 # 3. Unit Tests
-echo -e "\n${BLUE}🧪 Running Unit Tests...${NC}"
-# Fix for NixOS + Python Wheels (handled by flake.nix)
-# export LD_LIBRARY_PATH handled by devShell
-
-
-poetry run pytest -v
+echo -e "\n${BLUE}🧪 Running Core Unit Tests...${NC}"
+pytest tests/ -v --ignore=tests/integration
 echo -e "${GREEN}✅ Tests Passed.${NC}"
 
 # 4. Integration / CLI Tests
 echo -e "\n${BLUE}🤖 Verifying CLI Commands...${NC}"
 
-echo -n "  - phantom info: "
-if poetry run phantom info > /dev/null; then
+echo -n "  - cerebro info: "
+if cerebro info > /dev/null; then
     echo -e "${GREEN}OK${NC}"
 else
     echo -e "${RED}FAILED${NC}"
     exit 1
 fi
 
-echo -n "  - phantom version: "
-if poetry run phantom version | grep -q "v0.1.0"; then
+echo -n "  - cerebro version: "
+if cerebro version | grep -q "v0.1.0"; then
     echo -e "${GREEN}OK${NC}"
 else
     echo -e "${RED}FAILED${NC}"
@@ -61,7 +72,7 @@ fi
 
 # Analyze the tests directory itself as a quick check
 # Note: task_context has a default value, so Typer treats it as an option (--task-context)
-if poetry run phantom knowledge analyze ./tests --task-context "Pipeline Test" > /dev/null; then
+if cerebro knowledge analyze ./tests --task-context "Pipeline Test" > /dev/null; then
     echo -e "${GREEN}✅ Analysis command executed successfully.${NC}"
 else
     echo -e "${RED}❌ Analysis command failed.${NC}"

@@ -1,4 +1,4 @@
-"""Tests for the Dashboard API Server (phantom.dashboard_server).
+"""Tests for the Dashboard API Server.
 
 Uses FastAPI TestClient with a mocked MetricsCollector to avoid
 real filesystem access.

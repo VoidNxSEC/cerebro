@@ -1,4 +1,4 @@
-# config/repos.yaml - Phantom Knowledge Base Configuration
+# config/repos.yaml - Cerebro Knowledge Base Configuration
 #
 # Define repositórios, hooks e configurações de relatório.
 # Estrutura "verbosa e elegante" para controle total.
@@ -19,30 +19,30 @@ global:
     - "build"
 
 repos:
-  - name: phantom-core
+  - name: cerebro-core
     path: "."
     priority: critical
-    description: "Core do framework Phantom e CLI"
+    description: "Core do Cerebro, CLI e runtime local-first"
 
     # Contexto para o analisador (RAG/LLM)
     context: |
       Este é o repositório principal. Contém a lógica de extração,
-      o motor RAG (LangChain) e as integrações com GCP.
+      o motor RAG e as integrações opcionais por adapter.
       Foco em performance e segurança.
 
     # Hooks: Comandos executados durante o ciclo de vida
     hooks:
       pre_analyze:
         - description: "Validar estrutura do projeto"
-          command: "poetry check"
+          command: "nix develop --command poetry check"
         - description: "Limpar artefatos antigos"
-          command: "rm -rf data/analyzed/phantom-core"
+          command: "rm -rf data/analyzed/cerebro-core"
 
       post_analyze:
         - description: "Rodar testes unitários rápidos"
-          command: "poetry run pytest -v"
+          command: "nix develop --command pytest tests/ -v --ignore=tests/integration"
         - description: "Gerar relatório executivo"
-          command: "phantom knowledge summarize phantom-core"
+          command: "nix develop --command cerebro knowledge summarize cerebro-core"
 
     options:
       deep_analysis: true
@@ -71,7 +71,7 @@ repos:
           command: "find . -name '*.nix' -type f -exec nix-instantiate --parse {} \\; > /dev/null"
           allow_failure: true
         - description: "Gerar relatório de configuração"
-          command: "phantom knowledge summarize phoenix-infra"
+          command: "nix develop --command cerebro knowledge summarize phoenix-infra"
           allow_failure: true
 
     options:

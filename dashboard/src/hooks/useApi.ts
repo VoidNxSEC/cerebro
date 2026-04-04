@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useDashboardStore } from '@/stores/dashboard'
 import api from '@/lib/api'
-import type { IntelligenceType, QueryResult } from '@/types'
+import type { IntelligenceType, QueryResult, AiHealth } from '@/types'
 
 // Query keys
 export const queryKeys = {
@@ -15,6 +15,7 @@ export const queryKeys = {
   graph: ['graph'] as const,
   metrics: ['metrics'] as const,
   watcherStatus: ['metrics', 'watcher'] as const,
+  aiHealth: ['ai', 'health'] as const,
 }
 
 // Status
@@ -159,5 +160,15 @@ export function useScanMetrics() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['metrics'] })
     },
+  })
+}
+
+// AI / Local LLM
+export function useAiHealth() {
+  const { autoRefresh, refreshInterval } = useDashboardStore()
+  return useQuery<AiHealth>({
+    queryKey: queryKeys.aiHealth,
+    queryFn: api.getAiHealth,
+    refetchInterval: autoRefresh ? refreshInterval : false,
   })
 }

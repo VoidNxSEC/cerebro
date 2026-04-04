@@ -27,6 +27,7 @@ result-*
 .direnv/
 .nix-pip/
 .nix-installed
+.nix-installed-*
 
 # ── Node (dashboard) ──────────────────────────────────────
 dashboard/node_modules/

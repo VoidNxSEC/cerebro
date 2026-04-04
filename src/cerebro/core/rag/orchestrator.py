@@ -1,17 +1,14 @@
 """
 cerebro.core.rag.orchestrator
 ──────────────────────────────
-Orchestration layer — o maestro do RAG pipeline.
+Orchestration layer — the RAG pipeline conductor.
 
-Responsabilidades:
-  1. Cache de queries (evita re-processar queries idênticas)
-  2. Query expansion (HyDE opcional)
-  3. Routing: local (ChromaDB) vs cloud (Vertex AI)
-  4. Composição: retriever → reranker → context_manager → LLM
-  5. Métricas via RAGEvaluator
-
-Este é o entry point que o engine.py deveria ter —
-substitui a lógica ad-hoc espalhada em RigorousRAGEngine.
+Responsibilities:
+  1. Query cache (avoids reprocessing identical queries)
+  2. Query expansion (HyDE, optional)
+  3. Routing: local (ChromaDB) primary, cloud (Vertex AI) fallback
+  4. Composition: retriever → reranker → context_manager → LLM
+  5. Metrics via RAGEvaluator
 """
 
 from __future__ import annotations
@@ -123,10 +120,10 @@ class QueryCache:
 
 class RAGOrchestrator:
     """
-    Orquestra o pipeline RAG completo.
+    Orchestrates the full RAG pipeline.
 
-    Injetável — aceita qualquer implementação de retriever, reranker, LLM.
-    Compatível com os providers existentes em phantom/providers/.
+    Injectable — accepts any retriever, reranker, or LLM implementation.
+    Compatible with the providers in cerebro/providers/.
 
     Usage:
         orchestrator = RAGOrchestrator(
@@ -135,15 +132,15 @@ class RAGOrchestrator:
             llm=llm_provider,
             config=OrchestratorConfig(),
         )
-        response = orchestrator.query("como funciona o reranker?")
+        response = orchestrator.query("how does the reranker work?")
     """
 
     def __init__(
         self,
-        retriever,          # HybridRetriever ou qualquer retriever com .retrieve()
-        llm,                # LLMProvider (interface existente em phantom/interfaces/)
-        reranker=None,      # RerankClient (opcional)
-        evaluator=None,     # RAGEvaluator (opcional)
+        retriever,          # HybridRetriever or any retriever with .retrieve()
+        llm,                # LLMProvider (cerebro/interfaces/llm.py)
+        reranker=None,      # RerankClient (optional)
+        evaluator=None,     # RAGEvaluator (optional)
         config: OrchestratorConfig | None = None,
     ):
         self.retriever  = retriever
@@ -203,7 +200,7 @@ class RAGOrchestrator:
         if not chunks:
             logger.warning(f"Zero chunks retrieved for: {query[:60]}")
             return RAGResponse(
-                answer="Não encontrei informações relevantes no corpus indexado.",
+                answer="No relevant information found in the indexed corpus.",
                 sources=[],
                 query=query,
                 latency_ms=(time.time() - t_start) * 1000,

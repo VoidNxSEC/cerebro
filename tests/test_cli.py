@@ -1,4 +1,4 @@
-"""Tests for the Cerebro CLI (phantom.cli)."""
+"""Tests for the Cerebro CLI."""
 
 from typer.testing import CliRunner
 

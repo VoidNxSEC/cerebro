@@ -1,4 +1,4 @@
-"""Tests for the Cerebro Smart Launcher (phantom.launcher)."""
+"""Tests for the Cerebro Smart Launcher."""
 
 from unittest.mock import patch
 

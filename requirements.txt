@@ -1,11 +1,6 @@
-i# --- Google Cloud (Burn Credits & Ingestion) ---
-google-cloud-discoveryengine>=0.11.0  # A chave para os créditos R$ 6k
-google-cloud-storage
-google-cloud-aiplatform
-google-cloud-billing
-google-auth
-
-# --- Local RAG (O Cerebro Original) ---
+# Core local-first runtime dependencies.
+# Optional cloud integrations are defined in pyproject.toml (`gcp` group)
+# and should be used from the dedicated Nix shell: `nix develop .#gcp`.
 fastapi
 uvicorn
 chromadb
@@ -17,7 +12,7 @@ bitsandbytes
 
 # --- Code Analysis ---
 tree-sitter
-tree-sitter-languages
+tree-sitter-language-pack
 gitpython
 beautifulsoup4
 markdown
@@ -29,3 +24,15 @@ typer
 rich
 tqdm
 python-dotenv
+pyyaml
+langchain
+langchain-chroma
+langchain-community
+langchain-text-splitters
+click
+textual
+textual-dev
+websockets
+aiofiles
+nats-py
+dspy-ai

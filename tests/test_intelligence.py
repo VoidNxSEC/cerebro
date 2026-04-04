@@ -1,4 +1,4 @@
-"""Tests for the Intelligence Core module (phantom.intelligence.core)."""
+"""Tests for the Intelligence Core module (cerebro.intelligence.core)."""
 
 
 import pytest

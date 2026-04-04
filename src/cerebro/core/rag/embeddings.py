@@ -1,16 +1,16 @@
 """
 cerebro.core.rag.embeddings
 ────────────────────────────
-Embedding system com seleção automática por tipo de conteúdo.
+Embedding system with automatic model selection by content type.
 
-Por que jina-embeddings-v2-base-code?
-  - 8192 token context (vs 512 do all-MiniLM)
-  - Treinado especificamente em código fonte
-  - Entende estrutura sintática, não só tokens de texto
-  - Suporta code-to-code e text-to-code search
+Why jina-embeddings-v2-base-code?
+  - 8192 token context (vs 512 for all-MiniLM)
+  - Trained specifically on source code
+  - Understands syntactic structure, not just text tokens
+  - Supports code-to-code and text-to-code search
 
-Para um RAG de code intelligence é a diferença entre
-retrieval semântico real e keyword matching glorificado.
+For code intelligence RAG this is the difference between
+real semantic retrieval and glorified keyword matching.
 
 Usage:
     system = EmbeddingSystem(strategy="code")
@@ -29,19 +29,19 @@ logger = logging.getLogger("cerebro.embeddings")
 
 class EmbeddingModel(Enum):
     """
-    Modelos disponíveis por caso de uso.
-    Ordem de preferência: code > prose > fallback.
+    Available models by use case.
+    Preference order: code > prose > fallback.
     """
-    # Code-aware — melhor para RAG de código
-    JINA_CODE    = "jinaai/jina-embeddings-v2-base-code"    # 8192 ctx, recomendado
+    # Code-aware — best for code RAG
+    JINA_CODE    = "jinaai/jina-embeddings-v2-base-code"    # 8192 ctx, recommended
 
-    # Prosa — docs, README, comentários longos
-    MPNET        = "sentence-transformers/all-mpnet-base-v2"  # 768 dim, boa qualidade
+    # Prose — docs, READMEs, long comments
+    MPNET        = "sentence-transformers/all-mpnet-base-v2"  # 768 dim, good quality
 
-    # Fallback leve — já disponível no nix shell
-    MINILM       = "sentence-transformers/all-MiniLM-L6-v2"   # 384 dim, rápido
+    # Lightweight fallback — available in nix shell
+    MINILM       = "sentence-transformers/all-MiniLM-L6-v2"   # 384 dim, fast
 
-    # Reranker (cross-encoder, não bi-encoder) — já cacheado em data/models/
+    # Reranker (cross-encoder, not bi-encoder) — cached in data/models/
     RERANKER     = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 
@@ -56,14 +56,14 @@ class EmbeddingResult:
 
 class EmbeddingSystem:
     """
-    Sistema de embedding com:
-      - Seleção automática de modelo por content type
-      - Batching para respeitar limites de memória/API
-      - Cache de modelo em memória (evita reload a cada call)
-      - Fallback gracioso: jina → mpnet → minilm
+    Embedding system with:
+      - Automatic model selection by content type
+      - Batching to respect memory limits
+      - In-process model cache (avoids reload on each call)
+      - Graceful fallback: jina → mpnet → minilm
     """
 
-    # Cache de modelos carregados — singleton por processo
+    # Loaded model cache — singleton per process
     _model_cache: dict[str, object] = {}
 
     def __init__(
@@ -80,11 +80,11 @@ class EmbeddingSystem:
 
     def embed(self, texts: list[str], content_type: str = "code") -> EmbeddingResult:
         """
-        Gera embeddings para uma lista de textos.
+        Generate embeddings for a list of texts.
 
         Args:
-            texts:        lista de strings para embedar
-            content_type: "code" ou "prose" para seleção de modelo
+            texts:        list of strings to embed
+            content_type: "code" or "prose" for model selection
         """
         if not texts:
             return EmbeddingResult([], "", 0, 0.0, 0)
@@ -118,14 +118,14 @@ class EmbeddingSystem:
         )
 
     def embed_query(self, query: str) -> list[float]:
-        """Embed de query única — convenience method."""
+        """Embed a single query — convenience method."""
         result = self.embed([query], content_type="prose")
         return result.vectors[0] if result.vectors else []
 
     def _select_model(self, content_type: str) -> str:
         """
-        Seleciona modelo baseado no content type e disponibilidade.
-        Fallback hierárquico: jina → mpnet → minilm.
+        Select model based on content type and availability.
+        Hierarchical fallback: jina → mpnet → minilm.
         """
         if self.strategy == "code" or content_type == "code":
             candidates = [
@@ -143,24 +143,22 @@ class EmbeddingSystem:
             if self._is_model_available(model_name):
                 return model_name
 
-        # Último fallback — sempre disponível com sentence-transformers
+        # Last resort fallback — always available with sentence-transformers
         return EmbeddingModel.MINILM.value
 
     def _is_model_available(self, model_name: str) -> bool:
-        """Verifica se o modelo está no cache local ou é baixável."""
-        # Se já carregado — disponível
+        """Check if the model is in local cache or can be downloaded."""
         if model_name in self._model_cache:
             return True
 
-        # Tenta importar sentence_transformers
         try:
             import sentence_transformers  # noqa
-            return True  # pode tentar baixar
+            return True
         except ImportError:
             return False
 
     def _load_model(self, model_name: str):
-        """Carrega modelo com cache em memória."""
+        """Load model with in-memory cache."""
         if model_name in self._model_cache:
             return self._model_cache[model_name]
 
@@ -173,7 +171,6 @@ class EmbeddingSystem:
             return model
         except Exception as e:
             logger.error(f"Failed to load {model_name}: {e}")
-            # Fallback para MiniLM
             fallback = EmbeddingModel.MINILM.value
             if fallback not in self._model_cache:
                 from sentence_transformers import SentenceTransformer
@@ -182,8 +179,7 @@ class EmbeddingSystem:
 
     def _batch_embed(self, model, texts: list[str], model_name: str) -> list[list[float]]:
         """
-        Batching para não explodir memória com corpora grandes.
-        Vertex AI tem limite de 250 docs/batch — respeitado aqui.
+        Batch processing to avoid memory exhaustion with large corpora.
         """
         all_vectors = []
 
@@ -202,9 +198,9 @@ class EmbeddingSystem:
             except Exception as e:
                 logger.warning(
                     f"Batch {i//self.batch_size} failed: {e}. "
-                    f"Usando zero vectors como fallback."
+                    f"Using zero vectors as fallback."
                 )
-                # Zero vectors como fallback — degraded mas não quebra
+                # Zero vectors as fallback — degraded but does not crash
                 dim = 768  # default mpnet dim
                 all_vectors.extend([[0.0] * dim] * len(batch))
 
@@ -216,7 +212,7 @@ class EmbeddingSystem:
         try:
             import torch
             if torch.cuda.is_available():
-                logger.info("CUDA disponível — usando GPU para embeddings")
+                logger.info("CUDA available — using GPU for embeddings")
                 return "cuda"
         except ImportError:
             pass
@@ -224,7 +220,7 @@ class EmbeddingSystem:
 
     @classmethod
     def clear_cache(cls):
-        """Libera modelos da memória — útil em testes."""
+        """Release models from memory — useful in tests."""
         cls._model_cache.clear()
         logger.info("Embedding model cache cleared")
 
@@ -234,7 +230,7 @@ class EmbeddingSystem:
 _default_system: EmbeddingSystem | None = None
 
 def get_embedding_system(**kwargs) -> EmbeddingSystem:
-    """Singleton global — reutiliza modelos carregados entre calls."""
+    """Global singleton — reuses loaded models across calls."""
     global _default_system
     if _default_system is None:
         _default_system = EmbeddingSystem(**kwargs)

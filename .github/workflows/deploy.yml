@@ -1,15 +1,11 @@
-name: Deploy to Cloud Run
+name: Optional Cloud Run Deploy
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy Optional Cloud Run
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -18,7 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Note: This requires configuring Workload Identity Federation
+      # Optional vendor-specific deployment path for teams using GCP/Cloud Run.
+      # This requires configuring Workload Identity Federation.
       # See: https://github.com/google-github-actions/auth
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
@@ -34,7 +31,7 @@ jobs:
       # or just use a standard Python runtime. For simplicity here, we assume
       # a standard Python build or a Dockerfile (which we should verify/create).
 
-      # Option 1: Deploy from source (simplest for Python)
+      # Deploy from source when the optional Cloud Run path is explicitly triggered.
       - name: 'Deploy to Cloud Run'
         uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
@@ -42,5 +39,6 @@ jobs:
           region: '${{ vars.GCP_REGION || "us-central1" }}'
           source: '.'
           env_vars: |
-            GOOGLE_CLOUD_PROJECT_ID=${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
+            GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID || vars.GOOGLE_CLOUD_PROJECT_ID }}
+            GOOGLE_CLOUD_PROJECT_ID=${{ vars.GCP_PROJECT_ID || vars.GOOGLE_CLOUD_PROJECT_ID }}
             DATA_STORE_ID=${{ vars.DATA_STORE_ID }}

@@ -6,19 +6,19 @@
 
 # Run all tests
 test:
-    pytest
+    nix develop --command pytest
 
 # Run unit tests only
 test-unit:
-    pytest tests/ -v --ignore=tests/integration --cov=src/cerebro --cov-report=term
+    nix develop --command pytest tests/ -v --ignore=tests/integration --cov=src/cerebro --cov-report=term
 
-# Run integration tests only
+# Run optional integration tests only
 test-integration:
-    pytest tests/integration/ -v -m integration
+    nix develop .#gcp --command pytest tests/integration/ -v -m integration
 
-# Run Vertex AI limit tests
+# Run optional Vertex AI limit tests
 test-vertex-limits:
-    pytest tests/integration/test_vertex_limits.py -v -m integration
+    nix develop .#gcp --command pytest tests/integration/test_vertex_limits.py -v -m integration
 
 # ============================================================================
 # CODE QUALITY
@@ -26,19 +26,19 @@ test-vertex-limits:
 
 # Run linting with ruff
 lint:
-    ruff check src/ tests/
+    nix develop --command ruff check src/ tests/
 
 # Run linting and fix issues
 lint-fix:
-    ruff check --fix src/ tests/
+    nix develop --command ruff check --fix src/ tests/
 
 # Format code with ruff
 format:
-    ruff format src/ tests/
+    nix develop --command ruff format src/ tests/
 
 # Type checking with mypy
 type-check:
-    mypy src/cerebro --ignore-missing-imports
+    nix develop --command mypy src/cerebro --ignore-missing-imports
 
 # Run all quality checks (lint + format + tests)
 quality: lint format type-check test
@@ -71,20 +71,21 @@ ci-local:
 
 # Validate imports
 validate-imports:
-    python -c "from cerebro.core import gcp"
-    python -c "from cerebro.core.rag import engine"
-    python -c "import typer; import rich"
+    nix develop --command python -c "from cerebro.core.rag import engine"
+    nix develop --command python -c "from cerebro.providers.llamacpp import LlamaCppProvider"
+    nix develop --command python -c "from cerebro.providers.chroma import ChromaVectorStoreProvider"
+    nix develop --command python -c "import typer; import rich"
 
 # Validate syntax
 validate-syntax:
-    find src/cerebro/ -name "*.py" -exec python -m py_compile {} \;
+    nix develop --command python -m compileall src/cerebro
 
 # Run CLI tests
 test-cli:
-    cerebro --help
-    cerebro info
-    cerebro version
-    cerebro ops status
+    nix develop --command cerebro --help
+    nix develop --command cerebro info
+    nix develop --command cerebro version
+    nix develop --command cerebro ops status
 
 # ============================================================================
 # DASHBOARD
@@ -93,15 +94,15 @@ test-cli:
 # Start the Dashboard API server (kills any stale process on port 8009 first)
 serve:
     @kill $(lsof -ti:8009) 2>/dev/null || true
-    uvicorn cerebro.api.server:app --host 0.0.0.0 --port 8009 --reload
+    nix develop --command uvicorn cerebro.api.server:app --host 0.0.0.0 --port 8009 --reload
 
 # Launch the web dashboard (React GUI → http://localhost:18321)
 dashboard:
-    cerebro dashboard
+    nix develop --command cerebro dashboard
 
 # Launch the TUI (Textual terminal UI)
 tui:
-    cerebro tui
+    nix develop --command cerebro tui
 
 # Install React dashboard dependencies
 dashboard-install:
@@ -135,9 +136,9 @@ docker-run:
 # DEPLOYMENT
 # ============================================================================
 
-# Deploy to Cloud Run (requires GCP credentials)
+# Optional Cloud Run deploy for teams using the GCP integration path
 deploy-cloud-run:
-    gcloud run deploy cerebro-api \
+    nix develop .#gcp --command gcloud run deploy cerebro-api \
         --source . \
         --region us-central1 \
         --platform managed \
@@ -150,31 +151,31 @@ deploy-cloud-run:
 
 # Show Cerebro environment info
 info:
-    cerebro info
+    nix develop --command cerebro info
 
 # Run health check
 health:
-    cerebro ops health
+    nix develop --command cerebro ops health
 
 # Run code analysis on a repository
 analyze path context="General Review":
-    cerebro knowledge analyze {{path}} "{{context}}"
+    nix develop --command cerebro knowledge analyze {{path}} "{{context}}"
 
-# Sync data with GCS (Staging for Ingestion)
+# Optional GCS sync for the GCP integration path
 sync local_dir="./data/analyzed":
-    ./scripts/sync_data.sh {{local_dir}}
+    nix develop .#gcp --command ./scripts/sync_data.sh {{local_dir}}
 
-# Start RAG ingestion (Discovery Engine Import)
+# Start RAG ingestion against the active backend
 ingest:
-    cerebro rag ingest
+    nix develop --command cerebro rag ingest
 
 # Query the knowledge base
 query question:
-    cerebro rag query "{{question}}"
+    nix develop --command cerebro rag query "{{question}}"
 
-# Setup environment
+# Install/update Poetry-managed dependencies inside the dev shell
 install:
-    poetry install --only main --no-interaction
+    nix develop --command poetry install --only main --no-interaction
 
 # Run full validation pipeline
 pipeline:

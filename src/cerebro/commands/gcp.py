@@ -1,7 +1,8 @@
 """
-Cerebro CLI - GCP Commands
+Cerebro CLI - optional GCP commands.
 
-Google Cloud Platform credit management and search engine utilities.
+Google Cloud integration utilities for billing, search, and operational
+workflows. These commands are optional and sit outside the local-first core.
 Migrated from: scripts/batch_burn.py, monitor_credits.py, create_search_engine.py
 """
 
@@ -22,8 +23,13 @@ try:
 except ImportError:
     GCP_AVAILABLE = False
 
-gcp_app = typer.Typer(help="GCP Credits & Search Engine Management", no_args_is_help=True)
+gcp_app = typer.Typer(help="Optional Google Cloud integration utilities", no_args_is_help=True)
 console = Console()
+
+GCP_ENV_HINT = (
+    "Re-enter the project through `nix develop --command ...` with the "
+    "Google Cloud integration dependencies available."
+)
 
 
 
@@ -50,7 +56,8 @@ def batch_burn(
     Migrated from: scripts/batch_burn.py
     """
     if not GCP_AVAILABLE:
-        console.print("[red]Error:[/red] GCP libraries not installed. Run: pip install google-cloud-discoveryengine google-cloud-bigquery")
+        console.print("[red]Error:[/red] Optional Google Cloud integrations are not available.")
+        console.print(f"  {GCP_ENV_HINT}")
         raise typer.Exit(1)
 
     try:
@@ -114,7 +121,7 @@ def monitor_credits(
     table: str | None = typer.Option(None, "--table", help="BigQuery billing table"),
 ):
     """
-    Monitor GCP credit usage in real-time.
+    Monitor Google Cloud credit usage in real-time.
 
     Displays live dashboard of credit consumption for Discovery Engine
     and Dialogflow APIs with cost tracking and alerts.
@@ -125,7 +132,8 @@ def monitor_credits(
     Migrated from: scripts/monitor_credits.py
     """
     if not GCP_AVAILABLE:
-        console.print("[red]Error:[/red] GCP libraries not installed. Run: pip install google-cloud-bigquery")
+        console.print("[red]Error:[/red] Optional Google Cloud integrations are not available.")
+        console.print(f"  {GCP_ENV_HINT}")
         raise typer.Exit(1)
 
     try:
@@ -205,7 +213,7 @@ def create_search_engine(
     config: Path | None = typer.Option(None, "--config", help="YAML configuration file"),
 ):
     """
-    Create a new GCP Discovery Engine search engine.
+    Create a Discovery Engine search engine for the optional GCP integration.
 
     Sets up a new search engine instance with specified configuration.
     Supports industry-specific optimization and custom configs.
@@ -216,7 +224,8 @@ def create_search_engine(
     Migrated from: scripts/create_search_engine.py
     """
     if not GCP_AVAILABLE:
-        console.print("[red]Error:[/red] GCP libraries not installed. Run: pip install google-cloud-discoveryengine")
+        console.print("[red]Error:[/red] Optional Google Cloud integrations are not available.")
+        console.print(f"  {GCP_ENV_HINT}")
         raise typer.Exit(1)
 
     try:
@@ -267,16 +276,16 @@ def create_search_engine(
 @gcp_app.command("status")
 def gcp_status():
     """
-    Check GCP SDK and authentication status.
+    Check the status of the optional Google Cloud integration.
     """
-    console.print(Panel.fit("🔍 [bold cyan]GCP SDK Status[/bold cyan]", border_style="cyan"))
+    console.print(Panel.fit("🔍 [bold cyan]Optional GCP Integration Status[/bold cyan]", border_style="cyan"))
 
     # Check if GCP libraries available
     if GCP_AVAILABLE:
         console.print("[green]✓[/green] GCP libraries installed")
     else:
         console.print("[red]✗[/red] GCP libraries not installed")
-        console.print("  Install with: pip install google-cloud-discoveryengine google-cloud-bigquery")
+        console.print(f"  {GCP_ENV_HINT}")
 
     # Check authentication
     try:
@@ -287,4 +296,4 @@ def gcp_status():
             console.print(f"  Default project: {project}")
     except Exception as e:
         console.print(f"[yellow]⚠[/yellow] Not authenticated: {e}")
-        console.print("  Run: gcloud auth application-default login")
+        console.print("  Run inside the project shell: gcloud auth application-default login")

@@ -1,6 +1,7 @@
 /**
  * API Client for Cerebro Backend
  * Connects to Cerebro API (FastAPI) on localhost:8009
+ * Local LLM (llama.cpp) on localhost:8081 — checked via /ai/health
  */
 
 import type {
@@ -16,6 +17,7 @@ import type {
     MetricsSnapshot,
     RepoMetrics,
     WatcherStatus,
+    AiHealth,
 } from '@/types'
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
@@ -127,6 +129,11 @@ class ApiClient {
 
     async getWatcherStatus(): Promise<WatcherStatus> {
         return this.fetch<WatcherStatus>('/metrics/watcher')
+    }
+
+    // AI / Local LLM
+    async getAiHealth(): Promise<AiHealth> {
+        return this.fetch<AiHealth>('/ai/health')
     }
 }
 

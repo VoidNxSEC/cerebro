@@ -19,40 +19,66 @@ class ChromaVectorStoreProvider(VectorStoreProvider):
     Supports local persistence and in-memory operation.
     """
 
+    DEFAULT_COLLECTION_NAME = "cerebro_documents"
+    LEGACY_COLLECTION_NAME = "phantom_documents"
+
     def __init__(
         self,
         persist_directory: str = "./data/vector_db",
-        collection_name: str = "phantom_documents",
+        collection_name: str | None = None,
     ):
         """
         Initialize Chroma Vector Store Provider.
         
         Args:
             persist_directory: Directory for persistent storage
-            collection_name: Name of the collection to use
+            collection_name: Name of the collection to use. Defaults to the
+                Cerebro collection name and automatically falls back to the
+                legacy Phantom collection when opening existing persisted data.
         """
         try:
             import chromadb
         except ImportError:
             raise ImportError(
                 "chromadb is required for vector storage. "
-                "Install with: pip install chromadb"
+                "Re-enter the project with `nix develop --command ...` so the "
+                "Chroma dependencies are available."
             )
 
         self.persist_directory = persist_directory
-        self.collection_name = collection_name
 
         # Create persist directory if it doesn't exist
         Path(persist_directory).mkdir(parents=True, exist_ok=True)
 
         # Initialize Chroma client with persistence
         self.client = chromadb.PersistentClient(path=persist_directory)
+        self.collection_name = self._resolve_collection_name(collection_name)
 
         # Get or create collection
         self.collection = self.client.get_or_create_collection(
-            name=collection_name,
+            name=self.collection_name,
             metadata={"hnsw:space": "cosine"}
         )
+
+    def _resolve_collection_name(self, requested_name: str | None) -> str:
+        if requested_name:
+            return requested_name
+
+        try:
+            existing_names = {
+                getattr(collection, "name", collection)
+                for collection in self.client.list_collections()
+            }
+        except Exception:
+            existing_names = set()
+
+        if self.DEFAULT_COLLECTION_NAME in existing_names:
+            return self.DEFAULT_COLLECTION_NAME
+
+        if self.LEGACY_COLLECTION_NAME in existing_names:
+            return self.LEGACY_COLLECTION_NAME
+
+        return self.DEFAULT_COLLECTION_NAME
 
     def add_documents(
         self,

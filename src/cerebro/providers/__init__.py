@@ -1,8 +1,6 @@
 """
-Phantom Providers Module
+Cerebro providers module.
 
-Concrete implementations of LLMProvider and VectorStoreProvider interfaces.
-Includes:
-- GCP (Google Cloud Platform) providers for Vertex AI
-- Chroma providers for local vector storage
+Concrete implementations of the provider interfaces used by the local-first
+core and optional cloud integrations.
 """

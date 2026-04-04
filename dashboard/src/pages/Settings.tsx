@@ -9,13 +9,14 @@ import {
   Database,
   Scan,
   Trash2,
+  Cpu,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardStore } from '@/stores/dashboard'
-import { useIntelligenceStats, useScanMutation } from '@/hooks/useApi'
+import { useIntelligenceStats, useScanMutation, useAiHealth } from '@/hooks/useApi'
 import { TIME_RANGES } from '@/types'
 
 export function Settings() {
@@ -31,6 +32,7 @@ export function Settings() {
   } = useDashboardStore()
 
   const { data: stats } = useIntelligenceStats()
+  const { data: aiHealth } = useAiHealth()
   const scanMutation = useScanMutation()
 
   const handleFullScan = () => {
@@ -205,6 +207,43 @@ export function Settings() {
               </>
             ) : (
               <p className="text-muted-foreground">Loading stats...</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Local LLM Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cpu className="h-5 w-5" />
+              Local LLM
+            </CardTitle>
+            <CardDescription>
+              llama.cpp status (port 8081)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Status</p>
+                <p className="text-sm text-muted-foreground font-mono">
+                  {aiHealth?.url ?? 'http://localhost:8081'}
+                </p>
+              </div>
+              <Badge variant={aiHealth?.available ? 'default' : 'destructive'}>
+                {aiHealth?.available ? 'Online' : 'Offline'}
+              </Badge>
+            </div>
+            {aiHealth?.available && aiHealth.model && (
+              <div className="rounded-lg bg-muted/50 p-3">
+                <p className="text-sm text-muted-foreground">Model</p>
+                <p className="font-mono text-sm">{aiHealth.model}</p>
+              </div>
+            )}
+            {!aiHealth?.available && (
+              <p className="text-sm text-muted-foreground">
+                Start with: <span className="font-mono">llama-server --embeddings --port 8081</span>
+              </p>
             )}
           </CardContent>
         </Card>

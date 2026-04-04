@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 """
-CEREBRO Embedding Server - GCP Vertex AI Edition
-Embedding server using Vertex AI text-embedding-004.
+Optional Cerebro GCP embedding server.
+
+Provides a FastAPI wrapper around Vertex AI text-embedding-004 when the optional
+GCP integration dependencies are available.
 """
 
 import logging
 import os
 import time
 
-import vertexai
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from vertexai.language_models import TextEmbeddingModel
+
+try:
+    import vertexai
+    from vertexai.language_models import TextEmbeddingModel
+
+    VERTEXAI_AVAILABLE = True
+except ImportError:
+    vertexai = None  # type: ignore[assignment]
+    TextEmbeddingModel = None  # type: ignore[assignment]
+    VERTEXAI_AVAILABLE = False
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("cerebro-embeddings")
@@ -48,13 +58,23 @@ location = None
 async def startup():
     global embedding_model, project_id, location
 
+    if not VERTEXAI_AVAILABLE:
+        raise RuntimeError(
+            "Optional GCP embedding support is not installed. "
+            "Re-enter the project with `nix develop .#gcp --command ...`."
+        )
+
     project_id = os.getenv("GCP_PROJECT_ID")
     location = os.getenv("GCP_LOCATION", "us-central1")
 
     if not project_id:
         raise ValueError("GCP_PROJECT_ID environment variable required")
 
-    logger.info(f"🧠 Initializing Vertex AI Embeddings - Project: {project_id}, Location: {location}")
+    logger.info(
+        "🧠 Initializing optional Vertex AI embeddings - Project: %s, Location: %s",
+        project_id,
+        location,
+    )
 
     # Initialize Vertex AI
     vertexai.init(project=project_id, location=location)
@@ -144,10 +164,10 @@ async def health():
         "status": "healthy" if embedding_model else "initializing",
         "model": "text-embedding-004",
         "dimensions": 768,
-        "provider": "Google Cloud Vertex AI",
+        "provider": "Google Cloud Vertex AI (optional)",
         "project_id": project_id,
         "location": location,
-        "credits_remaining": "check GCP console"
+        "credits_remaining": "check configured cloud billing tools",
     }
 
 @app.get("/stats")

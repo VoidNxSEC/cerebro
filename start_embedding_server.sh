@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
-# Start CEREBRO Embedding Server (Vertex AI Edition)
+# Start the optional Cerebro GCP embedding server.
 
 set -euo pipefail
 
 echo "🧠 Starting CEREBRO Embedding Server..."
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_PATH="$SCRIPT_DIR/$(basename "$0")"
+
+if [[ "${CEREBRO_GCP_SHELL_ACTIVE:-}" != "1" ]]; then
+    echo "☁️  Entering optional GCP shell..."
+    cd "$SCRIPT_DIR"
+    exec nix develop .#gcp --command bash "$SCRIPT_PATH" "$@"
+fi
 
 # Check GCP credentials
 if [[ -z "${GCP_PROJECT_ID:-}" ]]; then
@@ -18,18 +27,10 @@ export PORT="${PORT:-8001}"
 echo "📍 Project: $GCP_PROJECT_ID"
 echo "📍 Location: $GCP_LOCATION"
 echo "📍 Port: $PORT"
-echo "💰 Ready to burn those $6k credits! 🔥"
-
-# Check if in nix shell
-if [[ -z "${IN_NIX_SHELL:-}" ]]; then
-    echo "⚠️  Not in nix shell, entering dev environment..."
-    cd "$(dirname "$0")"
-    exec nix develop --command bash "$0" "$@"
-fi
 
 # Run the server
-cd "$(dirname "$0")"
-python -m uvicorn cerebro.core.embedding_server:app \
+cd "$SCRIPT_DIR"
+python -m uvicorn cerebro.core.gcp_embedding_server:app \
     --host 0.0.0.0 \
     --port "$PORT" \
     --log-level info \

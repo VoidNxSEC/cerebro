@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import Any
 
+from cerebro.core.rag.embeddings import EmbeddingSystem
 from cerebro.interfaces.llm import LLMProvider
 from cerebro.interfaces.vector_store import VectorStoreProvider
 from cerebro.providers.chroma.chroma_vector_store import ChromaVectorStoreProvider
@@ -65,6 +66,13 @@ class RigorousRAGEngine:
             )
         else:
             self.vector_store_provider = vector_store_provider
+
+        # Use the dedicated EmbeddingSystem (Jina code-aware → MPNET → MiniLM) for
+        # local paths. Vertex AI path delegates embeddings to the LLM provider.
+        if not self._uses_vertex_backend():
+            self._embedding_system: EmbeddingSystem | None = EmbeddingSystem(strategy="code")
+        else:
+            self._embedding_system = None
 
     def _build_default_llm_provider(self) -> LLMProvider:
         """
@@ -173,9 +181,11 @@ class RigorousRAGEngine:
         if not documents:
             return 0
 
-        embeddings = self.llm_provider.embed_batch(
-            [document["content"] for document in documents],
-        )
+        texts = [document["content"] for document in documents]
+        if self._embedding_system is not None:
+            embeddings = self._embedding_system.embed(texts).vectors
+        else:
+            embeddings = self.llm_provider.embed_batch(texts)
         return self.vector_store_provider.add_documents(documents, embeddings)
 
     def _ingest_vertex(self, jsonl_path: str) -> int:
@@ -192,7 +202,7 @@ class RigorousRAGEngine:
         if not path.exists():
             raise FileNotFoundError(f"Artifacts not found: {jsonl_path}")
 
-        bucket_name = f"{self.project_id}-phantom-ingest"
+        bucket_name = f"{self.project_id}-cerebro-ingest"
         storage_client = storage.Client(project=self.project_id)
 
         try:
@@ -228,7 +238,10 @@ class RigorousRAGEngine:
             return False
 
     def _retrieve_local_context(self, query: str, k: int) -> list[dict[str, Any]]:
-        query_embedding = self.llm_provider.embed(query)
+        if self._embedding_system is not None:
+            query_embedding = self._embedding_system.embed_query(query)
+        else:
+            query_embedding = self.llm_provider.embed(query)
         return self.vector_store_provider.search(query_embedding, top_k=k)
 
     def _extract_citations(self, matches: list[dict[str, Any]]) -> list[str]:

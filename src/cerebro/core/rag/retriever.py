@@ -1,21 +1,21 @@
 """
 cerebro.core.rag.retriever
 ───────────────────────────
-Hybrid Retrieval com Reciprocal Rank Fusion (RRF).
+Hybrid Retrieval with Reciprocal Rank Fusion (RRF).
 
-Dense (semântico) + Sparse (BM25) fusionados via RRF.
-Sem infra nova — rank_bm25 é pure Python.
+Dense (semantic) + Sparse (BM25) fused via RRF.
+No new infrastructure — rank_bm25 is pure Python.
 
-O que isso resolve no Cerebro:
-  - Dense-only perde hits exatos: "rerank_client" retrieva mal se
-    o embedding não capturou o termo técnico específico
-  - BM25-only perde semântica: "como o reranker funciona" não bate
-    com "cross-encoder inference pipeline"
-  - Hybrid RRF pega os dois casos
+What this solves in Cerebro:
+  - Dense-only misses exact hits: "rerank_client" retrieves poorly if
+    the embedding didn't capture the specific technical term
+  - BM25-only misses semantics: "how does the reranker work" won't match
+    "cross-encoder inference pipeline"
+  - Hybrid RRF handles both cases
 
 Usage:
     retriever = HybridRetriever.from_corpus(vector_store, chunks)
-    results   = retriever.retrieve("como funciona o reranker?", k=5)
+    results   = retriever.retrieve("how does the reranker work?", k=5)
 """
 
 from __future__ import annotations

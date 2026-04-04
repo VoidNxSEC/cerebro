@@ -80,25 +80,35 @@ def test_ingest_file_not_found(mock_llm_provider, mock_vector_store_provider):
 
 
 def test_ingest_local_success(tmp_path, mock_llm_provider, mock_vector_store_provider):
-    """Test local ingestion into the vector store."""
+    """Test local ingestion uses EmbeddingSystem (not llm_provider) for embeddings."""
+    from unittest.mock import MagicMock
+    from cerebro.core.rag.embeddings import EmbeddingResult
+
     jsonl_path = tmp_path / "artifacts.jsonl"
     jsonl_path.write_text(
         '{"jsonData": "{\\"title\\": \\"test\\", \\"content\\": \\"code content\\", \\"repo\\": \\"repo1\\"}"}\n',
         encoding="utf-8",
     )
 
-    mock_llm_provider.embed_batch.return_value = [[0.1, 0.2, 0.3]]
     mock_vector_store_provider.add_documents.return_value = 1
 
-    engine = RigorousRAGEngine(
-        llm_provider=mock_llm_provider,
-        vector_store_provider=mock_vector_store_provider,
-    )
+    with patch("cerebro.core.rag.engine.EmbeddingSystem") as mock_embed_cls:
+        mock_embed = MagicMock()
+        mock_embed.embed.return_value = EmbeddingResult(
+            vectors=[[0.1, 0.2, 0.3]], model_used="test", dimension=3, latency_ms=0.0, batch_size=1
+        )
+        mock_embed_cls.return_value = mock_embed
 
-    count = engine.ingest(str(jsonl_path))
+        engine = RigorousRAGEngine(
+            llm_provider=mock_llm_provider,
+            vector_store_provider=mock_vector_store_provider,
+        )
+
+        count = engine.ingest(str(jsonl_path))
 
     assert count == 1
-    mock_llm_provider.embed_batch.assert_called_once_with(["code content"])
+    mock_embed.embed.assert_called_once_with(["code content"])
+    mock_llm_provider.embed_batch.assert_not_called()
     mock_vector_store_provider.add_documents.assert_called_once()
 
 
@@ -130,9 +140,10 @@ def test_query_with_metrics_no_local_data(mock_llm_provider, mock_vector_store_p
 
 
 def test_query_with_metrics_uses_local_context(mock_llm_provider, mock_vector_store_provider):
-    """Test successful local retrieval and grounded generation."""
+    """Test that local retrieval uses EmbeddingSystem (not llm_provider) for query embedding."""
+    from unittest.mock import MagicMock
+
     mock_vector_store_provider.get_document_count.return_value = 1
-    mock_llm_provider.embed.return_value = [0.9, 0.1]
     mock_vector_store_provider.search.return_value = [
         {
             "id": "doc_1",
@@ -149,19 +160,25 @@ def test_query_with_metrics_uses_local_context(mock_llm_provider, mock_vector_st
         "snippets": ["def hello():\n    print('world')"],
     }
 
-    engine = RigorousRAGEngine(
-        llm_provider=mock_llm_provider,
-        vector_store_provider=mock_vector_store_provider,
-    )
+    with patch("cerebro.core.rag.engine.EmbeddingSystem") as mock_embed_cls:
+        mock_embed = MagicMock()
+        mock_embed.embed_query.return_value = [0.9, 0.1]
+        mock_embed_cls.return_value = mock_embed
 
-    result = engine.query_with_metrics("What does hello do?")
+        engine = RigorousRAGEngine(
+            llm_provider=mock_llm_provider,
+            vector_store_provider=mock_vector_store_provider,
+        )
+
+        result = engine.query_with_metrics("What does hello do?")
 
     assert "hello" in result["answer"]
     assert result["error"] is False
     assert result["metrics"]["avg_confidence"] == 0.95
     assert result["metrics"]["citations"] == ["repo/main.py"]
     assert "1/5" in result["metrics"]["hit_rate_k"]
-    mock_llm_provider.embed.assert_called_once_with("What does hello do?")
+    mock_embed.embed_query.assert_called_once_with("What does hello do?")
+    mock_llm_provider.embed.assert_not_called()
     mock_vector_store_provider.search.assert_called_once_with([0.9, 0.1], top_k=5)
     mock_llm_provider.grounded_generate.assert_called_once_with(
         query="What does hello do?",

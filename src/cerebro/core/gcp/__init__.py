@@ -1,5 +1,8 @@
 """
-Phantom Core GCP - Unified Google Cloud Platform integrations
+Cerebro GCP integrations.
+
+Optional Google Cloud adapters live here so the local-first core can remain
+vendor-agnostic.
 """
 
 from .auth import get_credentials, get_project_id, validate_setup
