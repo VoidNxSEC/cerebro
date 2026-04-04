@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useDashboardStore } from '@/stores/dashboard'
 import api from '@/lib/api'
+import { useToast } from '@/hooks/use-toast'
 import type { IntelligenceType, QueryResult, AiHealth, ChatRequest } from '@/types'
 
 // Query keys
@@ -115,22 +116,30 @@ export function useDependencyGraph() {
 // Mutations
 export function useScanMutation() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   return useMutation({
-    mutationFn: api.triggerScan,
-    onSuccess: () => {
-      // Invalidate all queries after scan
+    mutationFn: () => api.triggerScan(),
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['status'] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       queryClient.invalidateQueries({ queryKey: ['intelligence'] })
       queryClient.invalidateQueries({ queryKey: ['alerts'] })
+      toast({ title: 'Scan complete', description: `${data?.projects_found ?? 0} projects found` })
+    },
+    onError: (err: Error) => {
+      toast({ variant: 'destructive', title: 'Scan failed', description: err.message })
     },
   })
 }
 
 export function useSummarizeProject() {
+  const { toast } = useToast()
   return useMutation({
-    mutationFn: api.summarizeProject,
+    mutationFn: (name: string) => api.summarizeProject(name),
+    onError: (err: Error) => {
+      toast({ variant: 'destructive', title: 'Summary failed', description: err.message })
+    },
   })
 }
 
@@ -155,10 +164,15 @@ export function useWatcherStatus() {
 
 export function useScanMetrics() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   return useMutation({
-    mutationFn: api.triggerMetricsScan,
-    onSuccess: () => {
+    mutationFn: () => api.triggerMetricsScan(),
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['metrics'] })
+      toast({ title: 'Metrics collected', description: `${data.repo_count} repos scanned` })
+    },
+    onError: (err: Error) => {
+      toast({ variant: 'destructive', title: 'Metrics scan failed', description: err.message })
     },
   })
 }

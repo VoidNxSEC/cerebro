@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Menu,
@@ -209,8 +210,10 @@ export function Header() {
         </Button>
 
         {/* Settings */}
-        <Button variant="ghost" size="icon">
-          <Settings className="h-5 w-5" />
+        <Button variant="ghost" size="icon" asChild>
+          <Link to="/settings">
+            <Settings className="h-5 w-5" />
+          </Link>
         </Button>
       </div>
     </header>

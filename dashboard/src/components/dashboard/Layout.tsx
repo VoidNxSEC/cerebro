@@ -2,75 +2,84 @@ import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
+import { CommandPalette } from '@/components/ui/CommandPalette'
 import { useDashboardStore } from '@/stores/dashboard'
-import { cn } from '@/lib/utils'
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
-export function Layout({ children }: LayoutProps) {
-  const { sidebarOpen, theme } = useDashboardStore()
+const SIDEBAR_WIDTHS = { expanded: 272, collapsed: 64, hidden: 0 }
 
-  // Apply theme to document root
+export function Layout({ children }: LayoutProps) {
+  const { sidebarMode, theme, setCommandPaletteOpen } = useDashboardStore()
+
+  // Apply theme
   useEffect(() => {
-    const root = window.document.documentElement
-    root.classList.remove('light', 'dark')
-    root.classList.add(theme)
+    document.documentElement.classList.remove('light', 'dark')
+    document.documentElement.classList.add(theme)
   }, [theme])
+
+  // Global Cmd+K / Ctrl+K
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setCommandPaletteOpen(true)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [setCommandPaletteOpen])
+
+  const w = SIDEBAR_WIDTHS[sidebarMode]
 
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile Overlay */}
       <AnimatePresence>
-        {sidebarOpen && (
+        {sidebarMode !== 'hidden' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
-            onClick={() => useDashboardStore.getState().toggleSidebar()}
+            onClick={() => useDashboardStore.getState().setSidebarMode('hidden')}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <AnimatePresence mode="wait">
-        {sidebarOpen && (
-          <motion.aside
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="fixed inset-y-0 left-0 z-50 w-72 border-r bg-card shadow-xl lg:shadow-none"
-          >
-            <Sidebar />
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      {/* Main Content */}
-      <div
-        className={cn(
-          'flex flex-col transition-all duration-200',
-          sidebarOpen ? 'lg:ml-72' : 'ml-0'
-        )}
+      {/* Sidebar — always mounted, width animated */}
+      <motion.aside
+        animate={{ width: w }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        className="fixed inset-y-0 left-0 z-50 overflow-hidden border-r bg-card shadow-xl lg:shadow-none"
+        style={{ width: w }}
       >
-        {/* Header */}
-        <Header />
+        <Sidebar collapsed={sidebarMode === 'collapsed'} />
+      </motion.aside>
 
-        {/* Page Content */}
-        <main className="flex-1 p-3 sm:p-4 md:p-6">
+      {/* Main Content — margin tracks sidebar width */}
+      <motion.div
+        animate={{ marginLeft: w }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        className="flex min-h-screen flex-col"
+      >
+        <Header />
+        <main className="flex-1 p-4 md:p-6">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
           >
             {children}
           </motion.div>
         </main>
-      </div>
+      </motion.div>
+
+      {/* Global Command Palette */}
+      <CommandPalette />
     </div>
   )
 }

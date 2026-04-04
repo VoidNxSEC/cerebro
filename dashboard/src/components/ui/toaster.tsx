@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as ToastPrimitive from '@radix-ui/react-toast'
 import { cn } from '@/lib/utils'
 import { X } from 'lucide-react'
+import { useToastStore } from '@/hooks/use-toast'
 
 const ToastProvider = ToastPrimitive.Provider
 
@@ -77,10 +78,17 @@ const ToastDescription = React.forwardRef<
 ))
 ToastDescription.displayName = ToastPrimitive.Description.displayName
 
-// Simple Toaster component
 export function Toaster() {
+  const toasts = useToastStore()
   return (
     <ToastProvider>
+      {toasts.map((t) => (
+        <Toast key={t.id}>
+          {t.title && <ToastTitle>{t.title}</ToastTitle>}
+          {t.description && <ToastDescription>{t.description}</ToastDescription>}
+          <ToastClose />
+        </Toast>
+      ))}
       <ToastViewport />
     </ToastProvider>
   )

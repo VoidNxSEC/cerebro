@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { TimeRange } from '@/types'
 
+export type SidebarMode = 'expanded' | 'collapsed' | 'hidden'
+
 interface DashboardState {
   // Filters
   timeRange: TimeRange
@@ -12,8 +14,10 @@ interface DashboardState {
   // UI State
   autoRefresh: boolean
   refreshInterval: number
-  sidebarOpen: boolean
+  sidebarOpen: boolean          // legacy compat — derived from sidebarMode
+  sidebarMode: SidebarMode
   theme: 'dark' | 'light'
+  commandPaletteOpen: boolean
 
   // Actions
   setTimeRange: (range: TimeRange) => void
@@ -23,7 +27,10 @@ interface DashboardState {
   setAutoRefresh: (enabled: boolean) => void
   setRefreshInterval: (interval: number) => void
   toggleSidebar: () => void
+  setSidebarMode: (mode: SidebarMode) => void
+  cycleSidebar: () => void
   setTheme: (theme: 'dark' | 'light') => void
+  setCommandPaletteOpen: (open: boolean) => void
 }
 
 export const useDashboardStore = create<DashboardState>()(
@@ -35,9 +42,11 @@ export const useDashboardStore = create<DashboardState>()(
       selectedProjects: [],
       selectedIntelTypes: [],
       autoRefresh: true,
-      refreshInterval: 30000, // 30 seconds
+      refreshInterval: 30000,
       sidebarOpen: true,
+      sidebarMode: 'expanded',
       theme: 'dark',
+      commandPaletteOpen: false,
 
       // Actions
       setTimeRange: (range) => set({ timeRange: range }),
@@ -46,8 +55,20 @@ export const useDashboardStore = create<DashboardState>()(
       setSelectedIntelTypes: (types) => set({ selectedIntelTypes: types }),
       setAutoRefresh: (enabled) => set({ autoRefresh: enabled }),
       setRefreshInterval: (interval) => set({ refreshInterval: interval }),
-      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      toggleSidebar: () =>
+        set((state) => {
+          const next = state.sidebarMode === 'hidden' ? 'expanded' : 'hidden'
+          return { sidebarMode: next, sidebarOpen: next !== 'hidden' }
+        }),
+      setSidebarMode: (mode) => set({ sidebarMode: mode, sidebarOpen: mode !== 'hidden' }),
+      cycleSidebar: () =>
+        set((state) => {
+          const order: SidebarMode[] = ['expanded', 'collapsed', 'hidden']
+          const next = order[(order.indexOf(state.sidebarMode) + 1) % order.length]
+          return { sidebarMode: next, sidebarOpen: next !== 'hidden' }
+        }),
       setTheme: (theme) => set({ theme }),
+      setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
     }),
     {
       name: 'cerebro-dashboard-storage',
@@ -55,6 +76,7 @@ export const useDashboardStore = create<DashboardState>()(
         timeRange: state.timeRange,
         autoRefresh: state.autoRefresh,
         refreshInterval: state.refreshInterval,
+        sidebarMode: state.sidebarMode,
         sidebarOpen: state.sidebarOpen,
         theme: state.theme,
       }),
@@ -140,4 +162,32 @@ export const useQueryStore = create<QueryState>((set) => ({
   setResults: (results) => set({ results }),
   setIsSearching: (isSearching) => set({ isSearching }),
   clearResults: () => set({ results: [], query: '' }),
+}))
+
+// Agent activity store (session-local, not persisted)
+export interface AgentRun {
+  id: string
+  agentId: string
+  agentName: string
+  startedAt: string
+  completedAt?: string
+  status: 'running' | 'success' | 'error'
+  detail?: string
+}
+
+interface AgentState {
+  runs: AgentRun[]
+  addRun: (run: AgentRun) => void
+  updateRun: (id: string, update: Partial<AgentRun>) => void
+  clearRuns: () => void
+}
+
+export const useAgentStore = create<AgentState>((set) => ({
+  runs: [],
+  addRun: (run) => set((state) => ({ runs: [run, ...state.runs].slice(0, 50) })),
+  updateRun: (id, update) =>
+    set((state) => ({
+      runs: state.runs.map((r) => (r.id === id ? { ...r, ...update } : r)),
+    })),
+  clearRuns: () => set({ runs: [] }),
 }))

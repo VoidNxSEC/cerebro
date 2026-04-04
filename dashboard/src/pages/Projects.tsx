@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   FolderKanban,
@@ -184,10 +184,10 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           </div>
 
           <Button variant="outline" size="sm" className="w-full mt-4" asChild>
-            <a href={`/projects/${project.name}`}>
+            <Link to={`/projects/${project.name}`}>
               View Details
               <ExternalLink className="ml-2 h-3 w-3" />
-            </a>
+            </Link>
           </Button>
         </CardContent>
       </Card>
@@ -249,9 +249,9 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
               </div>
 
               <Button variant="ghost" size="sm" asChild>
-                <a href={`/projects/${project.name}`}>
+                <Link to={`/projects/${project.name}`}>
                   <ExternalLink className="h-4 w-4" />
-                </a>
+                </Link>
               </Button>
             </div>
           </div>
@@ -268,7 +268,7 @@ function ProjectDetail({ project, analysis }: { project: Project; analysis: any 
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" asChild>
-          <a href="/projects">← Back to Projects</a>
+          <Link to="/projects">← Back to Projects</Link>
         </Button>
       </div>
 

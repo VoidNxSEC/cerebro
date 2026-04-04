@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Activity,
@@ -92,7 +93,7 @@ export function Dashboard() {
               </p>
             </div>
             <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10">
-              <a href="/projects">View All</a>
+              <Link to="/projects">View All</Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -246,7 +247,7 @@ export function Dashboard() {
               </p>
             </div>
             <Button variant="outline" size="sm" asChild className="hover:bg-primary/10">
-              <a href="/briefing">Full Briefing</a>
+              <Link to="/briefing">Full Briefing</Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -304,29 +305,29 @@ export function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" asChild className="w-full h-auto py-4 hover:bg-primary/5 hover:border-primary/30 transition-all group">
-                  <a href="/intelligence" className="flex flex-col items-center gap-2">
+                  <Link to="/intelligence" className="flex flex-col items-center gap-2">
                     <Search className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
                     <span className="font-semibold">Search Intelligence</span>
                     <span className="text-xs text-muted-foreground">Query knowledge base</span>
-                  </a>
+                  </Link>
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" asChild className="w-full h-auto py-4 hover:bg-primary/5 hover:border-primary/30 transition-all group">
-                  <a href="/briefing" className="flex flex-col items-center gap-2">
+                  <Link to="/briefing" className="flex flex-col items-center gap-2">
                     <TrendingUp className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
                     <span className="font-semibold">Executive Summary</span>
                     <span className="text-xs text-muted-foreground">View insights</span>
-                  </a>
+                  </Link>
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" asChild className="w-full h-auto py-4 hover:bg-primary/5 hover:border-primary/30 transition-all group">
-                  <a href="/projects" className="flex flex-col items-center gap-2">
+                  <Link to="/projects" className="flex flex-col items-center gap-2">
                     <FolderKanban className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
                     <span className="font-semibold">Browse Projects</span>
                     <span className="text-xs text-muted-foreground">Explore ecosystem</span>
-                  </a>
+                  </Link>
                 </Button>
               </motion.div>
             </div>
