@@ -54,11 +54,12 @@ class LlamaCppProvider(LLMProvider):
         self,
         base_url: str | None = None,
         model: str | None = None,
-        timeout: float = 120.0,
+        timeout: float | None = None,
     ):
         self.base_url = (base_url or os.getenv("LLAMA_CPP_URL", _DEFAULT_URL)).rstrip("/")
         self.model = model or os.getenv("LLAMA_CPP_MODEL", _DEFAULT_MODEL)
-        self.timeout = timeout
+        # Allow override via env; default 600s — large local models can be slow
+        self.timeout = timeout or float(os.getenv("LLAMA_CPP_TIMEOUT", "600"))
 
     # ------------------------------------------------------------------
     # Embeddings

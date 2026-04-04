@@ -5,7 +5,6 @@ Zero cost after initial setup.
 """
 
 import json
-import logging
 import os
 import time
 from contextlib import asynccontextmanager
@@ -27,29 +26,9 @@ except ImportError:
     CHROMADB_AVAILABLE = False
 
 
-# Structured Logging for Cloud Run (JSON format)
-class CloudRunFormatter(logging.Formatter):
-    def format(self, record):
-        log_entry = {
-            "severity": record.levelname,
-            "message": record.getMessage(),
-            "timestamp": self.formatTime(record),
-            "logging.googleapis.com/sourceLocation": {
-                "file": record.pathname,
-                "line": record.lineno,
-                "function": record.funcName,
-            }
-        }
-        if hasattr(record, "request_id"):
-            log_entry["request_id"] = record.request_id
-        return json.dumps(log_entry)
+from cerebro.core.utils.logging import get_logger
 
-
-logger = logging.getLogger("cerebro")
-handler = logging.StreamHandler()
-handler.setFormatter(CloudRunFormatter())
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+logger = get_logger("cerebro.rag.server")
 
 # Global instance
 cerebro = None
