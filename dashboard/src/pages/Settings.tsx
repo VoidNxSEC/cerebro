@@ -1,9 +1,5 @@
-import { useState } from 'react'
 import {
-  Settings as SettingsIcon,
   RefreshCw,
-  Clock,
-  Bell,
   Moon,
   Sun,
   Database,
@@ -18,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useIntelligenceStats, useScanMutation, useAiHealth } from '@/hooks/useApi'
 import { TIME_RANGES } from '@/types'
+import type { IntelligenceStats } from '@/types'
 
 export function Settings() {
   const {
@@ -36,7 +33,7 @@ export function Settings() {
   const scanMutation = useScanMutation()
 
   const handleFullScan = () => {
-    scanMutation.mutate({ full_scan: true, collect_intelligence: true })
+    scanMutation.mutate(undefined)
   }
 
   return (
@@ -174,37 +171,7 @@ export function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             {stats?.indexer_stats ? (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-sm text-muted-foreground">Model</p>
-                    <p className="font-mono text-sm">{stats.indexer_stats.model}</p>
-                  </div>
-                  <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-sm text-muted-foreground">Dimensions</p>
-                    <p className="font-semibold">{stats.indexer_stats.embedding_dim}</p>
-                  </div>
-                  <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-sm text-muted-foreground">Indexed Items</p>
-                    <p className="font-semibold">{stats.indexer_stats.indexed_items}</p>
-                  </div>
-                  <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-sm text-muted-foreground">Index Size</p>
-                    <p className="font-semibold">{stats.indexer_stats.index_size_mb?.toFixed(2)} MB</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium mb-2">Intelligence by Type</p>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(stats.by_type || {}).map(([type, count]) => (
-                      <Badge key={type} variant={type as any}>
-                        {type}: {count}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
+              <IndexerStatsPanel stats={stats} />
             ) : (
               <p className="text-muted-foreground">Loading stats...</p>
             )}
@@ -331,5 +298,44 @@ export function Settings() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function IndexerStatsPanel({ stats }: { stats: IntelligenceStats }) {
+  const idx = stats.indexer_stats
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-lg bg-muted/50 p-3">
+          <p className="text-sm text-muted-foreground">Model</p>
+          <p className="font-mono text-sm">{idx.model ?? '—'}</p>
+        </div>
+        <div className="rounded-lg bg-muted/50 p-3">
+          <p className="text-sm text-muted-foreground">Dimensions</p>
+          <p className="font-semibold">{idx.embedding_dim ?? '—'}</p>
+        </div>
+        <div className="rounded-lg bg-muted/50 p-3">
+          <p className="text-sm text-muted-foreground">Indexed Items</p>
+          <p className="font-semibold">{idx.indexed_items ?? '—'}</p>
+        </div>
+        <div className="rounded-lg bg-muted/50 p-3">
+          <p className="text-sm text-muted-foreground">Index Size</p>
+          <p className="font-semibold">
+            {idx.index_size_mb != null ? `${(idx.index_size_mb as number).toFixed(2)} MB` : '—'}
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium mb-2">Intelligence by Type</p>
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(stats.by_type || {}).map(([type, count]) => (
+            <Badge key={type} variant={type as any}>
+              {type}: {count}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    </>
   )
 }

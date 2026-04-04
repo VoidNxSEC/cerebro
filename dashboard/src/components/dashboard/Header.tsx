@@ -46,7 +46,7 @@ export function Header() {
   }
 
   const handleScan = () => {
-    scanMutation.mutate({ full_scan: true, collect_intelligence: true })
+    scanMutation.mutate(undefined)
   }
 
   return (

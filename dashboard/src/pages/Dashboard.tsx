@@ -139,7 +139,7 @@ export function Dashboard() {
                           {project.languages.slice(0, 2).join(', ')}
                         </span>
                         <span className="flex items-center gap-1">
-                          {formatRelativeTime(project.last_commit)}
+                          {formatRelativeTime(project.last_commit ?? '')}
                         </span>
                       </div>
                     </div>

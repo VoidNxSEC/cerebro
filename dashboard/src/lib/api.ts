@@ -7,7 +7,6 @@
 import type {
     EcosystemStatus,
     Project,
-    IntelligenceItem,
     IntelligenceStats,
     QueryResult,
     Briefing,
@@ -61,8 +60,14 @@ class ApiClient {
         return this.fetch<Project[]>(`/projects${query ? `?${query}` : ''}`)
     }
 
-    async getProject(name: string): Promise<Project> {
-        return this.fetch<Project>(`/projects/${encodeURIComponent(name)}`)
+    async getProject(name: string): Promise<{ project: Project; analysis: any }> {
+        return this.fetch<{ project: Project; analysis: any }>(`/projects/${encodeURIComponent(name)}`)
+    }
+
+    async summarizeProject(projectName: string): Promise<{ summary: string; source: string }> {
+        return this.fetch(`/actions/summarize/${encodeURIComponent(projectName)}`, {
+            method: 'POST',
+        })
     }
 
     // Intelligence
@@ -107,12 +112,6 @@ class ApiClient {
         return this.fetch('/actions/scan', {
             method: 'POST',
             body: JSON.stringify({ full_scan: fullScan, collect_intelligence: true }),
-        })
-    }
-
-    async summarizeProject(projectName: string): Promise<{ summary: string }> {
-        return this.fetch(`/actions/summarize/${encodeURIComponent(projectName)}`, {
-            method: 'POST',
         })
     }
 

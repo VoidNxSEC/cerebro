@@ -84,11 +84,19 @@ export interface Briefing {
   }>
 }
 
+export interface IndexerStats {
+  model?: string
+  embedding_dim?: number
+  indexed_items?: number
+  index_size_mb?: number
+  [key: string]: unknown
+}
+
 export interface IntelligenceStats {
   total: number
   by_type: Record<string, number>
   by_threat_level: Record<string, number>
-  indexer_stats: Record<string, unknown>
+  indexer_stats: IndexerStats
 }
 
 export interface QueryResult {

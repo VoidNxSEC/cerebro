@@ -8,7 +8,6 @@ import {
   Grid,
   List,
   ExternalLink,
-  GitBranch,
   Clock,
   Sparkles,
   Loader2,
@@ -164,7 +163,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              {formatRelativeTime(project.last_commit)}
+              {formatRelativeTime(project.last_commit ?? '')}
             </div>
             <div className="flex items-center gap-2">
               <span className={cn('text-lg font-bold', getHealthColor(project.health_score))}>
@@ -229,7 +228,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
 
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {formatRelativeTime(project.last_commit)}
+                {formatRelativeTime(project.last_commit ?? '')}
               </div>
 
               <div className="flex items-center gap-2">
@@ -343,7 +342,7 @@ function ProjectDetail({ project, analysis }: { project: Project; analysis: any 
           <CardContent className="p-4">
             <div className="text-sm text-muted-foreground">Last Commit</div>
             <div className="text-lg font-semibold">
-              {formatRelativeTime(project.last_commit)}
+              {formatRelativeTime(project.last_commit ?? '')}
             </div>
           </CardContent>
         </Card>
