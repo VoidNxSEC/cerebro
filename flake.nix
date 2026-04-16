@@ -253,8 +253,8 @@
           gum style --margin "0 2" "$(gum style --foreground 81 --bold 'LLM Core:') ''${CEREBRO_LLM_PROVIDER:-llamacpp}"
           echo ""
           gum style --margin "0 2" "$(gum style --foreground 220 'System State:')"
-          gum style --margin "0 4" "- Metrics:   $(gum style --foreground $STATUS_COLOR 'Snapshot (cerebro metrics scan)')"
-          gum style --margin "0 4" "- Artifacts: $(gum style --foreground $ART_COLOR 'Indexed (cerebro knowledge analyze .)')"
+          gum style --margin "0 4" -- "- Metrics:   $(gum style --foreground $STATUS_COLOR 'Snapshot (cerebro metrics scan)')"
+          gum style --margin "0 4" -- "- Artifacts: $(gum style --foreground $ART_COLOR 'Indexed (cerebro knowledge analyze .)')"
           
           echo ""
           gum style --border rounded --border-foreground 81 --padding "1 1" --margin "0 2" "$(gum style --foreground 212 --bold 'Run [ cerebro setup ] to configure models and APIs!')
