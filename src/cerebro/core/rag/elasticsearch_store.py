@@ -1,29 +1,23 @@
 import logging
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterable
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
     Literal,
     Optional,
-    Tuple,
-    Union,
 )
 
 import numpy as np
-from langchain_core._api import deprecated
-from langchain_core.documents import Document
-from langchain_core.embeddings import Embeddings
-from langchain_core.vectorstores import VectorStore
-
 from langchain_community.vectorstores.utils import (
     DistanceStrategy,
     maximal_marginal_relevance,
 )
+from langchain_core._api import deprecated
+from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
+from langchain_core.vectorstores import VectorStore
 
 if TYPE_CHECKING:
     from elasticsearch import Elasticsearch
@@ -37,16 +31,16 @@ class BaseRetrievalStrategy(ABC):
     @abstractmethod
     def query(
         self,
-        query_vector: Union[List[float], None],
-        query: Union[str, None],
+        query_vector: list[float] | None,
+        query: str | None,
         *,
         k: int,
         fetch_k: int,
         vector_query_field: str,
         text_field: str,
-        filter: List[dict],
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        filter: list[dict],
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         """
         Executes when a search is performed on the store.
 
@@ -69,10 +63,10 @@ class BaseRetrievalStrategy(ABC):
     @abstractmethod
     def index(
         self,
-        dims_length: Union[int, None],
+        dims_length: int | None,
         vector_query_field: str,
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         """
         Executes when the index is created.
 
@@ -122,9 +116,9 @@ class ApproxRetrievalStrategy(BaseRetrievalStrategy):
 
     def __init__(
         self,
-        query_model_id: Optional[str] = None,
-        hybrid: Optional[bool] = False,
-        rrf: Optional[Union[dict, bool]] = True,
+        query_model_id: str | None = None,
+        hybrid: bool | None = False,
+        rrf: dict | bool | None = True,
     ):
         self.query_model_id = query_model_id
         self.hybrid = hybrid
@@ -136,15 +130,15 @@ class ApproxRetrievalStrategy(BaseRetrievalStrategy):
 
     def query(
         self,
-        query_vector: Union[List[float], None],
-        query: Union[str, None],
+        query_vector: list[float] | None,
+        query: str | None,
         k: int,
         fetch_k: int,
         vector_query_field: str,
         text_field: str,
-        filter: List[dict],
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        filter: list[dict],
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         knn = {
             "filter": filter,
             "field": vector_query_field,
@@ -206,10 +200,10 @@ class ApproxRetrievalStrategy(BaseRetrievalStrategy):
 
     def index(
         self,
-        dims_length: Union[int, None],
+        dims_length: int | None,
         vector_query_field: str,
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         """Create the mapping for the Elasticsearch index."""
 
         if similarity is DistanceStrategy.COSINE:
@@ -245,15 +239,15 @@ class ExactRetrievalStrategy(BaseRetrievalStrategy):
 
     def query(
         self,
-        query_vector: Union[List[float], None],
-        query: Union[str, None],
+        query_vector: list[float] | None,
+        query: str | None,
         k: int,
         fetch_k: int,
         vector_query_field: str,
         text_field: str,
-        filter: Union[List[dict], None],
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        filter: list[dict] | None,
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         if similarity is DistanceStrategy.COSINE:
             similarityAlgo = (
                 f"cosineSimilarity(params.query_vector, '{vector_query_field}') + 1.0"
@@ -270,7 +264,7 @@ class ExactRetrievalStrategy(BaseRetrievalStrategy):
         else:
             raise ValueError(f"Similarity {similarity} not supported.")
 
-        queryBool: Dict = {"match_all": {}}
+        queryBool: dict = {"match_all": {}}
         if filter:
             queryBool = {"bool": {"filter": filter}}
 
@@ -288,10 +282,10 @@ class ExactRetrievalStrategy(BaseRetrievalStrategy):
 
     def index(
         self,
-        dims_length: Union[int, None],
+        dims_length: int | None,
         vector_query_field: str,
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         """Create the mapping for the Elasticsearch index."""
 
         return {
@@ -313,20 +307,20 @@ class ExactRetrievalStrategy(BaseRetrievalStrategy):
 class SparseRetrievalStrategy(BaseRetrievalStrategy):
     """Sparse retrieval strategy using the `text_expansion` processor."""
 
-    def __init__(self, model_id: Optional[str] = None):
+    def __init__(self, model_id: str | None = None):
         self.model_id = model_id or ".elser_model_1"
 
     def query(
         self,
-        query_vector: Union[List[float], None],
-        query: Union[str, None],
+        query_vector: list[float] | None,
+        query: str | None,
         k: int,
         fetch_k: int,
         vector_query_field: str,
         text_field: str,
-        filter: List[dict],
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        filter: list[dict],
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         return {
             "query": {
                 "bool": {
@@ -372,10 +366,10 @@ class SparseRetrievalStrategy(BaseRetrievalStrategy):
 
     def index(
         self,
-        dims_length: Union[int, None],
+        dims_length: int | None,
         vector_query_field: str,
-        similarity: Union[DistanceStrategy, None],
-    ) -> Dict:
+        similarity: DistanceStrategy | None,
+    ) -> dict:
         return {
             "mappings": {
                 "properties": {
@@ -509,25 +503,18 @@ class ElasticsearchStore(VectorStore):
         self,
         index_name: str,
         *,
-        embedding: Optional[Embeddings] = None,
+        embedding: Embeddings | None = None,
         es_connection: Optional["Elasticsearch"] = None,
-        es_url: Optional[str] = None,
-        es_cloud_id: Optional[str] = None,
-        es_user: Optional[str] = None,
-        es_api_key: Optional[str] = None,
-        es_password: Optional[str] = None,
+        es_url: str | None = None,
+        es_cloud_id: str | None = None,
+        es_user: str | None = None,
+        es_api_key: str | None = None,
+        es_password: str | None = None,
         vector_query_field: str = "vector",
         query_field: str = "text",
-        distance_strategy: Optional[
-            Literal[
-                DistanceStrategy.COSINE,
-                DistanceStrategy.DOT_PRODUCT,
-                DistanceStrategy.EUCLIDEAN_DISTANCE,
-                DistanceStrategy.MAX_INNER_PRODUCT,
-            ]
-        ] = None,
+        distance_strategy: Literal[DistanceStrategy.COSINE, DistanceStrategy.DOT_PRODUCT, DistanceStrategy.EUCLIDEAN_DISTANCE, DistanceStrategy.MAX_INNER_PRODUCT] | None = None,
         strategy: BaseRetrievalStrategy = ApproxRetrievalStrategy(),
-        es_params: Optional[Dict[str, Any]] = None,
+        es_params: dict[str, Any] | None = None,
     ):
         self.embedding = embedding
         self.index_name = index_name
@@ -568,12 +555,12 @@ class ElasticsearchStore(VectorStore):
     @staticmethod
     def connect_to_elasticsearch(
         *,
-        es_url: Optional[str] = None,
-        cloud_id: Optional[str] = None,
-        api_key: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        es_params: Optional[Dict[str, Any]] = None,
+        es_url: str | None = None,
+        cloud_id: str | None = None,
+        api_key: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        es_params: dict[str, Any] | None = None,
     ) -> "Elasticsearch":
         try:
             import elasticsearch
@@ -588,7 +575,7 @@ class ElasticsearchStore(VectorStore):
                 "Both es_url and cloud_id are defined. Please provide only one."
             )
 
-        connection_params: Dict[str, Any] = {}
+        connection_params: dict[str, Any] = {}
 
         if es_url:
             connection_params["hosts"] = [es_url]
@@ -618,7 +605,7 @@ class ElasticsearchStore(VectorStore):
         return es_client
 
     @property
-    def embeddings(self) -> Optional[Embeddings]:
+    def embeddings(self) -> Embeddings | None:
         return self.embedding
 
     def similarity_search(
@@ -626,9 +613,9 @@ class ElasticsearchStore(VectorStore):
         query: str,
         k: int = 4,
         fetch_k: int = 50,
-        filter: Optional[List[dict]] = None,
+        filter: list[dict] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """Return Elasticsearch documents most similar to query.
 
         Args:
@@ -653,9 +640,9 @@ class ElasticsearchStore(VectorStore):
         k: int = 4,
         fetch_k: int = 20,
         lambda_mult: float = 0.5,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """Return docs selected using the maximal marginal relevance.
 
         Maximal marginal relevance optimizes for similarity to query AND diversity
@@ -728,8 +715,8 @@ class ElasticsearchStore(VectorStore):
         return self._identity_fn
 
     def similarity_search_with_score(
-        self, query: str, k: int = 4, filter: Optional[List[dict]] = None, **kwargs: Any
-    ) -> List[Tuple[Document, float]]:
+        self, query: str, k: int = 4, filter: list[dict] | None = None, **kwargs: Any
+    ) -> list[tuple[Document, float]]:
         """Return Elasticsearch documents most similar to query, along with scores.
 
         Args:
@@ -747,11 +734,11 @@ class ElasticsearchStore(VectorStore):
 
     def similarity_search_by_vector_with_relevance_scores(
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
-        filter: Optional[List[Dict]] = None,
+        filter: list[dict] | None = None,
         **kwargs: Any,
-    ) -> List[Tuple[Document, float]]:
+    ) -> list[tuple[Document, float]]:
         """Return Elasticsearch documents most similar to query, along with scores.
 
         Args:
@@ -769,16 +756,16 @@ class ElasticsearchStore(VectorStore):
 
     def _search(
         self,
-        query: Optional[str] = None,
+        query: str | None = None,
         k: int = 4,
-        query_vector: Union[List[float], None] = None,
+        query_vector: list[float] | None = None,
         fetch_k: int = 50,
-        fields: Optional[List[str]] = None,
-        filter: Optional[List[dict]] = None,
-        custom_query: Optional[Callable[[Dict, Union[str, None]], Dict]] = None,
-        doc_builder: Optional[Callable[[Dict], Document]] = None,
+        fields: list[str] | None = None,
+        filter: list[dict] | None = None,
+        custom_query: Callable[[dict, str | None], dict] | None = None,
+        doc_builder: Callable[[dict], Document] | None = None,
         **kwargs: Any,
-    ) -> List[Tuple[Document, float]]:
+    ) -> list[tuple[Document, float]]:
         """Return Elasticsearch documents most similar to query, along with scores.
 
         Args:
@@ -832,7 +819,7 @@ class ElasticsearchStore(VectorStore):
             source=fields,
         )
 
-        def default_doc_builder(hit: Dict) -> Document:
+        def default_doc_builder(hit: dict) -> Document:
             return Document(
                 page_content=hit["_source"].get(self.query_field, ""),
                 metadata=hit["_source"]["metadata"],
@@ -861,10 +848,10 @@ class ElasticsearchStore(VectorStore):
 
     def delete(
         self,
-        ids: Optional[List[str]] = None,
-        refresh_indices: Optional[bool] = True,
+        ids: list[str] | None = None,
+        refresh_indices: bool | None = True,
         **kwargs: Any,
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """Delete documents from the Elasticsearch index.
 
         Args:
@@ -905,7 +892,7 @@ class ElasticsearchStore(VectorStore):
             return False
 
     def _create_index_if_not_exists(
-        self, index_name: str, dims_length: Optional[int] = None
+        self, index_name: str, dims_length: int | None = None
     ) -> None:
         """Create the Elasticsearch index if it doesn't already exist.
 
@@ -945,14 +932,14 @@ class ElasticsearchStore(VectorStore):
     def __add(
         self,
         texts: Iterable[str],
-        embeddings: Optional[List[List[float]]],
-        metadatas: Optional[List[Dict[Any, Any]]] = None,
-        ids: Optional[List[str]] = None,
+        embeddings: list[list[float]] | None,
+        metadatas: list[dict[Any, Any]] | None = None,
+        ids: list[str] | None = None,
         refresh_indices: bool = True,
         create_index_if_not_exists: bool = True,
-        bulk_kwargs: Optional[Dict] = None,
+        bulk_kwargs: dict | None = None,
         **kwargs: Any,
-    ) -> List[str]:
+    ) -> list[str]:
         try:
             from elasticsearch.helpers import BulkIndexError, bulk
         except ImportError:
@@ -1017,13 +1004,13 @@ class ElasticsearchStore(VectorStore):
     def add_texts(
         self,
         texts: Iterable[str],
-        metadatas: Optional[List[Dict[Any, Any]]] = None,
-        ids: Optional[List[str]] = None,
+        metadatas: list[dict[Any, Any]] | None = None,
+        ids: list[str] | None = None,
         refresh_indices: bool = True,
         create_index_if_not_exists: bool = True,
-        bulk_kwargs: Optional[Dict] = None,
+        bulk_kwargs: dict | None = None,
         **kwargs: Any,
-    ) -> List[str]:
+    ) -> list[str]:
         """Run more texts through the embeddings and add to the vectorstore.
 
         Args:
@@ -1063,14 +1050,14 @@ class ElasticsearchStore(VectorStore):
 
     def add_embeddings(
         self,
-        text_embeddings: Iterable[Tuple[str, List[float]]],
-        metadatas: Optional[List[dict]] = None,
-        ids: Optional[List[str]] = None,
+        text_embeddings: Iterable[tuple[str, list[float]]],
+        metadatas: list[dict] | None = None,
+        ids: list[str] | None = None,
         refresh_indices: bool = True,
         create_index_if_not_exists: bool = True,
-        bulk_kwargs: Optional[Dict] = None,
+        bulk_kwargs: dict | None = None,
         **kwargs: Any,
-    ) -> List[str]:
+    ) -> list[str]:
         """Add the given texts and embeddings to the vectorstore.
 
         Args:
@@ -1104,10 +1091,10 @@ class ElasticsearchStore(VectorStore):
     @classmethod
     def from_texts(
         cls,
-        texts: List[str],
-        embedding: Optional[Embeddings] = None,
-        metadatas: Optional[List[Dict[str, Any]]] = None,
-        bulk_kwargs: Optional[Dict] = None,
+        texts: list[str],
+        embedding: Embeddings | None = None,
+        metadatas: list[dict[str, Any]] | None = None,
+        bulk_kwargs: dict | None = None,
         **kwargs: Any,
     ) -> "ElasticsearchStore":
         """Construct ElasticsearchStore wrapper from raw documents.
@@ -1163,7 +1150,7 @@ class ElasticsearchStore(VectorStore):
 
     @staticmethod
     def _create_cls_from_kwargs(
-        embedding: Optional[Embeddings] = None, **kwargs: Any
+        embedding: Embeddings | None = None, **kwargs: Any
     ) -> "ElasticsearchStore":
         index_name = kwargs.get("index_name")
 
@@ -1206,9 +1193,9 @@ class ElasticsearchStore(VectorStore):
     @classmethod
     def from_documents(
         cls,
-        documents: List[Document],
-        embedding: Optional[Embeddings] = None,
-        bulk_kwargs: Optional[Dict] = None,
+        documents: list[Document],
+        embedding: Embeddings | None = None,
+        bulk_kwargs: dict | None = None,
         **kwargs: Any,
     ) -> "ElasticsearchStore":
         """Construct ElasticsearchStore wrapper from documents.
@@ -1262,9 +1249,9 @@ class ElasticsearchStore(VectorStore):
 
     @staticmethod
     def ApproxRetrievalStrategy(
-        query_model_id: Optional[str] = None,
-        hybrid: Optional[bool] = False,
-        rrf: Optional[Union[dict, bool]] = True,
+        query_model_id: str | None = None,
+        hybrid: bool | None = False,
+        rrf: dict | bool | None = True,
     ) -> "ApproxRetrievalStrategy":
         """Used to perform approximate nearest neighbor search
         using the HNSW algorithm.
@@ -1300,7 +1287,7 @@ class ElasticsearchStore(VectorStore):
 
     @staticmethod
     def SparseVectorRetrievalStrategy(
-        model_id: Optional[str] = None,
+        model_id: str | None = None,
     ) -> "SparseRetrievalStrategy":
         """Used to perform sparse vector search via text_expansion.
         Used for when you want to use ELSER model to perform document search.

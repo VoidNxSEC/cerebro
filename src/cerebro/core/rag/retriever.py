@@ -25,6 +25,12 @@ import time
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+try:
+    from cerebro.core.rag.elasticsearch_store import ElasticsearchStore, ApproxRetrievalStrategy
+except ImportError:
+    ElasticsearchStore = None
+    ApproxRetrievalStrategy = None
+
 logger = logging.getLogger("cerebro.retriever")
 
 
@@ -157,6 +163,47 @@ class HybridRetriever:
         ids      = [c.id for c in chunks]
         metadata = [c.to_dict() for c in chunks]
         return cls(vector_store, texts, ids, metadata, **kwargs)
+
+    @classmethod
+    def from_elasticsearch(
+        cls,
+        index_name: str,
+        embedding: Any,
+        chunks: list,
+        es_url: str | None = None,
+        es_cloud_id: str | None = None,
+        es_user: str | None = None,
+        es_password: str | None = None,
+        es_api_key: str | None = None,
+        **kwargs,
+    ) -> HybridRetriever:
+        """Convenience constructor from standard Elasticsearch setup.
+        Will use ElasticsearchStore as the Dense provider within the Hybrid/RRF ecosystem.
+        """
+        if ElasticsearchStore is None:
+            raise ImportError(
+                "ElasticsearchStore not available. Certifique-se que as dependências do gcp/elasticsearch estão instaladas."
+            )
+        
+        # Instanciando a estratégia Híbrida com RRF Nativo
+        strategy = None
+        if ApproxRetrievalStrategy is not None:
+            strategy = ApproxRetrievalStrategy(
+                hybrid=True, # Ativa BM25 + Vetor simultaneamente
+                rrf=True     # Aplica o Reciprocal Rank Fusion na própria query
+            )
+
+        vector_store = ElasticsearchStore(
+            index_name=index_name,
+            embedding=embedding,
+            es_url=es_url,
+            es_cloud_id=es_cloud_id,
+            es_user=es_user,
+            es_password=es_password,
+            es_api_key=es_api_key,
+            strategy=strategy,
+        )
+        return cls.from_corpus(vector_store, chunks, **kwargs)
 
     def retrieve(
         self,

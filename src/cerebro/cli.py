@@ -27,6 +27,11 @@ rag_backends_app = typer.Typer(help="Available RAG backends", no_args_is_help=Tr
 
 # New command groups (Phase 2) — guarded because some deps (google-auth) may be absent
 try:
+    from cerebro.commands.setup import setup_app
+except ImportError:
+    setup_app = None  # type: ignore[assignment]
+
+try:
     from cerebro.commands.metrics import metrics_app
 except ImportError:
     metrics_app = None  # type: ignore[assignment]
@@ -57,6 +62,8 @@ app.add_typer(ops_app, name="ops")
 app.add_typer(rag_app, name="rag")
 rag_app.add_typer(rag_backend_app, name="backend")
 rag_app.add_typer(rag_backends_app, name="backends")
+if setup_app:
+    app.add_typer(setup_app, name="setup")
 if metrics_app:
     app.add_typer(metrics_app, name="metrics")
 if gcp_app:

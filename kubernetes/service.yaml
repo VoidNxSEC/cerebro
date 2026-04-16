@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cerebro-service
+  labels:
+    app: cerebro
+spec:
+  type: ClusterIP
+  selector:
+    app: cerebro
+  ports:
+    - port: 18321
+      targetPort: 18321
+      name: dashboard
+      protocol: TCP
+    - port: 8000
+      targetPort: 8000
+      name: api
+      protocol: TCP

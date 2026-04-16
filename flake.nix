@@ -117,15 +117,14 @@
         p2nix = poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
 
         corePythonEnv = pkgs.python313.withPackages corePythonPackages;
-        gcpPythonEnv = pkgs.python313.withPackages (
-          ps: (corePythonPackages ps) ++ (gcpPythonPackages ps)
-        );
+        gcpPythonEnv = pkgs.python313.withPackages (ps: (corePythonPackages ps) ++ (gcpPythonPackages ps));
 
         commonBuildInputs = [
           pkgs.poetry
           pkgs.uv # Fast Python package installer
           pkgs.just
           pkgs.git
+          pkgs.gum  # Charmbracelet UI styling for premium terminal DX
           pkgs.stdenv.cc.cc.lib
           pkgs.zlib
           # pkgs.llama-cpp  # Removido: puxa CUDA pesado, instalar separado se necessário
@@ -220,38 +219,39 @@
 
           # ── Sync do ambiente core (apenas na primeira vez) ──────────────────
           if [ ! -f ".nix-installed-core" ]; then
-            echo "📥 Syncing Cerebro core dependencies via Poetry..."
+            gum style --foreground 212 "📥 Syncing Cerebro core dependencies via Poetry..."
             if [ -f "pyproject.toml" ]; then
               poetry install --no-root --only main --no-interaction 2>/dev/null || true
             fi
             touch .nix-installed-core
-            echo "✅ Cerebro core ready!"
+            gum style --foreground 42 "✅ Cerebro core ready!"
           fi
 
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "🧠 CEREBRO — Development Environment (Nix)"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "Python: $(python --version 2>&1)"
+          # ── Interface Premium Terminal (DX) ───────────────────────────────
+          clear
+          gum style \
+            --border double --border-foreground 99 --padding "1 2" \
+            --margin "1 1" --align center \
+            "$(gum style --foreground 42 --bold '🧠 CEREBRO')" \
+            "Enterprise Knowledge Extraction & Distributed RAG Platform" \
+            "$(gum style --foreground 240 'Environment: Reproducible Flake')"
+          
+          # Status Board
+          export STATUS_COLOR="42"
+          export ART_COLOR="42"
+          if [ ! -f "./data/metrics/metrics_snapshot.json" ]; then export STATUS_COLOR="204" ; fi
+          if [ ! -f "./data/analyzed/all_artifacts.jsonl" ]; then export ART_COLOR="204" ; fi
+
+          gum style --margin "0 2" "$(gum style --foreground 81 --bold 'Python:') $(python --version 2>&1)"
+          gum style --margin "0 2" "$(gum style --foreground 81 --bold 'LLM Core:') ''${CEREBRO_LLM_PROVIDER:-llamacpp}"
           echo ""
-          echo "Status:"
-          if [[ -f "./data/metrics/metrics_snapshot.json" ]]; then
-            echo "  📊 Metrics snapshot present"
-          else
-            echo "  📊 No metrics snapshot  →  cerebro metrics scan"
-          fi
-          if [[ -f "./data/analyzed/all_artifacts.jsonl" ]]; then
-            echo "  🧠 Artifacts ready"
-          else
-            echo "  🧠 No artifacts         →  cerebro knowledge analyze ."
-          fi
+          gum style --margin "0 2" "$(gum style --foreground 220 'System State:')"
+          gum style --margin "0 4" "- Metrics:   $(gum style --foreground $STATUS_COLOR 'Snapshot (cerebro metrics scan)')"
+          gum style --margin "0 4" "- Artifacts: $(gum style --foreground $ART_COLOR 'Indexed (cerebro knowledge analyze .)')"
+          
           echo ""
-          echo "Interfaces:"
-          echo "  cerebro <cmd>    → CLI             (cerebro --help)"
-          echo "  cdash            → Dashboard GUI   (http://localhost:18321)"
-          echo "  ctui             → TUI Textual     (terminal)"
-          echo ""
-          echo "  chelp            → quick reference"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          gum style --border rounded --border-foreground 81 --padding "1 1" --margin "0 2" "$(gum style --foreground 212 --bold 'Run [ cerebro setup ] to configure models and APIs!')
+Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
         '';
 
         gcpShellHook = ''
@@ -299,7 +299,11 @@
         };
 
         devShells.gcp = pkgs.mkShell {
-          buildInputs = [ gcpPythonEnv pkgs.google-cloud-sdk ] ++ commonBuildInputs;
+          buildInputs = [
+            gcpPythonEnv
+            pkgs.google-cloud-sdk
+          ]
+          ++ commonBuildInputs;
           shellHook = baseShellHook + gcpShellHook;
         };
 

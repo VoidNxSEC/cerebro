@@ -1,8 +1,12 @@
 import json
+import logging
 import os
+import re
 from pathlib import Path
 from typing import Any, ClassVar
 from uuid import uuid4
+
+from pydantic import BaseModel, Field, field_validator
 
 from cerebro.core.rag.embeddings import EmbeddingSystem
 from cerebro.interfaces.llm import LLMProvider
@@ -14,6 +18,33 @@ from cerebro.providers.vector_store_factory import (
     supported_vector_store_aliases,
 )
 from cerebro.settings import get_settings
+
+logger = logging.getLogger("cerebro.engine")
+
+
+class DocumentSchema(BaseModel):
+    id: str
+    title: str = Field(..., max_length=255)
+    content: str = Field(..., max_length=32000) # Limite rígido de contexto
+    repo: str
+    source: str
+    
+    @field_validator('content')
+    def block_prompt_injection_signatures(cls, v):
+        # 1. Regex de heurística rápida contra injeções comuns
+        suspicious_patterns = [
+            r"(?i)ignore all previous instructions",
+            r"(?i)system prompt:",
+            r"<\|im_start\|>", # Tentativa de quebrar tokens do LLM
+            r"\[INST\]"
+        ]
+        for pattern in suspicious_patterns:
+            if re.search(pattern, v):
+                raise ValueError(f"Payload suspeito detectado (Prompt Injection signature)")
+        
+        # 2. Sanitização léxica (remover null bytes e caracteres de controle não imprimíveis)
+        v = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', v)
+        return v.strip()
 
 
 class RigorousRAGEngine:
@@ -39,6 +70,8 @@ class RigorousRAGEngine:
         "groq": "groq",
         "gemini": "gemini",
         "google-gemini": "gemini",
+        "azure": "azure",
+        "azure-openai": "azure",
     }
     LLM_PROVIDER_CLASS_NAMES: ClassVar[dict[str, str]] = {
         "LlamaCppProvider": "llamacpp",
@@ -47,6 +80,7 @@ class RigorousRAGEngine:
         "AnthropicProvider": "anthropic",
         "GroqProvider": "groq",
         "GeminiProvider": "gemini",
+        "AzureOpenAIProvider": "azure",
     }
 
     def __init__(
@@ -147,9 +181,14 @@ class RigorousRAGEngine:
 
             return GeminiProvider()
 
+        if provider_name == "azure":
+            from cerebro.providers.azure import AzureOpenAIProvider
+
+            return AzureOpenAIProvider()
+
         raise ValueError(
             f"Unsupported CEREBRO_LLM_PROVIDER value: {provider_name!r}. "
-            "Expected one of: llamacpp, openai-compatible, vertex-ai, anthropic, groq, gemini."
+            "Expected one of: llamacpp, openai-compatible, vertex-ai, anthropic, groq, gemini, azure."
         )
 
     @classmethod
@@ -195,7 +234,9 @@ class RigorousRAGEngine:
                 if not stripped:
                     continue
                 raw = json.loads(stripped)
-                documents.append(self._normalize_document(raw, line_number))
+                doc = self._normalize_document(raw, line_number)
+                if doc is not None:
+                    documents.append(doc)
         return documents
 
     def _normalize_document(self, raw: dict[str, Any], line_number: int) -> dict[str, Any]:
@@ -224,14 +265,20 @@ class RigorousRAGEngine:
             else:
                 metadata[key] = json.dumps(value, ensure_ascii=True)
 
-        return {
-            "id": document_id,
-            "content": content,
-            "title": title,
-            "repo": repo,
-            "source": source,
-            **metadata,
-        }
+        try:
+            # Passa pela barreira do Pydantic
+            clean_doc = DocumentSchema(
+                id=document_id,
+                title=title,
+                content=content,
+                repo=repo,
+                source=source
+            )
+            # Monta o retorno seguro
+            return clean_doc.model_dump() | metadata 
+        except ValueError as e:
+            logger.warning(f"Documento rejeitado no Ingest ({source}): {e}")
+            return None # Dropa o documento
 
     def _ingest_local(self, jsonl_path: str) -> int:
         documents = self._load_documents(jsonl_path)

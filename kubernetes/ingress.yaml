@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cerebro-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: cerebro.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cerebro-service
+                port:
+                  number: 18321
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: cerebro-service
+                port:
+                  number: 8000

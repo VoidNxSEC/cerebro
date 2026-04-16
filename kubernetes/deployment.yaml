@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cerebro-api
+  labels:
+    app: cerebro
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cerebro
+  template:
+    metadata:
+      labels:
+        app: cerebro
+        tier: backend
+    spec:
+      containers:
+        - name: cerebro-api
+          image: cerebro:latest
+          imagePullPolicy: IfNotPresent
+          command: ["cerebro"]
+          args: ["dashboard"]
+          ports:
+            - containerPort: 18321
+              name: dashboard
+            - containerPort: 8000
+              name: api
+          env:
+            - name: CEREBRO_LLM_PROVIDER
+              value: "azure"
+            # Mount Azure OpenAI secrets from K8s secrets ideally:
+            # - name: AZURE_OPENAI_API_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: cerebro-secrets
+            #       key: azure-openai-key
+          readinessProbe:
+            exec:
+              command: ["cerebro", "ops", "health"]
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["cerebro", "ops", "health"]
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
