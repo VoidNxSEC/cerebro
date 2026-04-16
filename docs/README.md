@@ -47,6 +47,7 @@ required to use the Cerebro core.
 ### Planning and status
 
 - [Master Execution Plan](project/MASTER_EXECUTION_PLAN.md)
+- [RAG Production TODO](project/TODO_PLAN.md)
 - [Status](project/STATUS.md)
 - [Coverage Gaps](project/COVERAGE_GAP.md)
 - [Portfolio Audit](project/PORTFOLIO_AUDIT.md)

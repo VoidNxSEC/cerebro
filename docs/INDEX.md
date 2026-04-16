@@ -46,6 +46,7 @@ Quick navigation for the current documentation set.
 ### Project status and planning
 
 - [Master Execution Plan](project/MASTER_EXECUTION_PLAN.md)
+- [RAG Production TODO](project/TODO_PLAN.md)
 - [Agentic GPT Roadmap](project/AGENTIC_GPT_ROADMAP.md)
 - [Current Status](project/STATUS.md)
 - [Coverage Gaps](project/COVERAGE_GAP.md)
