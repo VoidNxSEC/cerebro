@@ -3,24 +3,36 @@ from cerebro.modules.gcp import GcpDeploymentConfig
 
 
 def test_azure_deployment_config_from_env(monkeypatch):
+    monkeypatch.setenv("AZURE_LOCATION", "eastus2")
     monkeypatch.setenv("AZURE_ACR_NAME", "cerebroacr")
     monkeypatch.setenv("AZURE_ACR_LOGIN_SERVER", "cerebroacr.azurecr.io")
     monkeypatch.setenv("AZURE_ACR_REPOSITORY", "cerebro")
     monkeypatch.setenv("AZURE_IMAGE_TAG", "sha123")
+    monkeypatch.setenv("AZURE_RESOURCE_GROUP", "rg-cerebro-prod")
+    monkeypatch.setenv("AZURE_CONTAINER_APP_NAME", "cerebro-api")
+    monkeypatch.setenv("AZURE_SEARCH_SERVICE_NAME", "cerebro-search")
+    monkeypatch.setenv("AZURE_SEARCH_INDEX_NAME", "knowledge-index")
     monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com/")
     monkeypatch.setenv("OPENAI_API_VERSION", "2024-10-21")
     monkeypatch.setenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
     monkeypatch.setenv("AZURE_OPENAI_EMBED_DEPLOYMENT", "text-embedding-3-small")
 
     config = AzureDeploymentConfig.from_env()
+    env = config.runtime_env()
 
+    assert config.location == "eastus2"
     assert config.image_ref == "cerebroacr.azurecr.io/cerebro:sha123"
     assert config.missing_registry_fields() == ()
     assert config.missing_runtime_fields() == ()
-    assert config.runtime_env()["CEREBRO_LLM_PROVIDER"] == "azure"
+    assert env["CEREBRO_LLM_PROVIDER"] == "azure"
+    assert env["AZURE_RESOURCE_GROUP"] == "rg-cerebro-prod"
+    assert env["AZURE_CONTAINER_APP_NAME"] == "cerebro-api"
+    assert env["AZURE_SEARCH_SERVICE_NAME"] == "cerebro-search"
+    assert env["AZURE_SEARCH_INDEX_NAME"] == "knowledge-index"
 
 
 def test_azure_deployment_config_reports_missing_fields(monkeypatch):
+    monkeypatch.delenv("AZURE_LOCATION", raising=False)
     monkeypatch.delenv("AZURE_ACR_NAME", raising=False)
     monkeypatch.delenv("AZURE_ACR_LOGIN_SERVER", raising=False)
     monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
@@ -28,6 +40,7 @@ def test_azure_deployment_config_reports_missing_fields(monkeypatch):
 
     config = AzureDeploymentConfig.from_env()
 
+    assert config.location == "eastus2"
     assert "AZURE_ACR_NAME" in config.missing_registry_fields()
     assert "AZURE_ACR_LOGIN_SERVER" in config.missing_registry_fields()
     assert "AZURE_OPENAI_ENDPOINT" in config.missing_runtime_fields()

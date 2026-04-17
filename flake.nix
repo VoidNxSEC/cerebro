@@ -105,16 +105,30 @@
             aiohttp
           ];
 
-        # Nixpkgs only covers part of the optional GCP surface used by Cerebro.
-        # The remaining vendor-specific Python packages still come from Poetry's
-        # optional `gcp` group in the dedicated gcp shell below.
+        # Runtime images and dev shells use the subset of Google Cloud SDKs
+        # available in nixpkgs directly. The remaining vendor-specific pieces
+        # still come from Poetry's optional `gcp` group in the dedicated shell.
         gcpPythonPackages =
           ps: with ps; [
             google-auth
+            google-auth-httplib2
+            google-auth-oauthlib
             google-api-core
+            google-api-python-client
+            googleapis-common-protos
             google-cloud-core
+            google-cloud-artifact-registry
             google-cloud-bigquery
+            google-cloud-bigquery-storage
+            google-cloud-logging
+            google-cloud-monitoring
+            google-cloud-pubsub
+            google-cloud-resource-manager
+            google-cloud-run
+            google-cloud-secret-manager
             google-cloud-storage
+            google-crc32c
+            google-resumable-media
           ];
 
         p2nix = poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
@@ -386,6 +400,18 @@ Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
           echo "  ./start_embedding_server.sh"
         '';
 
+        azureShellHook = ''
+          export CEREBRO_AZURE_SHELL_ACTIVE=1
+          export AZURE_LOCATION="''${AZURE_LOCATION:-eastus2}"
+          export OPENAI_API_VERSION="''${OPENAI_API_VERSION:-2024-10-21}"
+
+          echo ""
+          echo "Optional Azure integration shell active:"
+          echo "  cerebro setup"
+          echo "  export AZURE_OPENAI_ENDPOINT='https://<resource>.openai.azure.com/'"
+          echo "  az account show"
+        '';
+
       in
       {
         # Installable package — enables `nix build` and `nix run`
@@ -417,6 +443,15 @@ Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
           ]
           ++ commonBuildInputs;
           shellHook = baseShellHook + gcpShellHook;
+        };
+
+        devShells.azure = pkgs.mkShell {
+          buildInputs = [
+            azurePythonEnv
+            pkgs.azure-cli
+          ]
+          ++ commonBuildInputs;
+          shellHook = baseShellHook + azureShellHook;
         };
 
       }
