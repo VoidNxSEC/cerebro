@@ -1,20 +1,20 @@
-# Command: `cerebro version`
+# Command: `cerebro dashboard`
 
 ## 0. Metadata
 | Field | Value |
 |-------|-------|
 | Group | `root` |
-| Command | `version` |
-| Function | `version` |
-| Source | `src/cerebro/cli.py:136` |
-| Syntax | `cerebro version` |
+| Command | `dashboard` |
+| Function | `launch_dashboard` |
+| Source | `src/cerebro/cli.py:145` |
+| Syntax | `cerebro dashboard` |
 
 ## 1. Description
-Display the current version.
+Launch the React Dashboard GUI (FastAPI backend + Vite frontend).
 
 **Syntax:**
 ```bash
-cerebro version
+cerebro dashboard
 ```
 
 ## 2. Parameters
@@ -25,7 +25,7 @@ cerebro version
 
 ## 3. Examples
 ```bash
-cerebro version
+cerebro dashboard
 ```
 
 ## 4. Output
@@ -34,8 +34,8 @@ cerebro version
 
 ## 5. Source
 * Module: `src/cerebro/cli.py`
-* Function: `version`
-* Line: `136`
+* Function: `launch_dashboard`
+* Line: `145`
 
 ## 6. Tests
 * Check `tests/test_cli.py` for CLI coverage.

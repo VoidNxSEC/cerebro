@@ -1,0 +1,167 @@
+---
+title: Cerebro CLI Command Topology
+---
+flowchart TD
+    root[cerebro]
+    command_cerebro_dashboard[dashboard]
+    root --> command_cerebro_dashboard
+    command_cerebro_info[info]
+    root --> command_cerebro_info
+    group_knowledge[knowledge]
+    root --> group_knowledge
+    command_cerebro_knowledge_analyze[analyze]
+    group_knowledge --> command_cerebro_knowledge_analyze
+    param_cerebro_knowledge_analyze_repo_path[repo_path: str]
+    command_cerebro_knowledge_analyze -.-> param_cerebro_knowledge_analyze_repo_path
+    param_cerebro_knowledge_analyze_task_context[task_context: str]
+    command_cerebro_knowledge_analyze -.-> param_cerebro_knowledge_analyze_task_context
+    param_cerebro_knowledge_analyze_config_file[config_file: str]
+    command_cerebro_knowledge_analyze -.-> param_cerebro_knowledge_analyze_config_file
+    command_cerebro_knowledge_batch_analyze[batch-analyze]
+    group_knowledge --> command_cerebro_knowledge_batch_analyze
+    param_cerebro_knowledge_batch_analyze_config_file[config_file: str]
+    command_cerebro_knowledge_batch_analyze -.-> param_cerebro_knowledge_batch_analyze_config_file
+    command_cerebro_knowledge_docs[docs]
+    group_knowledge --> command_cerebro_knowledge_docs
+    param_cerebro_knowledge_docs_project[project: str]
+    command_cerebro_knowledge_docs -.-> param_cerebro_knowledge_docs_project
+    param_cerebro_knowledge_docs_output[output: str]
+    command_cerebro_knowledge_docs -.-> param_cerebro_knowledge_docs_output
+    param_cerebro_knowledge_docs_format[format: str]
+    command_cerebro_knowledge_docs -.-> param_cerebro_knowledge_docs_format
+    command_cerebro_knowledge_etl[etl]
+    group_knowledge --> command_cerebro_knowledge_etl
+    param_cerebro_knowledge_etl_source[source: str]
+    command_cerebro_knowledge_etl -.-> param_cerebro_knowledge_etl_source
+    param_cerebro_knowledge_etl_destination[destination: str]
+    command_cerebro_knowledge_etl -.-> param_cerebro_knowledge_etl_destination
+    param_cerebro_knowledge_etl_format[format: str]
+    command_cerebro_knowledge_etl -.-> param_cerebro_knowledge_etl_format
+    command_cerebro_knowledge_generate_queries[generate-queries]
+    group_knowledge --> command_cerebro_knowledge_generate_queries
+    param_cerebro_knowledge_generate_queries_topic[topic: str]
+    command_cerebro_knowledge_generate_queries -.-> param_cerebro_knowledge_generate_queries_topic
+    param_cerebro_knowledge_generate_queries_count[count: int]
+    command_cerebro_knowledge_generate_queries -.-> param_cerebro_knowledge_generate_queries_count
+    param_cerebro_knowledge_generate_queries_output[output: Path]
+    command_cerebro_knowledge_generate_queries -.-> param_cerebro_knowledge_generate_queries_output
+    command_cerebro_knowledge_index_repo[index-repo]
+    group_knowledge --> command_cerebro_knowledge_index_repo
+    param_cerebro_knowledge_index_repo_repo_path[repo_path: str]
+    command_cerebro_knowledge_index_repo -.-> param_cerebro_knowledge_index_repo_repo_path
+    param_cerebro_knowledge_index_repo_force[force: bool]
+    command_cerebro_knowledge_index_repo -.-> param_cerebro_knowledge_index_repo_force
+    param_cerebro_knowledge_index_repo_output[output: str | None]
+    command_cerebro_knowledge_index_repo -.-> param_cerebro_knowledge_index_repo_output
+    command_cerebro_knowledge_summarize[summarize]
+    group_knowledge --> command_cerebro_knowledge_summarize
+    param_cerebro_knowledge_summarize_repo_name[repo_name: str]
+    command_cerebro_knowledge_summarize -.-> param_cerebro_knowledge_summarize_repo_name
+    group_ops[ops]
+    root --> group_ops
+    command_cerebro_ops_health[health]
+    group_ops --> command_cerebro_ops_health
+    command_cerebro_ops_status[status]
+    group_ops --> command_cerebro_ops_status
+    group_rag[rag]
+    root --> group_rag
+    group_rag_backend[backend]
+    group_rag --> group_rag_backend
+    command_cerebro_rag_backend_health[health]
+    group_rag_backend --> command_cerebro_rag_backend_health
+    param_cerebro_rag_backend_health_output_format[output_format: str]
+    command_cerebro_rag_backend_health -.-> param_cerebro_rag_backend_health_output_format
+    command_cerebro_rag_backend_info[info]
+    group_rag_backend --> command_cerebro_rag_backend_info
+    param_cerebro_rag_backend_info_output_format[output_format: str]
+    command_cerebro_rag_backend_info -.-> param_cerebro_rag_backend_info_output_format
+    command_cerebro_rag_backend_init[init]
+    group_rag_backend --> command_cerebro_rag_backend_init
+    command_cerebro_rag_backend_migrate[migrate]
+    group_rag_backend --> command_cerebro_rag_backend_migrate
+    param_cerebro_rag_backend_migrate_from_provider[from_provider: str]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_from_provider
+    param_cerebro_rag_backend_migrate_from_collection[from_collection: str | None]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_from_collection
+    param_cerebro_rag_backend_migrate_from_namespace[from_namespace: str | None]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_from_namespace
+    param_cerebro_rag_backend_migrate_from_persist_directory[from_persist_directory: str | None]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_from_persist_directory
+    param_cerebro_rag_backend_migrate_from_url[from_url: str | None]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_from_url
+    param_cerebro_rag_backend_migrate_from_schema[from_schema: str | None]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_from_schema
+    param_cerebro_rag_backend_migrate_batch_size[batch_size: int]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_batch_size
+    param_cerebro_rag_backend_migrate_clear_destination[clear_destination: bool]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_clear_destination
+    param_cerebro_rag_backend_migrate_output_format[output_format: str]
+    command_cerebro_rag_backend_migrate -.-> param_cerebro_rag_backend_migrate_output_format
+    command_cerebro_rag_backend_smoke[smoke]
+    group_rag_backend --> command_cerebro_rag_backend_smoke
+    param_cerebro_rag_backend_smoke_output_format[output_format: str]
+    command_cerebro_rag_backend_smoke -.-> param_cerebro_rag_backend_smoke_output_format
+    param_cerebro_rag_backend_smoke_skip_write_check[skip_write_check: bool]
+    command_cerebro_rag_backend_smoke -.-> param_cerebro_rag_backend_smoke_skip_write_check
+    group_rag_backends[backends]
+    group_rag --> group_rag_backends
+    command_cerebro_rag_backends_list[list]
+    group_rag_backends --> command_cerebro_rag_backends_list
+    param_cerebro_rag_backends_list_output_format[output_format: str]
+    command_cerebro_rag_backends_list -.-> param_cerebro_rag_backends_list_output_format
+    command_cerebro_rag_ingest[ingest]
+    group_rag --> command_cerebro_rag_ingest
+    param_cerebro_rag_ingest_source_file[source_file: str]
+    command_cerebro_rag_ingest -.-> param_cerebro_rag_ingest_source_file
+    command_cerebro_rag_init[init]
+    group_rag --> command_cerebro_rag_init
+    command_cerebro_rag_migrate[migrate]
+    group_rag --> command_cerebro_rag_migrate
+    param_cerebro_rag_migrate_from_provider[from_provider: str]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_from_provider
+    param_cerebro_rag_migrate_from_collection[from_collection: str | None]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_from_collection
+    param_cerebro_rag_migrate_from_namespace[from_namespace: str | None]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_from_namespace
+    param_cerebro_rag_migrate_from_persist_directory[from_persist_directory: str | None]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_from_persist_directory
+    param_cerebro_rag_migrate_from_url[from_url: str | None]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_from_url
+    param_cerebro_rag_migrate_from_schema[from_schema: str | None]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_from_schema
+    param_cerebro_rag_migrate_batch_size[batch_size: int]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_batch_size
+    param_cerebro_rag_migrate_clear_destination[clear_destination: bool]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_clear_destination
+    param_cerebro_rag_migrate_output_format[output_format: str]
+    command_cerebro_rag_migrate -.-> param_cerebro_rag_migrate_output_format
+    command_cerebro_rag_query[query]
+    group_rag --> command_cerebro_rag_query
+    param_cerebro_rag_query_question[question: str]
+    command_cerebro_rag_query -.-> param_cerebro_rag_query_question
+    param_cerebro_rag_query_rerank[rerank: bool]
+    command_cerebro_rag_query -.-> param_cerebro_rag_query_rerank
+    param_cerebro_rag_query_top_k[top_k: int]
+    command_cerebro_rag_query -.-> param_cerebro_rag_query_top_k
+    command_cerebro_rag_rerank[rerank]
+    group_rag --> command_cerebro_rag_rerank
+    param_cerebro_rag_rerank_query[query: str]
+    command_cerebro_rag_rerank -.-> param_cerebro_rag_rerank_query
+    param_cerebro_rag_rerank_documents_file[documents_file: str]
+    command_cerebro_rag_rerank -.-> param_cerebro_rag_rerank_documents_file
+    param_cerebro_rag_rerank_top_k[top_k: int]
+    command_cerebro_rag_rerank -.-> param_cerebro_rag_rerank_top_k
+    command_cerebro_rag_smoke[smoke]
+    group_rag --> command_cerebro_rag_smoke
+    param_cerebro_rag_smoke_output_format[output_format: str]
+    command_cerebro_rag_smoke -.-> param_cerebro_rag_smoke_output_format
+    param_cerebro_rag_smoke_skip_write_check[skip_write_check: bool]
+    command_cerebro_rag_smoke -.-> param_cerebro_rag_smoke_skip_write_check
+    command_cerebro_rag_status[status]
+    group_rag --> command_cerebro_rag_status
+    param_cerebro_rag_status_output_format[output_format: str]
+    command_cerebro_rag_status -.-> param_cerebro_rag_status_output_format
+    command_cerebro_tui[tui]
+    root --> command_cerebro_tui
+    command_cerebro_version[version]
+    root --> command_cerebro_version

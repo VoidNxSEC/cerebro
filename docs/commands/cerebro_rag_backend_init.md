@@ -1,20 +1,20 @@
-# Command: `cerebro version`
+# Command: `cerebro rag backend init`
 
 ## 0. Metadata
 | Field | Value |
 |-------|-------|
-| Group | `root` |
-| Command | `version` |
-| Function | `version` |
-| Source | `src/cerebro/cli.py:136` |
-| Syntax | `cerebro version` |
+| Group | `rag backend` |
+| Command | `init` |
+| Function | `rag_backend_init` |
+| Source | `src/cerebro/cli.py:814` |
+| Syntax | `cerebro rag backend init` |
 
 ## 1. Description
-Display the current version.
+Initialize storage structures for the active RAG backend.
 
 **Syntax:**
 ```bash
-cerebro version
+cerebro rag backend init
 ```
 
 ## 2. Parameters
@@ -25,7 +25,7 @@ cerebro version
 
 ## 3. Examples
 ```bash
-cerebro version
+cerebro rag backend init
 ```
 
 ## 4. Output
@@ -34,8 +34,8 @@ cerebro version
 
 ## 5. Source
 * Module: `src/cerebro/cli.py`
-* Function: `version`
-* Line: `136`
+* Function: `rag_backend_init`
+* Line: `814`
 
 ## 6. Tests
 * Check `tests/test_cli.py` for CLI coverage.

@@ -1,20 +1,37 @@
-# Command: `cerebro version`
+# Command: `cerebro tui`
 
 ## 0. Metadata
 | Field | Value |
 |-------|-------|
 | Group | `root` |
-| Command | `version` |
-| Function | `version` |
-| Source | `src/cerebro/cli.py:136` |
-| Syntax | `cerebro version` |
+| Command | `tui` |
+| Function | `launch_tui` |
+| Source | `src/cerebro/cli.py:152` |
+| Syntax | `cerebro tui` |
 
 ## 1. Description
-Display the current version.
+Launch interactive Terminal User Interface (TUI).
+
+Full-featured interface with:
+  • Dashboard with system metrics
+  • Project management and analysis
+  • Intelligence queries with history
+  • Script launcher with progress
+  • GCP credit monitoring
+  • Live log viewer
+
+Keyboard shortcuts:
+  q - Quit
+  d - Dashboard
+  p - Projects
+  i - Intelligence
+  s - Scripts
+  g - GCP Credits
+  l - Logs
 
 **Syntax:**
 ```bash
-cerebro version
+cerebro tui
 ```
 
 ## 2. Parameters
@@ -25,7 +42,7 @@ cerebro version
 
 ## 3. Examples
 ```bash
-cerebro version
+cerebro tui
 ```
 
 ## 4. Output
@@ -34,8 +51,8 @@ cerebro version
 
 ## 5. Source
 * Module: `src/cerebro/cli.py`
-* Function: `version`
-* Line: `136`
+* Function: `launch_tui`
+* Line: `152`
 
 ## 6. Tests
 * Check `tests/test_cli.py` for CLI coverage.

@@ -1,20 +1,20 @@
-# Command: `cerebro version`
+# Command: `cerebro ops status`
 
 ## 0. Metadata
 | Field | Value |
 |-------|-------|
-| Group | `root` |
-| Command | `version` |
-| Function | `version` |
-| Source | `src/cerebro/cli.py:136` |
-| Syntax | `cerebro version` |
+| Group | `ops` |
+| Command | `status` |
+| Function | `status` |
+| Source | `src/cerebro/cli.py:1070` |
+| Syntax | `cerebro ops status` |
 
 ## 1. Description
-Display the current version.
+No description provided.
 
 **Syntax:**
 ```bash
-cerebro version
+cerebro ops status
 ```
 
 ## 2. Parameters
@@ -25,7 +25,7 @@ cerebro version
 
 ## 3. Examples
 ```bash
-cerebro version
+cerebro ops status
 ```
 
 ## 4. Output
@@ -34,8 +34,8 @@ cerebro version
 
 ## 5. Source
 * Module: `src/cerebro/cli.py`
-* Function: `version`
-* Line: `136`
+* Function: `status`
+* Line: `1070`
 
 ## 6. Tests
 * Check `tests/test_cli.py` for CLI coverage.

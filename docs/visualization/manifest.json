@@ -1,0 +1,46 @@
+{
+  "generated_at": "2026-04-16T22:56:34",
+  "project": "cerebro",
+  "artifacts": {
+    "markdown_index": "commands/README.md",
+    "catalog_json": "commands/catalog.json",
+    "mermaid_topology": "mermaid/command-topology.mmd",
+    "mermaid_groups": "mermaid/command-groups.mmd",
+    "scene_graph": "visualization/scene.json"
+  },
+  "visualization_targets": [
+    {
+      "name": "Mermaid",
+      "status": "ready",
+      "use_case": "docs, dashboards, markdown previews"
+    },
+    {
+      "name": "Three.js",
+      "status": "ready-via-scene-json",
+      "use_case": "interactive 3D command topology"
+    },
+    {
+      "name": "A-Frame",
+      "status": "ready-via-scene-json",
+      "use_case": "WebXR and immersive browser visualization"
+    },
+    {
+      "name": "Babylon.js",
+      "status": "ready-via-scene-json",
+      "use_case": "advanced scene rendering and holographic UI prototypes"
+    }
+  ],
+  "summary": {
+    "total_commands": 26,
+    "total_groups": 6,
+    "group_distribution": {
+      "knowledge": 7,
+      "ops": 2,
+      "rag": 7,
+      "rag backend": 5,
+      "rag backends": 1,
+      "root": 4
+    }
+  },
+  "note": "This manifest does not generate physical holograms. It emits structured graph assets that holographic or XR-capable renderers can consume."
+}

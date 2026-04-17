@@ -1,0 +1,1816 @@
+{
+  "generated_at": "2026-04-16T22:56:34",
+  "scene": "cerebro-cli-topology",
+  "nodes": [
+    {
+      "id": "cerebro",
+      "type": "root",
+      "label": "cerebro",
+      "depth": 0,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "command_cerebro_dashboard",
+      "type": "command",
+      "label": "dashboard",
+      "depth": 1,
+      "position": {
+        "x": 5,
+        "y": 0,
+        "z": 14.5
+      },
+      "metadata": {
+        "full_name": "cerebro dashboard",
+        "source_line": 145,
+        "func_name": "launch_dashboard"
+      }
+    },
+    {
+      "id": "command_cerebro_info",
+      "type": "command",
+      "label": "info",
+      "depth": 1,
+      "position": {
+        "x": 5,
+        "y": 0,
+        "z": 10.5
+      },
+      "metadata": {
+        "full_name": "cerebro info",
+        "source_line": 105,
+        "func_name": "info"
+      }
+    },
+    {
+      "id": "group_knowledge",
+      "type": "group",
+      "label": "knowledge",
+      "depth": 1,
+      "position": {
+        "x": 4,
+        "y": -2,
+        "z": 1
+      }
+    },
+    {
+      "id": "command_cerebro_knowledge_analyze",
+      "type": "command",
+      "label": "analyze",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": 18.8
+      },
+      "metadata": {
+        "full_name": "cerebro knowledge analyze",
+        "source_line": 188,
+        "func_name": "analyze"
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_analyze_repo_path",
+      "type": "parameter",
+      "label": "repo_path",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": true
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_analyze_task_context",
+      "type": "parameter",
+      "label": "task_context",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_analyze_config_file",
+      "type": "parameter",
+      "label": "config_file",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_knowledge_batch_analyze",
+      "type": "command",
+      "label": "batch-analyze",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -1,
+        "z": 26.2
+      },
+      "metadata": {
+        "full_name": "cerebro knowledge batch-analyze",
+        "source_line": 262,
+        "func_name": "batch_analyze"
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_batch_analyze_config_file",
+      "type": "parameter",
+      "label": "config_file",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_knowledge_docs",
+      "type": "command",
+      "label": "docs",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": 42.7
+      },
+      "metadata": {
+        "full_name": "cerebro knowledge docs",
+        "source_line": 427,
+        "func_name": "generate_docs"
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_docs_project",
+      "type": "parameter",
+      "label": "project",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_docs_output",
+      "type": "parameter",
+      "label": "output",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_docs_format",
+      "type": "parameter",
+      "label": "format",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_knowledge_etl",
+      "type": "command",
+      "label": "etl",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": 39.4
+      },
+      "metadata": {
+        "full_name": "cerebro knowledge etl",
+        "source_line": 394,
+        "func_name": "etl_docs"
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_etl_source",
+      "type": "parameter",
+      "label": "source",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": true
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_etl_destination",
+      "type": "parameter",
+      "label": "destination",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": true
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_etl_format",
+      "type": "parameter",
+      "label": "format",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_knowledge_generate_queries",
+      "type": "command",
+      "label": "generate-queries",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": 31.7
+      },
+      "metadata": {
+        "full_name": "cerebro knowledge generate-queries",
+        "source_line": 317,
+        "func_name": "generate_queries"
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_generate_queries_topic",
+      "type": "parameter",
+      "label": "topic",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": true
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_generate_queries_count",
+      "type": "parameter",
+      "label": "count",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "int",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_generate_queries_output",
+      "type": "parameter",
+      "label": "output",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "Path",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_knowledge_index_repo",
+      "type": "command",
+      "label": "index-repo",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": 35.5
+      },
+      "metadata": {
+        "full_name": "cerebro knowledge index-repo",
+        "source_line": 355,
+        "func_name": "index_repository"
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_index_repo_repo_path",
+      "type": "parameter",
+      "label": "repo_path",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_index_repo_force",
+      "type": "parameter",
+      "label": "force",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "bool",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_index_repo_output",
+      "type": "parameter",
+      "label": "output",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_knowledge_summarize",
+      "type": "command",
+      "label": "summarize",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -1,
+        "z": 29.8
+      },
+      "metadata": {
+        "full_name": "cerebro knowledge summarize",
+        "source_line": 298,
+        "func_name": "summarize"
+      }
+    },
+    {
+      "id": "param_cerebro_knowledge_summarize_repo_name",
+      "type": "parameter",
+      "label": "repo_name",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": true
+      }
+    },
+    {
+      "id": "group_ops",
+      "type": "group",
+      "label": "ops",
+      "depth": 1,
+      "position": {
+        "x": 4,
+        "y": -2,
+        "z": 1
+      }
+    },
+    {
+      "id": "command_cerebro_ops_health",
+      "type": "command",
+      "label": "health",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 100.7
+      },
+      "metadata": {
+        "full_name": "cerebro ops health",
+        "source_line": 1007,
+        "func_name": "health"
+      }
+    },
+    {
+      "id": "command_cerebro_ops_status",
+      "type": "command",
+      "label": "status",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 107.0
+      },
+      "metadata": {
+        "full_name": "cerebro ops status",
+        "source_line": 1070,
+        "func_name": "status"
+      }
+    },
+    {
+      "id": "group_rag",
+      "type": "group",
+      "label": "rag",
+      "depth": 1,
+      "position": {
+        "x": 4,
+        "y": -2,
+        "z": 1
+      }
+    },
+    {
+      "id": "group_rag_backend",
+      "type": "group",
+      "label": "backend",
+      "depth": 2,
+      "position": {
+        "x": 8,
+        "y": -4,
+        "z": 2
+      }
+    },
+    {
+      "id": "command_cerebro_rag_backend_health",
+      "type": "command",
+      "label": "health",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 76.9
+      },
+      "metadata": {
+        "full_name": "cerebro rag backend health",
+        "source_line": 769,
+        "func_name": "rag_backend_health"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_health_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_backend_info",
+      "type": "command",
+      "label": "info",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 75.9
+      },
+      "metadata": {
+        "full_name": "cerebro rag backend info",
+        "source_line": 759,
+        "func_name": "rag_backend_info"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_info_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_backend_init",
+      "type": "command",
+      "label": "init",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": 0,
+        "z": 81.4
+      },
+      "metadata": {
+        "full_name": "cerebro rag backend init",
+        "source_line": 814,
+        "func_name": "rag_backend_init"
+      }
+    },
+    {
+      "id": "command_cerebro_rag_backend_migrate",
+      "type": "command",
+      "label": "migrate",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -9,
+        "z": 84.0
+      },
+      "metadata": {
+        "full_name": "cerebro rag backend migrate",
+        "source_line": 840,
+        "func_name": "rag_backend_migrate"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_from_provider",
+      "type": "parameter",
+      "label": "from_provider",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_from_collection",
+      "type": "parameter",
+      "label": "from_collection",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_from_namespace",
+      "type": "parameter",
+      "label": "from_namespace",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_from_persist_directory",
+      "type": "parameter",
+      "label": "from_persist_directory",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -4,
+        "z": 4
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_from_url",
+      "type": "parameter",
+      "label": "from_url",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -5,
+        "z": 5
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_from_schema",
+      "type": "parameter",
+      "label": "from_schema",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -6,
+        "z": 6
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_batch_size",
+      "type": "parameter",
+      "label": "batch_size",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -7,
+        "z": 7
+      },
+      "metadata": {
+        "annotation": "int",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_clear_destination",
+      "type": "parameter",
+      "label": "clear_destination",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -8,
+        "z": 8
+      },
+      "metadata": {
+        "annotation": "bool",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_migrate_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -9,
+        "z": 9
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_backend_smoke",
+      "type": "command",
+      "label": "smoke",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 82.2
+      },
+      "metadata": {
+        "full_name": "cerebro rag backend smoke",
+        "source_line": 822,
+        "func_name": "rag_backend_smoke"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_smoke_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backend_smoke_skip_write_check",
+      "type": "parameter",
+      "label": "skip_write_check",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "bool",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "group_rag_backends",
+      "type": "group",
+      "label": "backends",
+      "depth": 2,
+      "position": {
+        "x": 8,
+        "y": -4,
+        "z": 2
+      }
+    },
+    {
+      "id": "command_cerebro_rag_backends_list",
+      "type": "command",
+      "label": "list",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 70.9
+      },
+      "metadata": {
+        "full_name": "cerebro rag backends list",
+        "source_line": 709,
+        "func_name": "rag_backends_list"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_backends_list_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 4,
+      "position": {
+        "x": 20,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_ingest",
+      "type": "command",
+      "label": "ingest",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -1,
+        "z": 46.6
+      },
+      "metadata": {
+        "full_name": "cerebro rag ingest",
+        "source_line": 466,
+        "func_name": "rag_ingest"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_ingest_source_file",
+      "type": "parameter",
+      "label": "source_file",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_init",
+      "type": "command",
+      "label": "init",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": 0,
+        "z": 49.0
+      },
+      "metadata": {
+        "full_name": "cerebro rag init",
+        "source_line": 490,
+        "func_name": "rag_init"
+      }
+    },
+    {
+      "id": "command_cerebro_rag_migrate",
+      "type": "command",
+      "label": "migrate",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -9,
+        "z": 57.3
+      },
+      "metadata": {
+        "full_name": "cerebro rag migrate",
+        "source_line": 573,
+        "func_name": "rag_migrate"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_from_provider",
+      "type": "parameter",
+      "label": "from_provider",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_from_collection",
+      "type": "parameter",
+      "label": "from_collection",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_from_namespace",
+      "type": "parameter",
+      "label": "from_namespace",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_from_persist_directory",
+      "type": "parameter",
+      "label": "from_persist_directory",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -4,
+        "z": 4
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_from_url",
+      "type": "parameter",
+      "label": "from_url",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -5,
+        "z": 5
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_from_schema",
+      "type": "parameter",
+      "label": "from_schema",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -6,
+        "z": 6
+      },
+      "metadata": {
+        "annotation": "str | None",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_batch_size",
+      "type": "parameter",
+      "label": "batch_size",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -7,
+        "z": 7
+      },
+      "metadata": {
+        "annotation": "int",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_clear_destination",
+      "type": "parameter",
+      "label": "clear_destination",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -8,
+        "z": 8
+      },
+      "metadata": {
+        "annotation": "bool",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_migrate_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -9,
+        "z": 9
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_query",
+      "type": "command",
+      "label": "query",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": 87.6
+      },
+      "metadata": {
+        "full_name": "cerebro rag query",
+        "source_line": 876,
+        "func_name": "rag_query"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_query_question",
+      "type": "parameter",
+      "label": "question",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": true
+      }
+    },
+    {
+      "id": "param_cerebro_rag_query_rerank",
+      "type": "parameter",
+      "label": "rerank",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "bool",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_query_top_k",
+      "type": "parameter",
+      "label": "top_k",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "int",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_rerank",
+      "type": "command",
+      "label": "rerank",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": 94.4
+      },
+      "metadata": {
+        "full_name": "cerebro rag rerank",
+        "source_line": 944,
+        "func_name": "rag_rerank"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_rerank_query",
+      "type": "parameter",
+      "label": "query",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "argument",
+        "required": true
+      }
+    },
+    {
+      "id": "param_cerebro_rag_rerank_documents_file",
+      "type": "parameter",
+      "label": "documents_file",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_rerank_top_k",
+      "type": "parameter",
+      "label": "top_k",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -3,
+        "z": 3
+      },
+      "metadata": {
+        "annotation": "int",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_smoke",
+      "type": "command",
+      "label": "smoke",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -2,
+        "z": 51.9
+      },
+      "metadata": {
+        "full_name": "cerebro rag smoke",
+        "source_line": 519,
+        "func_name": "rag_smoke"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_smoke_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "param_cerebro_rag_smoke_skip_write_check",
+      "type": "parameter",
+      "label": "skip_write_check",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -2,
+        "z": 2
+      },
+      "metadata": {
+        "annotation": "bool",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_rag_status",
+      "type": "command",
+      "label": "status",
+      "depth": 2,
+      "position": {
+        "x": 10,
+        "y": -1,
+        "z": 66.1
+      },
+      "metadata": {
+        "full_name": "cerebro rag status",
+        "source_line": 661,
+        "func_name": "rag_status"
+      }
+    },
+    {
+      "id": "param_cerebro_rag_status_output_format",
+      "type": "parameter",
+      "label": "output_format",
+      "depth": 3,
+      "position": {
+        "x": 15,
+        "y": -1,
+        "z": 1
+      },
+      "metadata": {
+        "annotation": "str",
+        "kind": "option",
+        "required": false
+      }
+    },
+    {
+      "id": "command_cerebro_tui",
+      "type": "command",
+      "label": "tui",
+      "depth": 1,
+      "position": {
+        "x": 5,
+        "y": 0,
+        "z": 15.2
+      },
+      "metadata": {
+        "full_name": "cerebro tui",
+        "source_line": 152,
+        "func_name": "launch_tui"
+      }
+    },
+    {
+      "id": "command_cerebro_version",
+      "type": "command",
+      "label": "version",
+      "depth": 1,
+      "position": {
+        "x": 5,
+        "y": 0,
+        "z": 13.6
+      },
+      "metadata": {
+        "full_name": "cerebro version",
+        "source_line": 136,
+        "func_name": "version"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "cerebro",
+      "target": "command_cerebro_dashboard",
+      "kind": "contains"
+    },
+    {
+      "source": "cerebro",
+      "target": "command_cerebro_info",
+      "kind": "contains"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_knowledge",
+      "kind": "contains"
+    },
+    {
+      "source": "group_knowledge",
+      "target": "command_cerebro_knowledge_analyze",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_knowledge_analyze",
+      "target": "param_cerebro_knowledge_analyze_repo_path",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_analyze",
+      "target": "param_cerebro_knowledge_analyze_task_context",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_analyze",
+      "target": "param_cerebro_knowledge_analyze_config_file",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_knowledge",
+      "kind": "contains"
+    },
+    {
+      "source": "group_knowledge",
+      "target": "command_cerebro_knowledge_batch_analyze",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_knowledge_batch_analyze",
+      "target": "param_cerebro_knowledge_batch_analyze_config_file",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_knowledge",
+      "kind": "contains"
+    },
+    {
+      "source": "group_knowledge",
+      "target": "command_cerebro_knowledge_docs",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_knowledge_docs",
+      "target": "param_cerebro_knowledge_docs_project",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_docs",
+      "target": "param_cerebro_knowledge_docs_output",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_docs",
+      "target": "param_cerebro_knowledge_docs_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_knowledge",
+      "kind": "contains"
+    },
+    {
+      "source": "group_knowledge",
+      "target": "command_cerebro_knowledge_etl",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_knowledge_etl",
+      "target": "param_cerebro_knowledge_etl_source",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_etl",
+      "target": "param_cerebro_knowledge_etl_destination",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_etl",
+      "target": "param_cerebro_knowledge_etl_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_knowledge",
+      "kind": "contains"
+    },
+    {
+      "source": "group_knowledge",
+      "target": "command_cerebro_knowledge_generate_queries",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_knowledge_generate_queries",
+      "target": "param_cerebro_knowledge_generate_queries_topic",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_generate_queries",
+      "target": "param_cerebro_knowledge_generate_queries_count",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_generate_queries",
+      "target": "param_cerebro_knowledge_generate_queries_output",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_knowledge",
+      "kind": "contains"
+    },
+    {
+      "source": "group_knowledge",
+      "target": "command_cerebro_knowledge_index_repo",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_knowledge_index_repo",
+      "target": "param_cerebro_knowledge_index_repo_repo_path",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_index_repo",
+      "target": "param_cerebro_knowledge_index_repo_force",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_knowledge_index_repo",
+      "target": "param_cerebro_knowledge_index_repo_output",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_knowledge",
+      "kind": "contains"
+    },
+    {
+      "source": "group_knowledge",
+      "target": "command_cerebro_knowledge_summarize",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_knowledge_summarize",
+      "target": "param_cerebro_knowledge_summarize_repo_name",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_ops",
+      "kind": "contains"
+    },
+    {
+      "source": "group_ops",
+      "target": "command_cerebro_ops_health",
+      "kind": "contains"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_ops",
+      "kind": "contains"
+    },
+    {
+      "source": "group_ops",
+      "target": "command_cerebro_ops_status",
+      "kind": "contains"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "group_rag_backend",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag_backend",
+      "target": "command_cerebro_rag_backend_health",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_backend_health",
+      "target": "param_cerebro_rag_backend_health_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "group_rag_backend",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag_backend",
+      "target": "command_cerebro_rag_backend_info",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_backend_info",
+      "target": "param_cerebro_rag_backend_info_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "group_rag_backend",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag_backend",
+      "target": "command_cerebro_rag_backend_init",
+      "kind": "contains"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "group_rag_backend",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag_backend",
+      "target": "command_cerebro_rag_backend_migrate",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_from_provider",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_from_collection",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_from_namespace",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_from_persist_directory",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_from_url",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_from_schema",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_batch_size",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_clear_destination",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_migrate",
+      "target": "param_cerebro_rag_backend_migrate_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "group_rag_backend",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag_backend",
+      "target": "command_cerebro_rag_backend_smoke",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_backend_smoke",
+      "target": "param_cerebro_rag_backend_smoke_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_backend_smoke",
+      "target": "param_cerebro_rag_backend_smoke_skip_write_check",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "group_rag_backends",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag_backends",
+      "target": "command_cerebro_rag_backends_list",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_backends_list",
+      "target": "param_cerebro_rag_backends_list_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "command_cerebro_rag_ingest",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_ingest",
+      "target": "param_cerebro_rag_ingest_source_file",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "command_cerebro_rag_init",
+      "kind": "contains"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "command_cerebro_rag_migrate",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_from_provider",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_from_collection",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_from_namespace",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_from_persist_directory",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_from_url",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_from_schema",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_batch_size",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_clear_destination",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_migrate",
+      "target": "param_cerebro_rag_migrate_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "command_cerebro_rag_query",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_query",
+      "target": "param_cerebro_rag_query_question",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_query",
+      "target": "param_cerebro_rag_query_rerank",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_query",
+      "target": "param_cerebro_rag_query_top_k",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "command_cerebro_rag_rerank",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_rerank",
+      "target": "param_cerebro_rag_rerank_query",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_rerank",
+      "target": "param_cerebro_rag_rerank_documents_file",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_rerank",
+      "target": "param_cerebro_rag_rerank_top_k",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "command_cerebro_rag_smoke",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_smoke",
+      "target": "param_cerebro_rag_smoke_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "command_cerebro_rag_smoke",
+      "target": "param_cerebro_rag_smoke_skip_write_check",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "group_rag",
+      "kind": "contains"
+    },
+    {
+      "source": "group_rag",
+      "target": "command_cerebro_rag_status",
+      "kind": "contains"
+    },
+    {
+      "source": "command_cerebro_rag_status",
+      "target": "param_cerebro_rag_status_output_format",
+      "kind": "parameter"
+    },
+    {
+      "source": "cerebro",
+      "target": "command_cerebro_tui",
+      "kind": "contains"
+    },
+    {
+      "source": "cerebro",
+      "target": "command_cerebro_version",
+      "kind": "contains"
+    }
+  ],
+  "layout": {
+    "type": "layered-3d",
+    "x_axis": "hierarchy_depth",
+    "y_axis": "parameter_density",
+    "z_axis": "source_line"
+  }
+}

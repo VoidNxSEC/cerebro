@@ -1,41 +1,44 @@
 # Command: `cerebro knowledge summarize`
 
-## 1. Descrição
-Cria Vector DB Local (Chroma) para alta precisão.
+## 0. Metadata
+| Field | Value |
+|-------|-------|
+| Group | `knowledge` |
+| Command | `summarize` |
+| Function | `summarize` |
+| Source | `src/cerebro/cli.py:298` |
+| Syntax | `cerebro knowledge summarize <repo_name>` |
 
-**Sintaxe:**
+## 1. Description
+No description provided.
+
+**Syntax:**
 ```bash
-cerebro knowledge summarize [OPTIONS] [ARGS]
+cerebro knowledge summarize <repo_name>
 ```
 
-## 2. Parâmetros
+## 2. Parameters
 
-| Nome | Tipo | Default | Descrição |
-|------|------|---------|-----------|| `repo_name` | `str)` | `Required` | - |
-| `f"Context` | `{m.get('task_context')}"` | `Required` | - |
-| `f"LoC` | `{m.get('loc')}"` | `Required` | - |
-| `[]))` | `report.append(f"- ⚠️ {h}")     (path / "EXECUTIVE_REPORT.md").write_text("\n".join(report))     console.print(f"[green✅ Relatório` | `Required` | - |
+| Name | Kind | Type | Required | Default | CLI | Description |
+|------|------|------|----------|---------|-----|-------------|
+| `repo_name` | `argument` | `str` | `yes` | `Required` | `-` | - |
 
-
-## 3. Exemplos
+## 3. Examples
 ```bash
-# Exemplo padrão
 cerebro knowledge summarize
 ```
 
-## 4. Saída
-* **Formato:** Texto Rich (Console) ou JSON (se aplicável).
-* **Logs:** Erros são enviados para stderr.
+## 4. Output
+* Format: Rich console output or JSON when the command supports it.
+* Errors: failures are reported to stderr and usually return exit code 1.
 
-## 5. Erros Comuns
-* `Exit Code 1`: Falha na execução ou dependência ausente.
+## 5. Source
+* Module: `src/cerebro/cli.py`
+* Function: `summarize`
+* Line: `298`
 
-## 6. Dependências
-* Módulo: `src/phantom/cli.py`
-* Função: `summarize`
-
-## 7. Testes
-* Verifique `tests/test_cli.py` para cobertura.
+## 6. Tests
+* Check `tests/test_cli.py` for CLI coverage.
 
 ---
-*Gerado automaticamente em pin jan 07 2026 19:41:03 -02*
+*Generated automatically at qui 16 abr 2026 22:56:34 -03*

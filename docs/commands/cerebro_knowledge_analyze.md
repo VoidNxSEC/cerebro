@@ -1,41 +1,47 @@
 # Command: `cerebro knowledge analyze`
 
-## 1. Descrição
-Extrai AST e gera JSONL.
-    Uso: phantom knowledge analyze ./repo "Contexto"
+## 0. Metadata
+| Field | Value |
+|-------|-------|
+| Group | `knowledge` |
+| Command | `analyze` |
+| Function | `analyze` |
+| Source | `src/cerebro/cli.py:188` |
+| Syntax | `cerebro knowledge analyze <repo_path> [<task_context>] [<config_file>]` |
 
-**Sintaxe:**
+## 1. Description
+Extract AST and generate JSONL.
+Usage: cerebro knowledge analyze ./repo "Context"
+
+**Syntax:**
 ```bash
-cerebro knowledge analyze [OPTIONS] [ARGS]
+cerebro knowledge analyze <repo_path> [<task_context>] [<config_file>]
 ```
 
-## 2. Parâmetros
+## 2. Parameters
 
-| Nome | Tipo | Default | Descrição |
-|------|------|---------|-----------|| `repo_path` | `str` | `Required` | - |
-| `task_context` | `str` | `"General Review"` | - |
-| `config_file` | `str` | `"./config/repos.yaml"` | - |
+| Name | Kind | Type | Required | Default | CLI | Description |
+|------|------|------|----------|---------|-----|-------------|
+| `repo_path` | `argument` | `str` | `yes` | `Required` | `-` | - |
+| `task_context` | `argument` | `str` | `no` | `General Review` | `-` | - |
+| `config_file` | `argument` | `str` | `no` | `./config/repos.yaml` | `-` | - |
 
-
-## 3. Exemplos
+## 3. Examples
 ```bash
-# Exemplo padrão
 cerebro knowledge analyze
 ```
 
-## 4. Saída
-* **Formato:** Texto Rich (Console) ou JSON (se aplicável).
-* **Logs:** Erros são enviados para stderr.
+## 4. Output
+* Format: Rich console output or JSON when the command supports it.
+* Errors: failures are reported to stderr and usually return exit code 1.
 
-## 5. Erros Comuns
-* `Exit Code 1`: Falha na execução ou dependência ausente.
+## 5. Source
+* Module: `src/cerebro/cli.py`
+* Function: `analyze`
+* Line: `188`
 
-## 6. Dependências
-* Módulo: `src/phantom/cli.py`
-* Função: `analyze`
-
-## 7. Testes
-* Verifique `tests/test_cli.py` para cobertura.
+## 6. Tests
+* Check `tests/test_cli.py` for CLI coverage.
 
 ---
-*Gerado automaticamente em pin jan 07 2026 19:41:03 -02*
+*Generated automatically at qui 16 abr 2026 22:56:34 -03*

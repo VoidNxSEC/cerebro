@@ -1,31 +1,31 @@
-# Command: `cerebro version`
+# Command: `cerebro rag ingest`
 
 ## 0. Metadata
 | Field | Value |
 |-------|-------|
-| Group | `root` |
-| Command | `version` |
-| Function | `version` |
-| Source | `src/cerebro/cli.py:136` |
-| Syntax | `cerebro version` |
+| Group | `rag` |
+| Command | `ingest` |
+| Function | `rag_ingest` |
+| Source | `src/cerebro/cli.py:466` |
+| Syntax | `cerebro rag ingest [<source_file>]` |
 
 ## 1. Description
-Display the current version.
+Ingest artifacts into the active RAG backend.
 
 **Syntax:**
 ```bash
-cerebro version
+cerebro rag ingest [<source_file>]
 ```
 
 ## 2. Parameters
 
 | Name | Kind | Type | Required | Default | CLI | Description |
 |------|------|------|----------|---------|-----|-------------|
-| - | - | - | - | - | - | - |
+| `source_file` | `argument` | `str` | `no` | `./data/analyzed/all_artifacts.jsonl` | `-` | - |
 
 ## 3. Examples
 ```bash
-cerebro version
+cerebro rag ingest
 ```
 
 ## 4. Output
@@ -34,8 +34,8 @@ cerebro version
 
 ## 5. Source
 * Module: `src/cerebro/cli.py`
-* Function: `version`
-* Line: `136`
+* Function: `rag_ingest`
+* Line: `466`
 
 ## 6. Tests
 * Check `tests/test_cli.py` for CLI coverage.

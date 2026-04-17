@@ -1,31 +1,31 @@
-# Command: `cerebro version`
+# Command: `cerebro rag backend info`
 
 ## 0. Metadata
 | Field | Value |
 |-------|-------|
-| Group | `root` |
-| Command | `version` |
-| Function | `version` |
-| Source | `src/cerebro/cli.py:136` |
-| Syntax | `cerebro version` |
+| Group | `rag backend` |
+| Command | `info` |
+| Function | `rag_backend_info` |
+| Source | `src/cerebro/cli.py:759` |
+| Syntax | `cerebro rag backend info [--format <output_format>]` |
 
 ## 1. Description
-Display the current version.
+Show detailed information for the active RAG backend.
 
 **Syntax:**
 ```bash
-cerebro version
+cerebro rag backend info [--format <output_format>]
 ```
 
 ## 2. Parameters
 
 | Name | Kind | Type | Required | Default | CLI | Description |
 |------|------|------|----------|---------|-----|-------------|
-| - | - | - | - | - | - | - |
+| `output_format` | `option` | `str` | `no` | `table` | `--format` | Output format: table or json |
 
 ## 3. Examples
 ```bash
-cerebro version
+cerebro rag backend info
 ```
 
 ## 4. Output
@@ -34,8 +34,8 @@ cerebro version
 
 ## 5. Source
 * Module: `src/cerebro/cli.py`
-* Function: `version`
-* Line: `136`
+* Function: `rag_backend_info`
+* Line: `759`
 
 ## 6. Tests
 * Check `tests/test_cli.py` for CLI coverage.

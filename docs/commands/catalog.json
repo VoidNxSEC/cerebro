@@ -1,0 +1,941 @@
+{
+  "generated_at": "2026-04-16T22:56:34",
+  "total_commands": 26,
+  "commands": [
+    {
+      "name": "cerebro dashboard",
+      "group_path": [],
+      "command_slug": "dashboard",
+      "func_name": "launch_dashboard",
+      "description": "Launch the React Dashboard GUI (FastAPI backend + Vite frontend).",
+      "source_line": 145,
+      "syntax": "cerebro dashboard",
+      "params": [],
+      "examples": [
+        "cerebro dashboard"
+      ]
+    },
+    {
+      "name": "cerebro info",
+      "group_path": [],
+      "command_slug": "info",
+      "func_name": "info",
+      "description": "Display Cerebro environment information.",
+      "source_line": 105,
+      "syntax": "cerebro info",
+      "params": [],
+      "examples": [
+        "cerebro info"
+      ]
+    },
+    {
+      "name": "cerebro knowledge analyze",
+      "group_path": [
+        "knowledge"
+      ],
+      "command_slug": "analyze",
+      "func_name": "analyze",
+      "description": "Extract AST and generate JSONL.\nUsage: cerebro knowledge analyze ./repo \"Context\"",
+      "source_line": 188,
+      "syntax": "cerebro knowledge analyze <repo_path> [<task_context>] [<config_file>]",
+      "params": [
+        {
+          "name": "repo_path",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "Required",
+          "required": true,
+          "help_text": "",
+          "cli_flags": []
+        },
+        {
+          "name": "task_context",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "General Review",
+          "required": false,
+          "help_text": "",
+          "cli_flags": []
+        },
+        {
+          "name": "config_file",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "./config/repos.yaml",
+          "required": false,
+          "help_text": "",
+          "cli_flags": []
+        }
+      ],
+      "examples": [
+        "cerebro knowledge analyze"
+      ]
+    },
+    {
+      "name": "cerebro knowledge batch-analyze",
+      "group_path": [
+        "knowledge"
+      ],
+      "command_slug": "batch-analyze",
+      "func_name": "batch_analyze",
+      "description": "Process all repositories defined in the configuration file.",
+      "source_line": 262,
+      "syntax": "cerebro knowledge batch-analyze [<config_file>]",
+      "params": [
+        {
+          "name": "config_file",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "./config/repos.yaml",
+          "required": false,
+          "help_text": "",
+          "cli_flags": []
+        }
+      ],
+      "examples": [
+        "cerebro knowledge batch-analyze"
+      ]
+    },
+    {
+      "name": "cerebro knowledge docs",
+      "group_path": [
+        "knowledge"
+      ],
+      "command_slug": "docs",
+      "func_name": "generate_docs",
+      "description": "Generate project documentation automatically.\n\nAnalyzes code and generates comprehensive documentation with\nAPI references, guides, and examples.\n\nExample:\n    cerebro knowledge docs ~/projects/myapp -o ./docs\n\nMigrated from: scripts/generate_docs.py",
+      "source_line": 427,
+      "syntax": "cerebro knowledge docs [<project>] [--output <output>] [--format <format>]",
+      "params": [
+        {
+          "name": "project",
+          "kind": "argument",
+          "annotation": "str",
+          "default": ".",
+          "required": false,
+          "help_text": "Project path",
+          "cli_flags": []
+        },
+        {
+          "name": "output",
+          "kind": "option",
+          "annotation": "str",
+          "default": "docs/",
+          "required": false,
+          "help_text": "Output directory",
+          "cli_flags": [
+            "--output"
+          ]
+        },
+        {
+          "name": "format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "markdown",
+          "required": false,
+          "help_text": "Documentation format",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro knowledge docs ~/projects/myapp -o ./docs"
+      ]
+    },
+    {
+      "name": "cerebro knowledge etl",
+      "group_path": [
+        "knowledge"
+      ],
+      "command_slug": "etl",
+      "func_name": "etl_docs",
+      "description": "ETL pipeline for documentation processing.\n\nExtracts, transforms, and loads documentation from various sources\ninto structured format for indexing.\n\nExample:\n    cerebro knowledge etl https://docs.example.com ./data/docs\n\nMigrated from: scripts/etl_docs.py",
+      "source_line": 394,
+      "syntax": "cerebro knowledge etl <source> <destination> [--format <format>]",
+      "params": [
+        {
+          "name": "source",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "Required",
+          "required": true,
+          "help_text": "Documentation source (URL or path)",
+          "cli_flags": []
+        },
+        {
+          "name": "destination",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "Required",
+          "required": true,
+          "help_text": "ETL destination path",
+          "cli_flags": []
+        },
+        {
+          "name": "format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "json",
+          "required": false,
+          "help_text": "Output format: json, jsonl, markdown",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro knowledge etl https://docs.example.com ./data/docs"
+      ]
+    },
+    {
+      "name": "cerebro knowledge generate-queries",
+      "group_path": [
+        "knowledge"
+      ],
+      "command_slug": "generate-queries",
+      "func_name": "generate_queries",
+      "description": "Generate search queries for a topic.\n\nCreates diverse, high-quality queries for testing and knowledge expansion.\n\nExample:\n    cerebro knowledge generate-queries \"NixOS configuration\" -c 100\n\nMigrated from: scripts/generate_queries.py",
+      "source_line": 317,
+      "syntax": "cerebro knowledge generate-queries <topic> [--count <count>] [--output <output>]",
+      "params": [
+        {
+          "name": "topic",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "Required",
+          "required": true,
+          "help_text": "Topic for query generation",
+          "cli_flags": []
+        },
+        {
+          "name": "count",
+          "kind": "option",
+          "annotation": "int",
+          "default": "50",
+          "required": false,
+          "help_text": "Number of queries to generate",
+          "cli_flags": [
+            "--count"
+          ]
+        },
+        {
+          "name": "output",
+          "kind": "option",
+          "annotation": "Path",
+          "default": "queries.json",
+          "required": false,
+          "help_text": "Output file",
+          "cli_flags": [
+            "--output"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro knowledge generate-queries \"NixOS configuration\" -c 100"
+      ]
+    },
+    {
+      "name": "cerebro knowledge index-repo",
+      "group_path": [
+        "knowledge"
+      ],
+      "command_slug": "index-repo",
+      "func_name": "index_repository",
+      "description": "Index a code repository for knowledge base.\n\nExtracts code structure, documentation, and metadata for indexing.\n\nExample:\n    cerebro knowledge index-repo ~/projects/myapp --force\n\nMigrated from: scripts/index_repository.py",
+      "source_line": 355,
+      "syntax": "cerebro knowledge index-repo [<repo_path>] [--force <force>] [--output <output>]",
+      "params": [
+        {
+          "name": "repo_path",
+          "kind": "argument",
+          "annotation": "str",
+          "default": ".",
+          "required": false,
+          "help_text": "Repository path to index",
+          "cli_flags": []
+        },
+        {
+          "name": "force",
+          "kind": "option",
+          "annotation": "bool",
+          "default": "False",
+          "required": false,
+          "help_text": "Force re-indexing",
+          "cli_flags": [
+            "--force",
+            "-f"
+          ]
+        },
+        {
+          "name": "output",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Output directory",
+          "cli_flags": [
+            "--output"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro knowledge index-repo ~/projects/myapp --force"
+      ]
+    },
+    {
+      "name": "cerebro knowledge summarize",
+      "group_path": [
+        "knowledge"
+      ],
+      "command_slug": "summarize",
+      "func_name": "summarize",
+      "description": "",
+      "source_line": 298,
+      "syntax": "cerebro knowledge summarize <repo_name>",
+      "params": [
+        {
+          "name": "repo_name",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "Required",
+          "required": true,
+          "help_text": "",
+          "cli_flags": []
+        }
+      ],
+      "examples": [
+        "cerebro knowledge summarize"
+      ]
+    },
+    {
+      "name": "cerebro ops health",
+      "group_path": [
+        "ops"
+      ],
+      "command_slug": "health",
+      "func_name": "health",
+      "description": "Check system health (Credentials, Permissions, APIs, Data Stores).",
+      "source_line": 1007,
+      "syntax": "cerebro ops health",
+      "params": [],
+      "examples": [
+        "cerebro ops health"
+      ]
+    },
+    {
+      "name": "cerebro ops status",
+      "group_path": [
+        "ops"
+      ],
+      "command_slug": "status",
+      "func_name": "status",
+      "description": "",
+      "source_line": 1070,
+      "syntax": "cerebro ops status",
+      "params": [],
+      "examples": [
+        "cerebro ops status"
+      ]
+    },
+    {
+      "name": "cerebro rag backend health",
+      "group_path": [
+        "rag",
+        "backend"
+      ],
+      "command_slug": "health",
+      "func_name": "rag_backend_health",
+      "description": "Report whether the active RAG backend is healthy.",
+      "source_line": 769,
+      "syntax": "cerebro rag backend health [--format <output_format>]",
+      "params": [
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag backend health"
+      ]
+    },
+    {
+      "name": "cerebro rag backend info",
+      "group_path": [
+        "rag",
+        "backend"
+      ],
+      "command_slug": "info",
+      "func_name": "rag_backend_info",
+      "description": "Show detailed information for the active RAG backend.",
+      "source_line": 759,
+      "syntax": "cerebro rag backend info [--format <output_format>]",
+      "params": [
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag backend info"
+      ]
+    },
+    {
+      "name": "cerebro rag backend init",
+      "group_path": [
+        "rag",
+        "backend"
+      ],
+      "command_slug": "init",
+      "func_name": "rag_backend_init",
+      "description": "Initialize storage structures for the active RAG backend.",
+      "source_line": 814,
+      "syntax": "cerebro rag backend init",
+      "params": [],
+      "examples": [
+        "cerebro rag backend init"
+      ]
+    },
+    {
+      "name": "cerebro rag backend migrate",
+      "group_path": [
+        "rag",
+        "backend"
+      ],
+      "command_slug": "migrate",
+      "func_name": "rag_backend_migrate",
+      "description": "Migrate vectors from a source backend into the active backend.",
+      "source_line": 840,
+      "syntax": "cerebro rag backend migrate [--from-provider <from_provider>] [--from-collection <from_collection>] [--from-namespace <from_namespace>] [--from-persist-directory <from_persist_directory>] [--from-url <from_url>] [--from-schema <from_schema>] [--batch-size <batch_size>] [--clear-destination <clear_destination>] [--format <output_format>]",
+      "params": [
+        {
+          "name": "from_provider",
+          "kind": "option",
+          "annotation": "str",
+          "default": "chroma",
+          "required": false,
+          "help_text": "Source vector store backend",
+          "cli_flags": [
+            "--from-provider"
+          ]
+        },
+        {
+          "name": "from_collection",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source collection/table name",
+          "cli_flags": [
+            "--from-collection"
+          ]
+        },
+        {
+          "name": "from_namespace",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source namespace override",
+          "cli_flags": [
+            "--from-namespace"
+          ]
+        },
+        {
+          "name": "from_persist_directory",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source local persistence path for embedded backends",
+          "cli_flags": [
+            "--from-persist-directory"
+          ]
+        },
+        {
+          "name": "from_url",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source DSN/URL for remote backends",
+          "cli_flags": [
+            "--from-url"
+          ]
+        },
+        {
+          "name": "from_schema",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source SQL schema for pgvector",
+          "cli_flags": [
+            "--from-schema"
+          ]
+        },
+        {
+          "name": "batch_size",
+          "kind": "option",
+          "annotation": "int",
+          "default": "200",
+          "required": false,
+          "help_text": "Documents per migration batch",
+          "cli_flags": [
+            "--batch-size"
+          ]
+        },
+        {
+          "name": "clear_destination",
+          "kind": "option",
+          "annotation": "bool",
+          "default": "False",
+          "required": false,
+          "help_text": "Clear the active destination namespace before copying data",
+          "cli_flags": [
+            "--clear-destination"
+          ]
+        },
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag backend migrate"
+      ]
+    },
+    {
+      "name": "cerebro rag backend smoke",
+      "group_path": [
+        "rag",
+        "backend"
+      ],
+      "command_slug": "smoke",
+      "func_name": "rag_backend_smoke",
+      "description": "Run a smoke test against the active RAG backend.",
+      "source_line": 822,
+      "syntax": "cerebro rag backend smoke [--format <output_format>] [--skip-write-check <skip_write_check>]",
+      "params": [
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        },
+        {
+          "name": "skip_write_check",
+          "kind": "option",
+          "annotation": "bool",
+          "default": "False",
+          "required": false,
+          "help_text": "Skip the temporary write/read/delete validation cycle",
+          "cli_flags": [
+            "--skip-write-check"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag backend smoke"
+      ]
+    },
+    {
+      "name": "cerebro rag backends list",
+      "group_path": [
+        "rag",
+        "backends"
+      ],
+      "command_slug": "list",
+      "func_name": "rag_backends_list",
+      "description": "List the vector store backends known by the current CLI build.",
+      "source_line": 709,
+      "syntax": "cerebro rag backends list [--format <output_format>]",
+      "params": [
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag backends list"
+      ]
+    },
+    {
+      "name": "cerebro rag ingest",
+      "group_path": [
+        "rag"
+      ],
+      "command_slug": "ingest",
+      "func_name": "rag_ingest",
+      "description": "Ingest artifacts into the active RAG backend.",
+      "source_line": 466,
+      "syntax": "cerebro rag ingest [<source_file>]",
+      "params": [
+        {
+          "name": "source_file",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "./data/analyzed/all_artifacts.jsonl",
+          "required": false,
+          "help_text": "",
+          "cli_flags": []
+        }
+      ],
+      "examples": [
+        "cerebro rag ingest"
+      ]
+    },
+    {
+      "name": "cerebro rag init",
+      "group_path": [
+        "rag"
+      ],
+      "command_slug": "init",
+      "func_name": "rag_init",
+      "description": "Initialize backend-specific storage structures for the active RAG backend.",
+      "source_line": 490,
+      "syntax": "cerebro rag init",
+      "params": [],
+      "examples": [
+        "cerebro rag init"
+      ]
+    },
+    {
+      "name": "cerebro rag migrate",
+      "group_path": [
+        "rag"
+      ],
+      "command_slug": "migrate",
+      "func_name": "rag_migrate",
+      "description": "Migrate stored vectors from a source backend into the active RAG backend.",
+      "source_line": 573,
+      "syntax": "cerebro rag migrate [--from-provider <from_provider>] [--from-collection <from_collection>] [--from-namespace <from_namespace>] [--from-persist-directory <from_persist_directory>] [--from-url <from_url>] [--from-schema <from_schema>] [--batch-size <batch_size>] [--clear-destination <clear_destination>] [--format <output_format>]",
+      "params": [
+        {
+          "name": "from_provider",
+          "kind": "option",
+          "annotation": "str",
+          "default": "chroma",
+          "required": false,
+          "help_text": "Source vector store backend",
+          "cli_flags": [
+            "--from-provider"
+          ]
+        },
+        {
+          "name": "from_collection",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source collection/table name",
+          "cli_flags": [
+            "--from-collection"
+          ]
+        },
+        {
+          "name": "from_namespace",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source namespace override",
+          "cli_flags": [
+            "--from-namespace"
+          ]
+        },
+        {
+          "name": "from_persist_directory",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source local persistence path for embedded backends",
+          "cli_flags": [
+            "--from-persist-directory"
+          ]
+        },
+        {
+          "name": "from_url",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source DSN/URL for remote backends",
+          "cli_flags": [
+            "--from-url"
+          ]
+        },
+        {
+          "name": "from_schema",
+          "kind": "option",
+          "annotation": "str | None",
+          "default": "None",
+          "required": false,
+          "help_text": "Source SQL schema for pgvector",
+          "cli_flags": [
+            "--from-schema"
+          ]
+        },
+        {
+          "name": "batch_size",
+          "kind": "option",
+          "annotation": "int",
+          "default": "200",
+          "required": false,
+          "help_text": "Documents per migration batch",
+          "cli_flags": [
+            "--batch-size"
+          ]
+        },
+        {
+          "name": "clear_destination",
+          "kind": "option",
+          "annotation": "bool",
+          "default": "False",
+          "required": false,
+          "help_text": "Clear the active destination namespace before copying data",
+          "cli_flags": [
+            "--clear-destination"
+          ]
+        },
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag migrate"
+      ]
+    },
+    {
+      "name": "cerebro rag query",
+      "group_path": [
+        "rag"
+      ],
+      "command_slug": "query",
+      "func_name": "rag_query",
+      "description": "Query the active RAG backend with grounded generation.",
+      "source_line": 876,
+      "syntax": "cerebro rag query <question> [--rerank <rerank>] [--top-k <top_k>]",
+      "params": [
+        {
+          "name": "question",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "Required",
+          "required": true,
+          "help_text": "",
+          "cli_flags": []
+        },
+        {
+          "name": "rerank",
+          "kind": "option",
+          "annotation": "bool",
+          "default": "False",
+          "required": false,
+          "help_text": "Rerank citations with cross\u2011encoder for better relevance",
+          "cli_flags": [
+            "--rerank",
+            "-r"
+          ]
+        },
+        {
+          "name": "top_k",
+          "kind": "option",
+          "annotation": "int",
+          "default": "5",
+          "required": false,
+          "help_text": "Number of results to retrieve",
+          "cli_flags": [
+            "--top-k",
+            "-k"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag query"
+      ]
+    },
+    {
+      "name": "cerebro rag rerank",
+      "group_path": [
+        "rag"
+      ],
+      "command_slug": "rerank",
+      "func_name": "rag_rerank",
+      "description": "Rerank documents using a cross\u2011encoder model (service or local fallback).",
+      "source_line": 944,
+      "syntax": "cerebro rag rerank <query> [--documents <documents_file>] [--top-k <top_k>]",
+      "params": [
+        {
+          "name": "query",
+          "kind": "argument",
+          "annotation": "str",
+          "default": "Required",
+          "required": true,
+          "help_text": "Search query",
+          "cli_flags": []
+        },
+        {
+          "name": "documents_file",
+          "kind": "option",
+          "annotation": "str",
+          "default": "./data/analyzed/all_artifacts.jsonl",
+          "required": false,
+          "help_text": "JSONL file containing documents",
+          "cli_flags": [
+            "--documents",
+            "-d"
+          ]
+        },
+        {
+          "name": "top_k",
+          "kind": "option",
+          "annotation": "int",
+          "default": "10",
+          "required": false,
+          "help_text": "Number of top results to return",
+          "cli_flags": [
+            "--top-k",
+            "-k"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag rerank"
+      ]
+    },
+    {
+      "name": "cerebro rag smoke",
+      "group_path": [
+        "rag"
+      ],
+      "command_slug": "smoke",
+      "func_name": "rag_smoke",
+      "description": "Run a backend smoke test against the active RAG runtime.",
+      "source_line": 519,
+      "syntax": "cerebro rag smoke [--format <output_format>] [--skip-write-check <skip_write_check>]",
+      "params": [
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        },
+        {
+          "name": "skip_write_check",
+          "kind": "option",
+          "annotation": "bool",
+          "default": "False",
+          "required": false,
+          "help_text": "Skip the temporary write/read/delete validation cycle",
+          "cli_flags": [
+            "--skip-write-check"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag smoke"
+      ]
+    },
+    {
+      "name": "cerebro rag status",
+      "group_path": [
+        "rag"
+      ],
+      "command_slug": "status",
+      "func_name": "rag_status",
+      "description": "Show the configured production RAG runtime status.",
+      "source_line": 661,
+      "syntax": "cerebro rag status [--format <output_format>]",
+      "params": [
+        {
+          "name": "output_format",
+          "kind": "option",
+          "annotation": "str",
+          "default": "table",
+          "required": false,
+          "help_text": "Output format: table or json",
+          "cli_flags": [
+            "--format"
+          ]
+        }
+      ],
+      "examples": [
+        "cerebro rag status"
+      ]
+    },
+    {
+      "name": "cerebro tui",
+      "group_path": [],
+      "command_slug": "tui",
+      "func_name": "launch_tui",
+      "description": "Launch interactive Terminal User Interface (TUI).\n\nFull-featured interface with:\n  \u2022 Dashboard with system metrics\n  \u2022 Project management and analysis\n  \u2022 Intelligence queries with history\n  \u2022 Script launcher with progress\n  \u2022 GCP credit monitoring\n  \u2022 Live log viewer\n\nKeyboard shortcuts:\n  q - Quit\n  d - Dashboard\n  p - Projects\n  i - Intelligence\n  s - Scripts\n  g - GCP Credits\n  l - Logs",
+      "source_line": 152,
+      "syntax": "cerebro tui",
+      "params": [],
+      "examples": [
+        "cerebro tui"
+      ]
+    },
+    {
+      "name": "cerebro version",
+      "group_path": [],
+      "command_slug": "version",
+      "func_name": "version",
+      "description": "Display the current version.",
+      "source_line": 136,
+      "syntax": "cerebro version",
+      "params": [],
+      "examples": [
+        "cerebro version"
+      ]
+    }
+  ]
+}
