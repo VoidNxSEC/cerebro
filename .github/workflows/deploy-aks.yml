@@ -1,0 +1,145 @@
+name: Azure AKS Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_image:
+        description: Build and push a fresh image before deploy
+        required: false
+        default: true
+        type: boolean
+      image_tag:
+        description: Existing ACR image tag to deploy when build_image=false
+        required: false
+        type: string
+
+concurrency:
+  group: azure-aks-deploy-${{ vars.AZURE_AKS_NAME || 'cerebro' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production
+    permissions:
+      contents: read
+    env:
+      AKS_NAMESPACE: ${{ vars.AZURE_AKS_NAMESPACE }}
+      AKS_SECRET_NAME: ${{ vars.AZURE_AKS_SECRET_NAME }}
+      SOPS_SECRETS_FILE: secrets/cerebro.enc.env
+      ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+      ACR_LOGIN_SERVER: ${{ vars.AZURE_ACR_LOGIN_SERVER }}
+      ACR_REPOSITORY: ${{ vars.AZURE_ACR_REPOSITORY }}
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AKS_NAME: ${{ vars.AZURE_AKS_NAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Login no Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login no ACR
+        run: |
+          set -euo pipefail
+          az acr login --name "$ACR_NAME"
+
+      - name: Resolve target image
+        run: |
+          set -euo pipefail
+          IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+          BUILD_IMAGE="${{ github.event.inputs.build_image }}"
+
+          if [[ "$BUILD_IMAGE" != "true" && -z "$IMAGE_TAG" ]]; then
+            echo "When build_image=false you must provide image_tag."
+            exit 1
+          fi
+
+          if [[ -z "$IMAGE_TAG" ]]; then
+            IMAGE_TAG="${GITHUB_SHA}"
+          fi
+
+          IMAGE_REF="${ACR_LOGIN_SERVER}/${ACR_REPOSITORY}:${IMAGE_TAG}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
+
+      - name: Build imagem Docker com Nix
+        if: ${{ github.event.inputs.build_image != 'false' }}
+        run: |
+          set -euo pipefail
+          nix build .#dockerImage
+
+      - name: Load, tag e push no ACR
+        if: ${{ github.event.inputs.build_image != 'false' }}
+        run: |
+          set -euo pipefail
+          docker load < result
+          docker tag cerebro-azure:latest "$IMAGE_REF"
+          docker push "$IMAGE_REF"
+
+      - name: Validate existing image tag
+        if: ${{ github.event.inputs.build_image == 'false' }}
+        run: |
+          set -euo pipefail
+          az acr repository show \
+            --name "$ACR_NAME" \
+            --image "${ACR_REPOSITORY}:${IMAGE_TAG}" \
+            --output none
+
+      - name: Get AKS credentials
+        run: |
+          set -euo pipefail
+          az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME" --overwrite-existing
+
+      - name: Decrypt runtime secrets with SOPS
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |
+          set -euo pipefail
+          test -f "$SOPS_SECRETS_FILE"
+          mkdir -p "$RUNNER_TEMP/cerebro"
+          nix develop --command bash -lc "sops decrypt --output \"$RUNNER_TEMP/cerebro/cerebro.env\" \"$SOPS_SECRETS_FILE\""
+
+      - name: Create or update Kubernetes secret
+        run: |
+          set -euo pipefail
+          K8S_NAMESPACE="${AKS_NAMESPACE:-default}"
+          SECRET_NAME="${AKS_SECRET_NAME:-cerebro-env}"
+          kubectl create namespace "$K8S_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl -n "$K8S_NAMESPACE" create secret generic "$SECRET_NAME" \
+            --from-env-file="$RUNNER_TEMP/cerebro/cerebro.env" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to AKS
+        run: |
+          set -euo pipefail
+          K8S_NAMESPACE="${AKS_NAMESPACE:-default}"
+          SECRET_NAME="${AKS_SECRET_NAME:-cerebro-env}"
+          sed \
+            -e "s|IMAGE_PLACEHOLDER|${IMAGE_REF}|g" \
+            -e "s|name: cerebro-env|name: ${SECRET_NAME}|g" \
+            kubernetes/aks-deployment.yaml | kubectl -n "$K8S_NAMESPACE" apply -f -
+          kubectl -n "$K8S_NAMESPACE" apply -f kubernetes/aks-service.yaml
+          kubectl -n "$K8S_NAMESPACE" rollout status deployment/cerebro-api --timeout=300s
+
+      - name: Publish deployment summary
+        run: |
+          set -euo pipefail
+          K8S_NAMESPACE="${AKS_NAMESPACE:-default}"
+          {
+            echo "## Azure AKS Deploy"
+            echo
+            echo "- Namespace: \`$K8S_NAMESPACE\`"
+            echo "- Image: \`$IMAGE_REF\`"
+            echo "- Cluster: \`$AKS_NAME\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          kubectl -n "$K8S_NAMESPACE" get deploy/cerebro-api svc/cerebro-api -o wide >> "$GITHUB_STEP_SUMMARY"

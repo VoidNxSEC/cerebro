@@ -1,5 +1,6 @@
 """Tests for the Cerebro CLI."""
 
+import importlib.util
 from unittest.mock import patch
 
 from typer.testing import CliRunner
@@ -14,6 +15,23 @@ def test_info_command():
     assert result.exit_code == 0
     assert "CEREBRO" in result.stdout
     assert "GCP Integration" in result.stdout
+
+
+def test_info_reports_rag_runtime_when_local_runtime_is_available():
+    original_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(module_name: str):
+        if module_name in {"google.cloud", "tree_sitter"}:
+            return None
+        return original_find_spec(module_name)
+
+    with patch("cerebro.cli._has_rag_runtime_support", return_value=True):
+        with patch("cerebro.cli.importlib.util.find_spec", side_effect=fake_find_spec):
+            result = runner.invoke(app, ["info"])
+
+    assert result.exit_code == 0
+    assert "RAG Runtime" in result.stdout
+    assert "Installed" in result.stdout
 
 
 def test_version_command():

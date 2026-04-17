@@ -11,6 +11,10 @@ phantom = "cerebro.launcher:main"
 cerebro = "cerebro.launcher:main"
 
 [tool.poetry]
+name = "cerebro-cli"
+version = "1.0.0b1"
+description = "Cerebro - Enterprise Knowledge Extraction Platform"
+authors = ["voidnxlabs <dev@voidnxlabs.io>"]
 packages = [{ include = "cerebro", from = "src" }]
 
 [tool.poetry.dependencies]

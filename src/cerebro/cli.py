@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -21,7 +22,7 @@ console = Console()
 # Original command groups
 knowledge_app = typer.Typer(help="Analysis & Auditing", no_args_is_help=True)
 ops_app = typer.Typer(help="Operational Status", no_args_is_help=True)
-rag_app = typer.Typer(help="RAG & Vectors (LangChain)", no_args_is_help=True)
+rag_app = typer.Typer(help="RAG & Vectors", no_args_is_help=True)
 rag_backend_app = typer.Typer(help="Active RAG backend operations", no_args_is_help=True)
 rag_backends_app = typer.Typer(help="Available RAG backends", no_args_is_help=True)
 
@@ -84,25 +85,39 @@ def load_config(config_path: str):
         return yaml.safe_load(f) or {}
 
 
+def _has_optional_dependency(module_name: str) -> bool:
+    return importlib.util.find_spec(module_name) is not None
+
+
+def _has_rag_runtime_support() -> bool:
+    if not _has_optional_dependency("sentence_transformers"):
+        return False
+
+    try:
+        from cerebro.core.rag.engine import RigorousRAGEngine
+    except Exception:
+        return False
+
+    return hasattr(RigorousRAGEngine, "run_smoke_test")
+
+
 @app.command("info")
 def info():
     """
     Display Cerebro environment information.
     """
-    import importlib.util
-
     from cerebro import __version__
     title = f"[bold]CEREBRO[/bold] - Enterprise Knowledge Platform v{__version__}"
     console.print(Panel(title, border_style="cyan"))
 
     # Check dependencies
-    deps = {"GCP Integration": False, "LangChain/RAG": False, "Code Analysis": False}
+    deps = {"GCP Integration": False, "RAG Runtime": False, "Code Analysis": False}
 
-    if importlib.util.find_spec("google.cloud"):
+    if _has_optional_dependency("google.cloud"):
         deps["GCP Integration"] = True
-    if importlib.util.find_spec("langchain"):
-        deps["LangChain/RAG"] = True
-    if importlib.util.find_spec("tree_sitter"):
+    if _has_rag_runtime_support():
+        deps["RAG Runtime"] = True
+    if _has_optional_dependency("tree_sitter"):
         deps["Code Analysis"] = True
 
     table = Table(show_header=True, header_style="bold magenta")

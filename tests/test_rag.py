@@ -1,10 +1,13 @@
 """Tests for the RAG engine (RigorousRAGEngine)."""
 
+import os
+import sys
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cerebro.core.rag.embeddings import EmbeddingResult
+from cerebro.core.rag.embeddings import EmbeddingResult, EmbeddingSystem
 from cerebro.core.rag.engine import RigorousRAGEngine, get_rag_runtime_status_snapshot
 from cerebro.interfaces.llm import LLMProvider
 from cerebro.interfaces.vector_store import (
@@ -208,6 +211,138 @@ def test_query_with_metrics_uses_local_context(mock_llm_provider, mock_vector_st
         context=["def hello():\n    print('world')"],
         top_k=5,
     )
+
+
+def test_embedding_system_uses_project_local_cache_dir(tmp_path, monkeypatch):
+    """Embedding downloads should stay in a writable local cache."""
+
+    cache_root = tmp_path / "models"
+    monkeypatch.setenv("CEREBRO_MODEL_CACHE_DIR", str(cache_root))
+    EmbeddingSystem.clear_cache()
+
+    fake_sentence_transformer = MagicMock(name="SentenceTransformer")
+    fake_module = SimpleNamespace(SentenceTransformer=fake_sentence_transformer)
+
+    with patch.dict(sys.modules, {"sentence_transformers": fake_module}):
+        system = EmbeddingSystem(strategy="code", device="cpu")
+        resolved_model_name, _ = system._load_model("sentence-transformers/all-MiniLM-L6-v2")
+
+    expected_cache_folder = cache_root / "sentence-transformers"
+    assert resolved_model_name == "sentence-transformers/all-MiniLM-L6-v2"
+    fake_sentence_transformer.assert_called_once_with(
+        "sentence-transformers/all-MiniLM-L6-v2",
+        device="cpu",
+        cache_folder=str(expected_cache_folder),
+    )
+    assert os.environ["HF_HOME"] == str(cache_root / "huggingface")
+    assert os.environ["SENTENCE_TRANSFORMERS_HOME"] == str(expected_cache_folder)
+    assert expected_cache_folder.exists()
+
+
+def test_embedding_system_marks_incompatible_model_unavailable(tmp_path, monkeypatch):
+    """A failed preferred model should not be retried on subsequent loads."""
+
+    cache_root = tmp_path / "models"
+    monkeypatch.setenv("CEREBRO_MODEL_CACHE_DIR", str(cache_root))
+    EmbeddingSystem.clear_cache()
+
+    fallback_model = MagicMock(name="fallback_model")
+    fallback_model.encode.return_value = MagicMock(tolist=lambda: [[0.1, 0.2]])
+    load_attempts: list[str] = []
+
+    def fake_sentence_transformer(model_name: str, **kwargs):
+        load_attempts.append(model_name)
+        if model_name == "jinaai/jina-embeddings-v2-base-code":
+            raise RuntimeError("unsupported attention backend")
+        return fallback_model
+
+    fake_module = SimpleNamespace(SentenceTransformer=fake_sentence_transformer)
+
+    with patch.dict(sys.modules, {"sentence_transformers": fake_module}):
+        system = EmbeddingSystem(strategy="code", device="cpu")
+        first_model_name, first_model = system._load_model("jinaai/jina-embeddings-v2-base-code")
+        second_model_name, second_model = system._load_model("jinaai/jina-embeddings-v2-base-code")
+
+    assert first_model_name == "sentence-transformers/all-MiniLM-L6-v2"
+    assert second_model_name == "sentence-transformers/all-MiniLM-L6-v2"
+    assert first_model is fallback_model
+    assert second_model is fallback_model
+    assert load_attempts == [
+        "jinaai/jina-embeddings-v2-base-code",
+        "sentence-transformers/all-MiniLM-L6-v2",
+    ]
+
+
+def test_embedding_system_reuses_same_model_for_query_and_documents(tmp_path, monkeypatch):
+    """Document and query embeddings must stay in the same vector space."""
+
+    cache_root = tmp_path / "models"
+    monkeypatch.setenv("CEREBRO_MODEL_CACHE_DIR", str(cache_root))
+    EmbeddingSystem.clear_cache()
+
+    load_attempts: list[str] = []
+
+    class FakeEncodedBatch:
+        def __init__(self, rows: list[list[float]]):
+            self._rows = rows
+
+        def tolist(self) -> list[list[float]]:
+            return self._rows
+
+    class FakeModel:
+        def __init__(self, dimension: int):
+            self.dimension = dimension
+
+        def encode(self, batch, **kwargs):
+            return FakeEncodedBatch([[0.1] * self.dimension for _ in batch])
+
+    def fake_sentence_transformer(model_name: str, **kwargs):
+        load_attempts.append(model_name)
+        if model_name == "jinaai/jina-embeddings-v2-base-code":
+            raise RuntimeError("unsupported attention backend")
+        if model_name == "sentence-transformers/all-MiniLM-L6-v2":
+            return FakeModel(384)
+        if model_name == "sentence-transformers/all-mpnet-base-v2":
+            return FakeModel(768)
+        raise AssertionError(f"Unexpected model load: {model_name}")
+
+    fake_module = SimpleNamespace(SentenceTransformer=fake_sentence_transformer)
+
+    with patch.dict(sys.modules, {"sentence_transformers": fake_module}):
+        system = EmbeddingSystem(strategy="code", device="cpu")
+        document_result = system.embed(["def hello(): pass"], content_type="code")
+        query_vector = system.embed_query("What does hello do?")
+
+    assert document_result.dimension == 384
+    assert len(query_vector) == 384
+    assert load_attempts == [
+        "jinaai/jina-embeddings-v2-base-code",
+        "sentence-transformers/all-MiniLM-L6-v2",
+    ]
+
+
+def test_embedding_system_suppresses_vendor_bootstrap_output(tmp_path, monkeypatch, capsys):
+    """Third-party model bootstrap noise should not leak into CLI output."""
+
+    cache_root = tmp_path / "models"
+    monkeypatch.setenv("CEREBRO_MODEL_CACHE_DIR", str(cache_root))
+    monkeypatch.delenv("CEREBRO_VERBOSE_MODEL_LOAD", raising=False)
+    EmbeddingSystem.clear_cache()
+
+    def noisy_sentence_transformer(model_name: str, **kwargs):
+        print("vendor stdout noise")
+        print("vendor stderr noise", file=sys.stderr)
+        return MagicMock(name="model")
+
+    fake_module = SimpleNamespace(SentenceTransformer=noisy_sentence_transformer)
+
+    with patch.dict(sys.modules, {"sentence_transformers": fake_module}):
+        system = EmbeddingSystem(strategy="code", device="cpu")
+        system._load_model("sentence-transformers/all-MiniLM-L6-v2")
+
+    captured = capsys.readouterr()
+    assert "vendor stdout noise" not in captured.out
+    assert "vendor stderr noise" not in captured.err
 
 
 def test_get_runtime_status_reports_backend_metadata(

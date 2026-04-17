@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cerebro-api
+  labels:
+    app: cerebro
+spec:
+  type: ClusterIP
+  selector:
+    app: cerebro
+    tier: backend
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: api
+      protocol: TCP

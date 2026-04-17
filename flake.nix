@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    spider-nix.url = "path:/home/kernelcore/master/spider-nix";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -20,7 +19,6 @@
       self,
       nixpkgs,
       flake-utils,
-      spider-nix,
       poetry2nix,
       sops-nix,
     }:
@@ -121,7 +119,98 @@
 
         p2nix = poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
 
+        mkPoetryApp =
+          groups:
+          p2nix.mkPoetryApplication {
+            projectDir = self;
+            python = pkgs.python313;
+            inherit groups;
+            checkGroups = [ ];
+          };
+
+        coreApp = mkPoetryApp [ "main" ];
+        azureApp = mkPoetryApp [
+          "main"
+          "azure"
+        ];
+        gcpApp = mkPoetryApp [
+          "main"
+          "gcp"
+        ];
+
+        appSource = pkgs.runCommand "cerebro-app-source" { } ''
+          mkdir -p "$out"
+          cp -r ${self}/src "$out/src"
+          cp ${self}/pyproject.toml "$out/pyproject.toml"
+        '';
+
+        mkApiEntrypoint =
+          {
+            pythonEnv,
+            provider,
+          }:
+          pkgs.writeShellApplication {
+            name = "cerebro-api";
+            runtimeInputs = [ pythonEnv ];
+            text = ''
+              export CEREBRO_LLM_PROVIDER="''${CEREBRO_LLM_PROVIDER:-${provider}}"
+              export CEREBRO_DATA_DIR="''${CEREBRO_DATA_DIR:-/workspace/data/intelligence}"
+              export CEREBRO_VECTOR_DB="''${CEREBRO_VECTOR_DB:-/workspace/data/vector_db}"
+              export PYTHONPATH="${appSource}/src:''${PYTHONPATH:-}"
+              exec ${pythonEnv}/bin/uvicorn cerebro.api.server:app --host 0.0.0.0 --port "''${PORT:-8000}" "$@"
+            '';
+          };
+
+        mkDockerImage =
+          {
+            name,
+            pythonEnv,
+            provider,
+          }:
+          let
+            entrypoint = mkApiEntrypoint {
+              inherit pythonEnv provider;
+            };
+          in
+          pkgs.dockerTools.buildLayeredImage {
+            inherit name;
+            tag = "latest";
+            contents = [
+              pythonEnv
+              entrypoint
+              appSource
+              pkgs.bash
+              pkgs.coreutils
+              pkgs.cacert
+              pkgs.git
+            ];
+            extraCommands = ''
+              mkdir -p workspace/data/intelligence
+              mkdir -p workspace/data/vector_db
+            '';
+            config = {
+              Cmd = [ (pkgs.lib.getExe entrypoint) ];
+              WorkingDir = "/workspace";
+              Env = [
+                "PYTHONUNBUFFERED=1"
+                "CEREBRO_JSON_LOGS=1"
+                "CEREBRO_DATA_DIR=/workspace/data/intelligence"
+                "CEREBRO_VECTOR_DB=/workspace/data/vector_db"
+              ];
+              ExposedPorts = {
+                "8000/tcp" = { };
+              };
+            };
+          };
+
         corePythonEnv = pkgs.python313.withPackages corePythonPackages;
+        azurePythonEnv = pkgs.python313.withPackages (
+          ps:
+          (corePythonPackages ps)
+          ++ [
+            ps.langchain-openai
+          ]
+        );
         gcpPythonEnv = pkgs.python313.withPackages (ps: (corePythonPackages ps) ++ (gcpPythonPackages ps));
 
         commonBuildInputs = [
@@ -131,6 +220,10 @@
           pkgs.git
           pkgs.sops
           pkgs.age
+          pkgs.gitleaks
+          pkgs.syft
+          pkgs.pip-audit
+          pkgs.nodejs_20
           pkgs.gum  # Charmbracelet UI styling for premium terminal DX
           pkgs.stdenv.cc.cc.lib
           pkgs.zlib
@@ -225,7 +318,7 @@
           fi
 
           # ── Sync do ambiente core (apenas na primeira vez) ──────────────────
-          if [ ! -f ".nix-installed-core" ]; then
+          if [ -z "''${CI:-}" ] && [ ! -f ".nix-installed-core" ]; then
             gum style --foreground 212 "📥 Syncing Cerebro core dependencies via Poetry..."
             if [ -f "pyproject.toml" ]; then
               poetry install --no-root --only main --no-interaction 2>/dev/null || true
@@ -235,30 +328,35 @@
           fi
 
           # ── Interface Premium Terminal (DX) ───────────────────────────────
-          clear
-          gum style \
-            --border double --border-foreground 99 --padding "1 2" \
-            --margin "1 1" --align center \
-            "$(gum style --foreground 42 --bold '🧠 CEREBRO')" \
-            "Enterprise Knowledge Extraction & Distributed RAG Platform" \
-            "$(gum style --foreground 240 'Environment: Reproducible Flake')"
-          
-          # Status Board
-          export STATUS_COLOR="42"
-          export ART_COLOR="42"
-          if [ ! -f "./data/metrics/metrics_snapshot.json" ]; then export STATUS_COLOR="204" ; fi
-          if [ ! -f "./data/analyzed/all_artifacts.jsonl" ]; then export ART_COLOR="204" ; fi
+          if [ -z "''${CI:-}" ]; then
+            clear
+            gum style \
+              --border double --border-foreground 99 --padding "1 2" \
+              --margin "1 1" --align center \
+              "$(gum style --foreground 42 --bold '🧠 CEREBRO')" \
+              "Enterprise Knowledge Extraction & Distributed RAG Platform" \
+              "$(gum style --foreground 240 'Environment: Reproducible Flake')"
+            
+            # Status Board
+            export STATUS_COLOR="42"
+            export ART_COLOR="42"
+            if [ ! -f "./data/metrics/metrics_snapshot.json" ]; then export STATUS_COLOR="204" ; fi
+            if [ ! -f "./data/analyzed/all_artifacts.jsonl" ]; then export ART_COLOR="204" ; fi
 
-          gum style --margin "0 2" "$(gum style --foreground 81 --bold 'Python:') $(python --version 2>&1)"
-          gum style --margin "0 2" "$(gum style --foreground 81 --bold 'LLM Core:') ''${CEREBRO_LLM_PROVIDER:-llamacpp}"
-          echo ""
-          gum style --margin "0 2" "$(gum style --foreground 220 'System State:')"
-          gum style --margin "0 4" -- "- Metrics:   $(gum style --foreground $STATUS_COLOR 'Snapshot (cerebro metrics scan)')"
-          gum style --margin "0 4" -- "- Artifacts: $(gum style --foreground $ART_COLOR 'Indexed (cerebro knowledge analyze .)')"
-          
-          echo ""
-          gum style --border rounded --border-foreground 81 --padding "1 1" --margin "0 2" "$(gum style --foreground 212 --bold 'Run [ cerebro setup ] to configure models and APIs!')
+            gum style --margin "0 2" "$(gum style --foreground 81 --bold 'Python:') $(python --version 2>&1)"
+            gum style --margin "0 2" "$(gum style --foreground 81 --bold 'LLM Core:') ''${CEREBRO_LLM_PROVIDER:-llamacpp}"
+            echo ""
+            gum style --margin "0 2" "$(gum style --foreground 220 'System State:')"
+            gum style --margin "0 4" -- "- Metrics:   $(gum style --foreground $STATUS_COLOR 'Snapshot (cerebro metrics scan)')"
+            gum style --margin "0 4" -- "- Artifacts: $(gum style --foreground $ART_COLOR 'Indexed (cerebro knowledge analyze .)')"
+            
+            echo ""
+            gum style --border rounded --border-foreground 81 --padding "1 1" --margin "0 2" "$(gum style --foreground 212 --bold 'Run [ cerebro setup ] to configure models and APIs!')
 Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
+          else
+            echo "CEREBRO dev shell ready (CI mode)"
+            echo "Python: $(python --version 2>&1)"
+          fi
         '';
 
         gcpShellHook = ''
@@ -272,7 +370,7 @@ Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
           export GCP_PROJECT_ID="''${GCP_PROJECT_ID:-}"
           export GCP_REGION="''${GCP_REGION:-us-central1}"
 
-          if [ ! -f ".nix-installed-gcp" ]; then
+          if [ -z "''${CI:-}" ] && [ ! -f ".nix-installed-gcp" ]; then
             echo "☁️  Syncing optional GCP integration dependencies via Poetry..."
             if [ -f "pyproject.toml" ]; then
               poetry install --no-root --with gcp --no-interaction 2>/dev/null || true
@@ -291,13 +389,20 @@ Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
       in
       {
         # Installable package — enables `nix build` and `nix run`
-        packages.default = p2nix.mkPoetryApplication {
-          projectDir = self;
-          python = pkgs.python313;
-          # Only the main group; optional providers installed separately via --with
-          groups = [ "main" ];
-          checkGroups = [ ];
+        packages.default = coreApp;
+        packages.azure = azureApp;
+        packages.gcp = gcpApp;
+        packages.azureDockerImage = mkDockerImage {
+          name = "cerebro-azure";
+          pythonEnv = azurePythonEnv;
+          provider = "azure";
         };
+        packages.gcpDockerImage = mkDockerImage {
+          name = "cerebro-gcp";
+          pythonEnv = gcpPythonEnv;
+          provider = "vertex-ai";
+        };
+        packages.dockerImage = self.packages.${system}.azureDockerImage;
 
         # Development shell
         devShells.default = pkgs.mkShell {
@@ -317,5 +422,7 @@ Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
       }
     ) // {
       nixosModules.default = import ./nix/module.nix;
+      nixosModules.azure = import ./nix/azure.nix;
+      nixosModules.gcp = import ./nix/gcp.nix;
     };
 }

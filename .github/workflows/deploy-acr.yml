@@ -1,0 +1,86 @@
+name: Azure ACR Publish
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional image tag override. Defaults to the triggering commit SHA.
+        required: false
+        type: string
+
+concurrency:
+  group: azure-acr-publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+      ACR_LOGIN_SERVER: ${{ vars.AZURE_ACR_LOGIN_SERVER }}
+      ACR_REPOSITORY: ${{ vars.AZURE_ACR_REPOSITORY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Login no Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login no ACR
+        run: |
+          set -euo pipefail
+          az acr login --name "$ACR_NAME"
+
+      - name: Resolve image metadata
+        run: |
+          set -euo pipefail
+          IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+          if [[ -z "$IMAGE_TAG" ]]; then
+            IMAGE_TAG="${GITHUB_SHA}"
+          fi
+
+          IMAGE_REF="${ACR_LOGIN_SERVER}/${ACR_REPOSITORY}:${IMAGE_TAG}"
+
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
+
+      - name: Build imagem Docker com Nix
+        run: |
+          set -euo pipefail
+          nix build .#dockerImage
+
+      - name: Load, tag e push no ACR
+        run: |
+          set -euo pipefail
+          docker load < result
+          docker tag cerebro-azure:latest "$IMAGE_REF"
+          docker push "$IMAGE_REF"
+
+          IMAGE_DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_REF" || true)"
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
+
+      - name: Publish deployment summary
+        run: |
+          {
+            echo "## Azure ACR Publish"
+            echo
+            echo "- Image: \`$IMAGE_REF\`"
+            if [[ -n "${IMAGE_DIGEST:-}" ]]; then
+              echo "- Digest: \`$IMAGE_DIGEST\`"
+            fi
+            echo "- Commit: \`${GITHUB_SHA}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -43,16 +43,16 @@ echo "  Job: Import Tests"
 echo "═══════════════════════════════════════════════════════════"
 
 run_test "Import cerebro.core.gcp" \
-  "nix develop -c python -c 'from cerebro.core import gcp'"
+  "nix develop --command python -c 'from cerebro.core import gcp'"
 
 run_test "Import cerebro.modules.credit_burner" \
-  "nix develop -c python -c 'from cerebro.modules import credit_burner'"
+  "nix develop --command python -c 'from cerebro.modules import credit_burner'"
 
 run_test "Import typer" \
-  "nix develop -c python -c 'import typer'"
+  "nix develop --command python -c 'import typer'"
 
 run_test "Import rich" \
-  "nix develop -c python -c 'import rich'"
+  "nix develop --command python -c 'import rich'"
 
 # Job 2: CLI Tests
 echo ""
@@ -61,16 +61,16 @@ echo "  Job: CLI Tests"
 echo "═══════════════════════════════════════════════════════════"
 
 run_test "cerebro --help" \
-  "nix develop -c cerebro --help"
+  "nix develop --command cerebro --help"
 
 run_test "cerebro info" \
-  "nix develop -c cerebro info"
+  "nix develop --command cerebro info"
 
 run_test "cerebro version" \
-  "nix develop -c cerebro version"
+  "nix develop --command cerebro version"
 
 run_test "cerebro ops status" \
-  "nix develop -c cerebro ops status"
+  "nix develop --command cerebro ops status"
 
 # Job 3: Syntax Check
 echo ""
@@ -79,7 +79,7 @@ echo "  Job: Syntax Check"
 echo "═══════════════════════════════════════════════════════════"
 
 run_test "Check all Python files" \
-  "nix develop -c bash -c 'find src/cerebro/ -name \"*.py\" -exec python -m py_compile {} \;'"
+  "nix develop --command bash -c 'find src/cerebro/ -name \"*.py\" -exec python -m py_compile {} \;'"
 
 # Job 4: Unit Tests
 echo ""
@@ -88,7 +88,7 @@ echo "  Job: Unit Tests"
 echo "═══════════════════════════════════════════════════════════"
 
 run_test "Pytest suite" \
-  "nix develop -c pytest tests/"
+  "nix develop --command pytest tests/"
 
 # Job 5: Full Validation
 echo ""
@@ -97,7 +97,7 @@ echo "  Job: Full Validation Suite"
 echo "═══════════════════════════════════════════════════════════"
 
 run_test "Full validation suite" \
-  "nix develop -c bash scripts/validate.sh"
+  "nix develop --command bash scripts/validate.sh"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

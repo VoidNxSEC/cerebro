@@ -19,10 +19,14 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
+import io
 import logging
+import os
 import time
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 
 logger = logging.getLogger("cerebro.embeddings")
 
@@ -65,6 +69,8 @@ class EmbeddingSystem:
 
     # Loaded model cache — singleton per process
     _model_cache: dict[str, object] = {}
+    _unavailable_models: set[str] = set()
+    _resolved_cache_dir: Path | None = None
 
     def __init__(
         self,
@@ -77,6 +83,7 @@ class EmbeddingSystem:
         self.batch_size  = batch_size
         self.prefer_local = prefer_local
         self.device      = self._resolve_device(device)
+        self._active_model_name: str | None = None
 
     def embed(self, texts: list[str], content_type: str = "code") -> EmbeddingResult:
         """
@@ -89,11 +96,12 @@ class EmbeddingSystem:
         if not texts:
             return EmbeddingResult([], "", 0, 0.0, 0)
 
-        model_name = self._select_model(content_type)
-        model      = self._load_model(model_name)
+        model_name = self._active_model_name or self._select_model(content_type)
+        resolved_model_name, model = self._load_model(model_name)
+        self._active_model_name = resolved_model_name
 
         t0 = time.time()
-        vectors = self._batch_embed(model, texts, model_name)
+        vectors = self._batch_embed(model, texts, resolved_model_name)
         latency = (time.time() - t0) * 1000
 
         dim = len(vectors[0]) if vectors else 0
@@ -101,7 +109,7 @@ class EmbeddingSystem:
         logger.info(
             "embeddings_generated",
             extra={
-                "model":      model_name.split("/")[-1],
+                "model":      resolved_model_name.split("/")[-1],
                 "n_texts":    len(texts),
                 "dimension":  dim,
                 "latency_ms": round(latency, 2),
@@ -111,7 +119,7 @@ class EmbeddingSystem:
 
         return EmbeddingResult(
             vectors=vectors,
-            model_used=model_name,
+            model_used=resolved_model_name,
             dimension=dim,
             latency_ms=latency,
             batch_size=self.batch_size,
@@ -119,7 +127,8 @@ class EmbeddingSystem:
 
     def embed_query(self, query: str) -> list[float]:
         """Embed a single query — convenience method."""
-        result = self.embed([query], content_type="prose")
+        default_content_type = "prose" if self.strategy == "prose" else "code"
+        result = self.embed([query], content_type=default_content_type)
         return result.vectors[0] if result.vectors else []
 
     def _select_model(self, content_type: str) -> str:
@@ -150,6 +159,8 @@ class EmbeddingSystem:
         """Check if the model is in local cache or can be downloaded."""
         if model_name in self._model_cache:
             return True
+        if model_name in self._unavailable_models:
+            return False
 
         try:
             import sentence_transformers  # noqa
@@ -157,25 +168,121 @@ class EmbeddingSystem:
         except ImportError:
             return False
 
-    def _load_model(self, model_name: str):
+    def _load_model(self, model_name: str) -> tuple[str, object]:
         """Load model with in-memory cache."""
+        fallback = EmbeddingModel.MINILM.value
+
         if model_name in self._model_cache:
-            return self._model_cache[model_name]
+            return model_name, self._model_cache[model_name]
+        if model_name in self._unavailable_models and model_name != fallback:
+            return self._load_model(fallback)
 
         try:
             from sentence_transformers import SentenceTransformer
+            cache_folder = str(self._configure_local_cache())
             logger.info(f"Loading embedding model: {model_name}")
-            model = SentenceTransformer(model_name, device=self.device)
+            model = self._instantiate_sentence_transformer(
+                SentenceTransformer,
+                model_name,
+                cache_folder,
+            )
             self._model_cache[model_name] = model
             logger.info(f"Model loaded: {model_name} on {self.device}")
-            return model
+            return model_name, model
         except Exception as e:
-            logger.error(f"Failed to load {model_name}: {e}")
-            fallback = EmbeddingModel.MINILM.value
+            if model_name != fallback:
+                self._unavailable_models.add(model_name)
+                logger.info(
+                    "Embedding model %s unavailable, using fallback %s: %s",
+                    model_name,
+                    fallback,
+                    e,
+                )
+            else:
+                logger.error(f"Failed to load {model_name}: {e}")
             if fallback not in self._model_cache:
                 from sentence_transformers import SentenceTransformer
-                self._model_cache[fallback] = SentenceTransformer(fallback, device=self.device)
-            return self._model_cache[fallback]
+                cache_folder = str(self._configure_local_cache())
+                self._model_cache[fallback] = self._instantiate_sentence_transformer(
+                    SentenceTransformer,
+                    fallback,
+                    cache_folder,
+                )
+            return fallback, self._model_cache[fallback]
+
+    def _instantiate_sentence_transformer(
+        self,
+        sentence_transformer_cls,
+        model_name: str,
+        cache_folder: str,
+    ):
+        with self._silence_vendor_output():
+            return sentence_transformer_cls(
+                model_name,
+                device=self.device,
+                cache_folder=cache_folder,
+            )
+
+    @classmethod
+    def _configure_local_cache(cls) -> Path:
+        """Pin model downloads to a writable project-local cache."""
+        cache_root = cls._resolved_cache_dir
+        if cache_root is None:
+            cache_root = Path(
+                os.getenv("CEREBRO_MODEL_CACHE_DIR", "./data/models")
+            ).expanduser()
+            cache_root.mkdir(parents=True, exist_ok=True)
+            cls._resolved_cache_dir = cache_root
+
+        huggingface_root = cache_root / "huggingface"
+        huggingface_hub = huggingface_root / "hub"
+        transformers_cache = huggingface_root / "transformers"
+        sentence_transformers_home = cache_root / "sentence-transformers"
+
+        for path in (
+            huggingface_root,
+            huggingface_hub,
+            transformers_cache,
+            sentence_transformers_home,
+        ):
+            path.mkdir(parents=True, exist_ok=True)
+
+        os.environ["HF_HOME"] = str(huggingface_root)
+        os.environ["HUGGINGFACE_HUB_CACHE"] = str(huggingface_hub)
+        os.environ["TRANSFORMERS_CACHE"] = str(transformers_cache)
+        os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(sentence_transformers_home)
+        os.environ["XDG_CACHE_HOME"] = str(cache_root)
+        os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+        os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+        os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
+        for logger_name in (
+            "sentence_transformers",
+            "transformers",
+            "huggingface_hub",
+        ):
+            logging.getLogger(logger_name).setLevel(logging.ERROR)
+
+        return sentence_transformers_home
+
+    @staticmethod
+    @contextlib.contextmanager
+    def _silence_vendor_output():
+        """Keep third-party model bootstrap noise out of the CLI by default."""
+        if os.getenv("CEREBRO_VERBOSE_MODEL_LOAD", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }:
+            yield
+            return
+
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            yield
 
     def _batch_embed(self, model, texts: list[str], model_name: str) -> list[list[float]]:
         """
@@ -222,6 +329,8 @@ class EmbeddingSystem:
     def clear_cache(cls):
         """Release models from memory — useful in tests."""
         cls._model_cache.clear()
+        cls._unavailable_models.clear()
+        cls._resolved_cache_dir = None
         logger.info("Embedding model cache cleared")
 
 

@@ -46,6 +46,15 @@ echo -e "${GREEN}✅ Tests Passed.${NC}"
 # 4. Integration / CLI Tests
 echo -e "\n${BLUE}🤖 Verifying CLI Commands...${NC}"
 
+EXPECTED_VERSION="$(python - <<'PY'
+import tomllib
+from pathlib import Path
+
+with Path("pyproject.toml").open("rb") as handle:
+    print(tomllib.load(handle)["project"]["version"])
+PY
+)"
+
 echo -n "  - cerebro info: "
 if cerebro info > /dev/null; then
     echo -e "${GREEN}OK${NC}"
@@ -55,10 +64,10 @@ else
 fi
 
 echo -n "  - cerebro version: "
-if cerebro version | grep -q "v0.1.0"; then
-    echo -e "${GREEN}OK${NC}"
+if cerebro version | grep -q "$EXPECTED_VERSION"; then
+  echo -e "${GREEN}OK${NC}"
 else
-    echo -e "${RED}FAILED${NC}"
+  echo -e "${RED}FAILED${NC}"
     exit 1
 fi
 

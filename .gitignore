@@ -42,7 +42,16 @@ PROJECT_SUMMARY.txt
 # ── Secrets & env ─────────────────────────────────────────
 .env
 .env.*
-secrets/
+!.env.example
+secrets/**
+!secrets/
+!secrets/.gitkeep
+!secrets/**/*.enc.yaml
+!secrets/**/*.enc.yml
+!secrets/**/*.enc.json
+!secrets/**/*.enc.env
+!secrets/**/*.sops.yaml
+!secrets/**/*.sops.yml
 *.key
 *.pem
 application_default_credentials.json

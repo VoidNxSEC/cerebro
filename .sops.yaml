@@ -1,22 +1,20 @@
 keys:
-  # Replace this mock Age public key with your real administrator or CI key
-  # Generate via: age-keygen -o keys.txt
+  # Replace or rotate these recipients with your real local/admin and CI keys.
   - &admin_age age1y8mlpqkuzq548wqydv4zuzthudq4n3v7aqaeqczlksymw87m3uhqu4f4cw
-
-  # Replace with target host keys if using sops-nix dynamically on nodes:
-  # - &host_machine age1hostnamekeyplaceholder...
+  - &team_age_1 age1h0m5uwsjq9twc0rvpm3nv2uqtwarxpq6mq5uqxsxwu6tgzgwcagqw3d0xn
+  - &team_age_2 age176ca9a693ujm2d6fmqm6ezuwy0ka2fm39u5gu9tvr7njlzps6qhqqfnecn
 
 creation_rules:
-  # Encrypt all secrets matching any files within secrets/ directories
-  # or specifically named secrets.yaml/secrets.enc.env
-  - path_regex: secrets/.*\.(yaml|json|env|ini)$
+  - path_regex: ^secrets/.*\.(ya?ml|json|env|ini)$
     key_groups:
-      - age: >-
-          - age1h0m5uwsjq9twc0rvpm3nv2uqtwarxpq6mq5uqxsxwu6tgzgwcagqw3d0xn,
-            age176ca9a693ujm2d6fmqm6ezuwy0ka2fm39u5gu9tvr7njlzps6qhqqfnecn
+      - age:
+          - *admin_age
+          - *team_age_1
+          - *team_age_2
 
-  - path_regex: kubernetes/.*secret.*\.yaml$
+  - path_regex: ^kubernetes/.*secret.*\.ya?ml$
     key_groups:
-      - age: >-
-          - *age1h0m5uwsjq9twc0rvpm3nv2uqtwarxpq6mq5uqxsxwu6tgzgwcagqw3d0xn,
-             age176ca9a693ujm2d6fmqm6ezuwy0ka2fm39u5gu9tvr7njlzps6qhqqfnecn
+      - age:
+          - *admin_age
+          - *team_age_1
+          - *team_age_2
