@@ -1,27 +1,36 @@
 # Cerebro RAG Production Expansion TODO
 
-**Date:** 2026-04-08
+**Last updated:** 2026-04-19
 **Scope:** Extend Cerebro from a local-first RAG stack into a production-ready, multi-backend retrieval platform.
-**Status:** Planning document for implementation.
+
+---
+
+## Changelog
+
+| Version | Date | Summary |
+|---------|------|---------|
+| v0.1 | 2026-04-08 | Initial planning document |
+| v0.2 | 2026-04-19 | Audit pass — mark completed work; align with actual codebase state |
 
 ---
 
 ## 1. Verified Baseline
 
-This TODO is based on the current repository state:
+**State at v0.1 (2026-04-08) — original baseline:**
 
-- `src/cerebro/interfaces/vector_store.py` defines the current `VectorStoreProvider` contract.
-- `src/cerebro/providers/chroma/` is the only in-tree vector store provider today.
-- `src/cerebro/core/rag/engine.py` defaults to local retrieval with Chroma.
-- `src/cerebro/registry/indexer.py` maintains a separate FAISS-based semantic index for intelligence search.
-- `docs/architecture/ARCHITECTURE.md` already positions the product as local-first and provider-oriented.
+- `src/cerebro/providers/chroma/` was the only in-tree vector store provider.
+- `src/cerebro/registry/indexer.py` used a FAISS-based semantic index (separate path).
+- No unified provider registry/config layer existed.
+- No tenant/namespace/filter contract existed across retrieval paths.
+- No production runbook existed for backend selection or rollback.
 
-What is not yet true in the current codebase:
+**State at v0.2 (2026-04-19) — current:**
 
-- no production-grade vector store provider is implemented in-tree besides the local Chroma path
-- no unified provider registry/config layer exists for vector backends
-- no tenant/namespace/filter contract exists across all retrieval paths
-- no production runbook exists for backend selection, migrations, or rollback
+- 5 vector store providers: `chroma` (dev), `pgvector`, `qdrant`, `azure_search`, `opensearch`.
+- 7 LLM providers with unified factory: `llamacpp`, `anthropic`, `azure`, `gemini`, `groq`, `openai_compatible`, `gcp`.
+- `registry/indexer.py` FAISS path replaced — now uses `build_vector_store_provider()`.
+- Central settings module (`settings.py`) drives all provider selection via env vars.
+- Azure Pipelines CI with Postgres + NATS sidecars, Trivy, Trufflehog, load test.
 
 ---
 
@@ -42,331 +51,301 @@ Deliver a production-capable RAG platform with:
 
 ### Development / local baseline
 
-- [ ] Keep `ChromaDB` as the default local backend for one-shot development and small-scale demos.
-- [ ] Harden the Chroma adapter so failures do not silently degrade grounded behavior.
+- [x] Keep `ChromaDB` as the default local backend for one-shot development and small-scale demos.
+- [x] Harden the Chroma adapter: structured logging, `development_only: true` in `get_backend_info()`, exception propagation.
 
-### Production backends to add
+### Production backends
 
-- [ ] **Priority 1: pgvector**
-  - Good fit for production environments that already operate PostgreSQL.
-  - Strong transactional behavior and simpler operational footprint than a dedicated vector cluster.
-- [ ] **Priority 2: Qdrant**
-  - Purpose-built vector database with strong filtering and collection controls.
-  - Good candidate for dedicated semantic retrieval workloads.
-- [ ] **Priority 3: OpenSearch / Elasticsearch**
-  - Useful when hybrid search, existing log/search estate, or enterprise ops tooling already exists.
-  - Treat this as a hybrid retrieval backend, not only a vector backend.
-- [ ] **Priority 4: Weaviate**
-  - Optional enterprise/backend track if the product needs object-centric retrieval or an external managed cluster.
-  - Server packaging in `nixpkgs` is not yet verified in this repo context; plan for external cluster/container until verified.
+- [x] **Priority 1: pgvector** — `providers/pgvector/` — HNSW index, idempotent upsert, namespace isolation, score normalisation, bootstrap SQL, export.
+- [x] **Priority 2: Qdrant** — `providers/qdrant/` — collection bootstrap, UUID5 ID mapping, payload filters, cosine search, full export with embeddings.
+- [x] **Priority 3: OpenSearch / Elasticsearch** — `providers/opensearch/` — knn_vector HNSW, bool+knn+filter query, hybrid search via `query_text` kwarg, ES 8.x compat mode, `delete_by_query`.
+- [x] **Priority 4 (bonus): Azure AI Search** — `providers/azure_search/` — HNSW index bootstrap, OData filters, namespace isolation, content-only export.
+- [ ] **Priority 5: Weaviate** — optional enterprise backend; deferred until concrete adoption need.
 
 ### Existing optional cloud path
 
-- [ ] Keep the current GCP/Vertex path as an optional adapter track.
-- [ ] Do not let Vertex-specific behavior define the core vector store interface.
+- [x] GCP/Vertex path kept as optional adapter in `providers/gcp/`.
+- [x] Core `VectorStoreProvider` interface is cloud-neutral; Vertex is not the default.
 
 ---
 
-## 4. Verified Nix Dependency Mapping
+## 4. Nix Dependency Mapping
 
-Verified locally via `nix eval` on 2026-04-08:
+Python packages in `pyproject.toml` (runtime groups):
 
-- Runtime packages:
-  - [ ] `postgresql`
-  - [ ] `qdrant`
-  - [ ] `opensearch`
-  - [ ] `elasticsearch`
-- Python packages:
-  - [ ] `python313Packages.psycopg`
-  - [ ] `python313Packages."qdrant-client"`
-  - [ ] `python313Packages."weaviate-client"`
-  - [ ] `python313Packages."opensearch-py"`
-  - [ ] `python313Packages.elasticsearch`
-  - [ ] `python313Packages.sqlalchemy`
+- [x] `psycopg` — pgvector backend
+- [x] `qdrant-client` — Qdrant backend
+- [x] `opensearch-py` — OpenSearch backend
+- [x] `azure-search-documents` — Azure AI Search backend
+- [ ] `weaviate-client` — pending Weaviate provider
 
-Open item:
+Nix dev shell backend tracks (`flake.nix`):
 
-- [ ] Verify whether a first-class `nixpkgs` package for the Weaviate server should be used, or whether the project should standardize on an external deployment model for that backend.
+- [ ] `.#rag-pgvector` — includes `postgresql` + `python313Packages.psycopg`
+- [ ] `.#rag-qdrant` — includes `qdrant` + `python313Packages."qdrant-client"`
+- [ ] `.#rag-opensearch` — includes `opensearch` + `python313Packages."opensearch-py"`
+- [ ] Verify Weaviate server packaging in `nixpkgs` before adding `.#rag-weaviate`
 
 ---
 
-## 5. Architecture TODO
+## 5. Architecture
 
-### 5.1 Vector store contract v2
+### 5.1 Vector store contract
 
-- [ ] Extend `VectorStoreProvider` to support production semantics:
-  - namespaces / collections
-  - upsert semantics
-  - metadata filters
-  - optional score threshold
-  - backend info / health details
-  - index bootstrap / migration hooks
-- [ ] Add a typed retrieval result model instead of passing raw dictionaries everywhere.
-- [ ] Define one canonical metadata schema for all documents:
-  - `id`
-  - `repo`
-  - `source`
-  - `title`
-  - `chunk_id`
-  - `content_hash`
-  - `ingested_at`
-  - `git_commit`
-  - `tags`
-  - `backend_namespace`
+- [x] `VectorStoreProvider` extended with: namespaces, upsert semantics, metadata filters, score threshold, backend info, `initialize_schema()` bootstrap hook, `export_documents()` migration hook.
+- [x] `VectorSearchResult` typed dataclass — no raw dict passing in retrieval results.
+- [x] `StoredVectorDocument` typed dataclass for migration payloads.
+- [ ] Canonical metadata schema fully enforced — fields `content_hash`, `ingested_at`, `chunk_id`, `backend_namespace` not yet populated consistently across all ingestion paths.
 
 ### 5.2 Provider registry and settings
 
-- [ ] Introduce a central config/settings module for:
-  - `CEREBRO_VECTOR_STORE_PROVIDER`
-  - `CEREBRO_VECTOR_STORE_URL`
-  - `CEREBRO_VECTOR_STORE_NAMESPACE`
-  - backend-specific credentials and TLS settings
-- [ ] Replace backend selection by implicit defaulting with an explicit provider factory.
-- [ ] Ensure the CLI, API, dashboard, and tests all resolve providers through the same factory.
+- [x] `src/cerebro/settings.py` — central env-driven config for all providers (`CEREBRO_VECTOR_STORE_PROVIDER`, `CEREBRO_VECTOR_STORE_URL`, `CEREBRO_VECTOR_STORE_NAMESPACE`, plus backend-specific keys).
+- [x] `src/cerebro/providers/vector_store_factory.py` — explicit factory; no implicit defaulting.
+- [x] `src/cerebro/providers/llm_factory.py` — unified LLM provider factory driven by `CEREBRO_LLM_PROVIDER`.
+- [ ] CLI commands not yet wired to factory for provider introspection (see §9).
+- [ ] Dashboard backend selector not yet surfaced.
 
-### 5.3 Unify the two semantic paths
+### 5.3 Semantic paths unification
 
-- [ ] Decide whether `registry/indexer.py` remains FAISS-only for intelligence search or should also become provider-backed.
-- [ ] Eliminate semantic capability drift between:
-  - `src/cerebro/core/rag/engine.py`
-  - `src/cerebro/registry/indexer.py`
-  - `src/cerebro/api/server.py`
-- [ ] Standardize filtering semantics so project-scoped and type-scoped queries behave identically in keyword and semantic paths.
+- [x] `registry/indexer.py` FAISS path replaced by `build_vector_store_provider()` — provider-backed.
+- [x] Capability drift eliminated: `engine.py` and `indexer.py` both use `VectorStoreProvider`.
+- [x] Single-type filters pushed down to the vector store in `semantic_query()` to avoid over-fetching.
+- [x] Multi-type and project filters remain as post-retrieval pass (OR semantics, not universally supported at storage layer).
 
 ---
 
-## 6. Provider Implementation TODO
+## 6. Provider Implementation
 
-### 6.1 Chroma hardening
+### 6.1 Chroma
 
-- [ ] Replace `print()`-based error handling with structured logging.
-- [ ] Stop treating vector-store failure as “zero documents found”.
-- [ ] Add collection bootstrap checks and clearer corruption diagnostics.
-- [ ] Add an explicit “development-only” support statement to docs and health output.
+- [x] Structured logging throughout (`logger.exception`, `logger.warning`).
+- [x] Exception propagation — failures are raised, not swallowed as empty results.
+- [x] Collection bootstrap via `get_or_create_collection`.
+- [x] `development_only: true` and `production_ready: false` in `get_backend_info()`.
 
-### 6.2 pgvector provider
+### 6.2 pgvector
 
-- [ ] Add `src/cerebro/providers/pgvector/`.
-- [ ] Implement:
-  - connection bootstrap
-  - extension verification (`CREATE EXTENSION vector`)
-  - table/index creation
-  - upsert by `id`
-  - metadata filtering
-  - delete by id / namespace
-  - similarity search with score normalization
-- [ ] Support both direct `psycopg` usage and optional SQLAlchemy integration only where it adds value.
-- [ ] Add a migration/bootstrap command for local and staging setup.
+- [x] `src/cerebro/providers/pgvector/` — full implementation with `psycopg`.
+- [x] Connection bootstrap, `CREATE EXTENSION vector`, table/index creation via `bootstrap.sql` template.
+- [x] Idempotent upsert by `document_id` (`ON CONFLICT DO UPDATE`).
+- [x] Metadata filtering via `jsonb_extract_path_text`.
+- [x] Namespace-scoped delete, clear, count.
+- [x] Similarity search with cosine score normalisation `[0, 1]`.
+- [x] `export_documents()` with embeddings for migration.
+- [ ] `cerebro rag backend migrate` CLI command for schema migrations.
 
-### 6.3 Qdrant provider
+### 6.3 Qdrant
 
-- [ ] Add `src/cerebro/providers/qdrant/`.
-- [ ] Implement collection creation, payload mapping, upsert, search, delete, count, and health checks.
-- [ ] Map Cerebro metadata into Qdrant payload filters without losing canonical field names.
-- [ ] Add support for remote cluster URL + API key configuration.
+- [x] `src/cerebro/providers/qdrant/` — full implementation with `qdrant-client`.
+- [x] Collection bootstrap (COSINE/HNSW). Skips creation if collection exists.
+- [x] String IDs → deterministic UUID5 point IDs; original ID preserved in payload.
+- [x] Payload filter builder (`FieldCondition` + `MatchValue`).
+- [x] Namespace-scoped clear via `FilterSelector`; full clear via drop+recreate.
+- [x] Full export with stored embeddings via `scroll`.
+- [ ] Operational runbook (snapshot, restore, collection migration).
 
-### 6.4 OpenSearch / Elasticsearch provider
+### 6.4 OpenSearch / Elasticsearch
 
-- [ ] Add `src/cerebro/providers/opensearch/`.
-- [ ] Decide whether Elasticsearch compatibility stays in the same provider or in a sibling adapter.
-- [ ] Implement:
-  - index template bootstrap
-  - dense vector mapping
-  - hybrid retrieval hooks
-  - metadata filter translation
-  - health and cluster version checks
-- [ ] Define which features are guaranteed in OpenSearch and which are version-specific.
+- [x] `src/cerebro/providers/opensearch/` — native implementation with `opensearch-py`; the deprecated LangChain `elasticsearch_store.py` is superseded.
+- [x] Index bootstrap: `knn_vector` HNSW cosinesimil (OpenSearch); `dense_vector` (ES 8.x compat via `OPENSEARCH_ES_COMPAT=true`).
+- [x] Idempotent upsert via bulk `_op_type: index`.
+- [x] Dense search: `bool + knn + filter` (all OpenSearch 2.x versions).
+- [x] Hybrid search: `bool + knn + match` activated via `OPENSEARCH_ENABLE_HYBRID=true` when `query_text` in kwargs.
+- [x] Score normalisation: cosinesimil `[0, 2]` → `[0, 1]` (÷2); `min_score` scaled accordingly.
+- [x] Namespace-scoped `delete_by_query`; full clear via index drop+recreate.
+- [ ] Operational runbook (snapshot repository, index backup, rollback).
 
-### 6.5 Weaviate provider
+### 6.5 Azure AI Search
 
-- [ ] Add `src/cerebro/providers/weaviate/`.
-- [ ] Implement collection/class bootstrap, object upsert, hybrid filters, and health checks.
-- [ ] Decide whether the provider will require an external embedder only, or optionally delegate embeddings to Weaviate modules.
+- [x] `src/cerebro/providers/azure_search/` — full implementation with `azure-search-documents`.
+- [x] Index bootstrap: HNSW via `HnswAlgorithmConfiguration` + `VectorSearchProfile`.
+- [x] Filterable fields: `namespace`, `repo`, `source`, `git_commit`, `title` (OData term filters).
+- [x] `VectorizedQuery` for dense search; OData filter composition for namespace + metadata.
+- [x] Content-only export (Azure Search does not return stored vectors via search API — documented).
+- [ ] Operational runbook (index backup, rollback, namespace audit).
 
----
+### 6.5 Weaviate
 
-## 7. Retrieval and Ranking TODO
-
-- [ ] Add metadata-aware retrieval filters to `RigorousRAGEngine`.
-- [ ] Add namespace-aware retrieval so multiple projects/environments can coexist safely.
-- [ ] Add optional hybrid search:
-  - dense retrieval
-  - sparse/BM25 retrieval
-  - reranking
-- [ ] Add score normalization per backend so `top_k` behavior remains comparable.
-- [ ] Add chunk provenance to citations so output can reference a stable source, not only a free-form title.
-- [ ] Refuse to label answers as grounded when retrieval failed or returned no usable context.
+- [ ] `src/cerebro/providers/weaviate/` — not started; deferred.
+- [ ] Decide on external cluster vs. in-tree Nix package.
+- [ ] Collection/class bootstrap, object upsert, hybrid filters, health checks.
 
 ---
 
-## 8. Ingestion TODO
+## 7. Retrieval and Ranking
 
-- [ ] Make ingestion idempotent.
-- [ ] Add content hashing so unchanged chunks are not re-embedded.
-- [ ] Add re-index / delete stale chunks behavior for renamed or removed files.
-- [ ] Add batch sizing policy per backend.
-- [ ] Add backend-specific ingestion metrics:
-  - documents accepted
-  - documents skipped
-  - documents updated
-  - failed writes
-  - batch latency
-- [ ] Add dry-run mode for ingestion planning.
+- [x] Metadata-aware filters implemented in all 5 backends.
+- [x] Namespace-aware retrieval in all 5 backends.
+- [x] Hybrid search available in OpenSearch (dense + BM25); other backends dense-only.
+- [x] Score normalisation per backend — all return `[0, 1]`.
+- [ ] Chunk provenance in citations — answers reference title/source but not stable `chunk_id`.
+- [ ] Grounded generation refusal — `RigorousRAGEngine` should return an explicit no-context signal rather than a hallucinated answer when retrieval returns zero useful results.
 
 ---
 
-## 9. API / CLI / Dashboard TODO
+## 8. Ingestion
 
-- [ ] Add CLI provider selection and introspection:
-  - `cerebro rag backends list`
-  - `cerebro rag backend info`
-  - `cerebro rag backend health`
-- [ ] Add CLI bootstrap helpers:
-  - `cerebro rag backend init`
-  - `cerebro rag backend migrate`
-- [ ] Expose backend name, namespace, document count, and filter support in API health/status endpoints.
-- [ ] Surface retrieval backend details in dashboard metrics and health panels.
-- [ ] Make project-scoped chat requests actually respect project scope in semantic retrieval.
+- [x] Idempotent ingestion — all backends implement upsert semantics.
+- [ ] Content hashing — skip re-embedding unchanged chunks (`content_hash` field not yet populated or checked).
+- [ ] Stale chunk deletion — no handling for renamed or removed source files.
+- [ ] Batch sizing policy per backend (current: fixed batch sizes in callers).
+- [ ] Backend-specific ingestion metrics (accepted / skipped / updated / failed / latency).
+- [ ] Dry-run mode for ingestion planning.
 
 ---
 
-## 10. Observability and Operations TODO
+## 9. API / CLI / Dashboard
 
-- [ ] Emit structured logs for ingestion, retrieval, rerank, and provider health.
-- [ ] Add backend-specific readiness and liveness checks.
-- [ ] Add latency histograms and failure counters per provider.
-- [ ] Add index size / collection size reporting.
-- [ ] Add migration and rollback runbooks for each production backend.
-- [ ] Add backup/restore guidance:
-  - PostgreSQL logical backup / restore
-  - Qdrant snapshot policy
-  - OpenSearch snapshot repository policy
-  - Weaviate backup/export policy
+- [ ] `cerebro rag backends list` — list all registered provider aliases.
+- [ ] `cerebro rag backend info` — show active backend config and capabilities.
+- [ ] `cerebro rag backend health` — run health check against active backend.
+- [ ] `cerebro rag backend init` — bootstrap schema for active backend.
+- [ ] `cerebro rag backend migrate` — run migration/index update.
+- [ ] Expose backend name, namespace, document count, filter support in `/rag/status` fully.
+- [ ] Surface active backend in dashboard Control Plane panel.
+- [ ] Project-scoped chat requests respect namespace in semantic retrieval.
 
 ---
 
-## 11. Security TODO
+## 10. Observability and Operations
 
-- [ ] Require TLS/auth config for remote production backends.
-- [ ] Ensure secrets are passed via environment or secret files, never committed config.
-- [ ] Add namespace isolation guidance for multi-tenant or multi-project deployments.
-- [ ] Review metadata fields to avoid leaking sensitive path or credential material into indexes.
-- [ ] Add audit guidance for delete requests and retention windows.
-
----
-
-## 12. Nix / Flake TODO
-
-- [ ] Remove hidden dependency installation from `shellHook` where possible.
-- [ ] Add explicit dev shells or packages for backend tracks:
-  - [ ] `.#rag-pgvector`
-  - [ ] `.#rag-qdrant`
-  - [ ] `.#rag-opensearch`
-- [ ] Keep the default shell lightweight and local-first.
-- [ ] Ensure each optional backend shell declares only the dependencies it needs.
-- [ ] Add one-shot commands that follow project policy:
-  - `nix develop --command ...`
-  - `nix develop .#rag-pgvector --command ...`
-  - `nix develop .#rag-qdrant --command ...`
+- [x] Structured logging in all providers (`logging` module, no `print()` calls).
+- [ ] Formal k8s readiness / liveness probes per backend.
+- [ ] Latency histograms and failure counters per provider (OpenTelemetry / Prometheus).
+- [ ] Index / collection size reporting in `/rag/status` for all backends.
+- [ ] Migration runbooks per production backend:
+  - [ ] pgvector — logical backup, schema migration, rollback
+  - [ ] Qdrant — snapshot policy, collection clone, rollback
+  - [ ] OpenSearch — snapshot repository, index backup, rollback
+  - [ ] Azure AI Search — index export, rollback via index alias
+- [ ] Backup/restore guidance in `docs/`.
 
 ---
 
-## 13. Testing TODO
+## 11. Security
+
+- [x] All backend credentials passed via environment variables; no hardcoded secrets.
+- [x] SOPS + age encryption for secrets at rest (`sops-nix` integration).
+- [x] Trufflehog + Trivy scanning in CI pipeline.
+- [x] OpenSearch provider respects `OPENSEARCH_USERNAME`/`OPENSEARCH_PASSWORD` and `OPENSEARCH_API_KEY`.
+- [ ] TLS enforcement for remote backends (OpenSearch has SSL detection; others need explicit guidance).
+- [ ] Namespace isolation documented for multi-tenant deployments.
+- [ ] Metadata field audit — ensure no sensitive path or credential material leaks into indexes.
+- [ ] Audit guidance for delete requests and data retention windows.
+
+---
+
+## 12. Nix / Flake
+
+- [ ] Backend-specific dev shells in `flake.nix`:
+  - [ ] `.#rag-pgvector` — `postgresql` + `psycopg`
+  - [ ] `.#rag-qdrant` — `qdrant` + `qdrant-client`
+  - [ ] `.#rag-opensearch` — `opensearch` + `opensearch-py`
+- [ ] Default shell remains lightweight and local-first (no heavy backend deps).
+- [ ] Each optional backend shell declares only the dependencies it needs.
+- [ ] CI integration test jobs use `nix develop .#rag-<backend> --command pytest tests/integration`.
+
+---
+
+## 13. Testing
 
 ### Unit tests
 
-- [ ] Add provider contract tests shared by all vector backends.
-- [ ] Add serialization/filter mapping tests for canonical metadata.
-- [ ] Add engine tests for:
-  - empty context
-  - backend failure
-  - namespace mismatch
-  - filter mismatch
-  - duplicate document upsert
+- [x] `test_pgvector_provider.py` — pgvector contract tests.
+- [x] `test_vector_store_factory.py` — factory alias resolution.
+- [x] `test_rag_engine_new_providers.py` — RAG engine with pluggable provider.
+- [ ] Provider contract tests for Qdrant, OpenSearch, Azure AI Search (same fixture set as pgvector).
+- [ ] Serialization/filter mapping tests for canonical metadata schema.
+- [ ] Engine tests for edge cases: empty context, backend failure, namespace mismatch, duplicate upsert.
 
 ### Integration tests
 
-- [ ] Add integration suites per backend.
-- [ ] Gate optional suites behind backend-specific Nix shells and env flags.
-- [ ] Cover:
-  - bootstrap
-  - ingest
-  - query
-  - filtered query
-  - re-ingest
-  - delete
-  - health check
+- [ ] Integration suites per backend, gated behind Nix dev shells and `CEREBRO_RUN_INTEGRATION=1` env flag.
+- [ ] Each suite covers: bootstrap, ingest, query, filtered query, re-ingest (idempotency), delete, health check.
 
 ### Performance tests
 
-- [ ] Benchmark ingestion throughput by backend.
-- [ ] Benchmark query latency p50/p95 by backend.
-- [ ] Benchmark recall quality with the same corpus and query set.
-- [ ] Define a regression budget so backend additions do not silently degrade local mode.
+- [ ] Ingestion throughput benchmark by backend.
+- [ ] Query latency p50/p95 by backend.
+- [ ] Recall quality with shared corpus and query set.
+- [ ] Regression budget so new backends don't degrade local Chroma mode.
 
 ---
 
 ## 14. Rollout Plan
 
-### Phase 0: Contract hardening
+### Phase 0: Contract hardening ✅
 
-- [ ] finalize `VectorStoreProvider` v2
-- [ ] add provider factory/settings
-- [ ] fix grounded/no-context behavior
-- [ ] align semantic filter behavior
+- [x] `VectorStoreProvider` v2 with typed results, namespaces, upsert, health, export.
+- [x] Provider factory + central settings.
+- [x] Semantic filter alignment (`KnowledgeIndexer` push-down).
+- [ ] Grounded/no-context refusal in `RigorousRAGEngine` — still pending.
 
-### Phase 1: First production backend
+### Phase 1: First production backend ✅ (code complete)
 
-- [ ] implement `pgvector`
-- [ ] ship tests, Nix shell, bootstrap command, docs
-- [ ] validate ingestion/query flow end-to-end
+- [x] `pgvector` implemented.
+- [ ] Nix dev shell, integration tests, operational runbook — pending.
 
-### Phase 2: Dedicated vector DB backend
+### Phase 2: Dedicated vector DB backend ✅ (code complete)
 
-- [ ] implement `Qdrant`
-- [ ] compare operational and retrieval trade-offs vs. pgvector
+- [x] `Qdrant` implemented.
+- [ ] Integration tests, operational runbook — pending.
 
-### Phase 3: Hybrid search backend
+### Phase 3: Hybrid search backend ✅ (code complete)
 
-- [ ] implement `OpenSearch / Elasticsearch`
-- [ ] add hybrid retrieval mode and filtering tests
+- [x] `OpenSearch` implemented with hybrid search (dense + BM25) and ES 8.x compat.
+- [ ] Integration tests, operational runbook — pending.
+
+### Phase 3b: Cloud vector search backend ✅ (code complete, bonus)
+
+- [x] `Azure AI Search` implemented.
+- [ ] Integration tests, operational runbook — pending.
 
 ### Phase 4: Optional enterprise backend
 
-- [ ] implement `Weaviate`
-- [ ] validate whether it remains worth maintaining in-tree
+- [ ] `Weaviate` — deferred. Revisit when there is a concrete adoption need.
 
 ### Phase 5: Production polish
 
-- [ ] observability
-- [ ] runbooks
-- [ ] migration stories
-- [ ] rollback stories
-- [ ] dashboard exposure
+- [ ] Nix dev shells per backend track.
+- [ ] Integration test suites gated behind backend shells.
+- [ ] Provider contract tests for all backends.
+- [ ] CLI `cerebro rag backends` introspection commands.
+- [ ] Observability: latency histograms, liveness probes.
+- [ ] Operational runbooks and backup/restore guidance.
+- [ ] Dashboard Control Plane backend surface.
 
 ---
 
 ## 15. Definition of Done
 
-A backend is only considered production-ready when all of the following are true:
+A backend is production-ready when **all** of the following are true:
 
-- [ ] provider is selected through the shared factory/config path
-- [ ] ingestion is idempotent
-- [ ] metadata filters work
-- [ ] namespaces work
-- [ ] health checks return actionable detail
-- [ ] integration tests pass in `nix develop --command` or a backend-specific shell
-- [ ] benchmark data exists
-- [ ] operational runbook exists
-- [ ] rollback procedure exists
-- [ ] docs clearly state when the backend should and should not be chosen
+| Criterion | chroma | pgvector | qdrant | opensearch | azure_search |
+|-----------|:------:|:--------:|:------:|:----------:|:------------:|
+| Selected via shared factory/config | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Ingestion is idempotent | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Metadata filters work | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Namespaces work | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Health check returns actionable detail | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Integration tests pass in Nix shell | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Benchmark data exists | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Operational runbook exists | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Rollback procedure exists | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Docs state when to choose / not choose | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+
+`chroma` is intentionally development-only and exempt from the integration test, benchmark, and runbook criteria.
 
 ---
 
-## 16. Recommended Order of Execution
+## 16. Recommended Next Steps
 
-1. Fix the provider contract and retrieval semantics first.
-2. Implement `pgvector` as the first production backend.
-3. Implement `Qdrant` as the dedicated vector DB option.
-4. Add OpenSearch only when hybrid search is a real product requirement.
-5. Keep Weaviate optional until there is a concrete adoption need.
+Priority order based on Definition of Done gaps:
+
+1. **Nix dev shells** (§12) — unblocks CI integration tests for pgvector, Qdrant, OpenSearch.
+2. **Provider contract tests** (§13) — Qdrant, OpenSearch, Azure Search missing test coverage.
+3. **CLI `cerebro rag backends`** (§9) — list, info, health introspection.
+4. **Grounded/no-context refusal** (§14 Phase 0) — last remaining Phase 0 item.
+5. **Operational runbooks** (§10) — required for Definition of Done on all production backends.
+6. **Content hashing** (§8) — skip re-embedding unchanged chunks.
+7. **Weaviate** (§6.5) — only if a concrete adoption need materialises.
