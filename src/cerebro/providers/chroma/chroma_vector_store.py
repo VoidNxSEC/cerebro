@@ -81,13 +81,15 @@ class ChromaVectorStoreProvider(VectorStoreProvider):
                 getattr(collection, "name", collection)
                 for collection in self.client.list_collections()
             }
-        except Exception:
+        except Exception as exc:
+            logger.warning("Could not list Chroma collections; defaulting to %r: %s", self.DEFAULT_COLLECTION_NAME, exc)
             existing_names = set()
 
         if self.DEFAULT_COLLECTION_NAME in existing_names:
             return self.DEFAULT_COLLECTION_NAME
 
         if self.LEGACY_COLLECTION_NAME in existing_names:
+            logger.info("Using legacy Chroma collection %r.", self.LEGACY_COLLECTION_NAME)
             return self.LEGACY_COLLECTION_NAME
 
         return self.DEFAULT_COLLECTION_NAME
@@ -412,6 +414,8 @@ class ChromaVectorStoreProvider(VectorStoreProvider):
             "default_namespace": self.default_namespace,
             "supports_filters": True,
             "supports_namespace": True,
+            "production_ready": False,
+            "development_only": True,
         }
 
     @staticmethod

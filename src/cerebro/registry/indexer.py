@@ -178,7 +178,7 @@ class KnowledgeIndexer:
         top_k: int = 10,
         min_score: float = 0.3,
     ) -> list[tuple[str, float]]:
-        """Search for similar items."""
+        """Return (id, score) pairs for the closest documents to query."""
 
         if top_k <= 0:
             return []
@@ -208,19 +208,53 @@ class KnowledgeIndexer:
         types: list[IntelligenceType] | None = None,
         projects: list[str] | None = None,
     ) -> list[dict[str, Any]]:
-        """Semantic search with full item details and optional scope filters."""
+        """Semantic search with full item details and optional scope filters.
 
-        search_window = self._resolve_search_window(top_k, types, projects)
-        results = self.search(query, search_window, min_score)
+        Single-type filters are pushed down to the vector store as metadata
+        filters when possible, avoiding Python-side over-fetching. Multi-type
+        and project filters still apply a post-retrieval pass because most
+        backends cannot express OR conditions or list-membership checks cheaply.
+        """
+
+        if not query:
+            return []
+
+        document_count = self._safe_document_count()
+        if document_count is not None and document_count <= 0:
+            return []
+
+        # Push a single type filter down to the vector store so the backend
+        # can prune before returning results. Multiple types require OR logic
+        # that not all backends support, so fall back to post-filtering there.
+        store_filters = None
+        post_filter_types = types
+        if types and len(types) == 1:
+            store_filters = {"type": types[0].value}
+            post_filter_types = None
+
+        search_window = self._resolve_search_window(top_k, post_filter_types, projects)
+
+        try:
+            query_embedding = self._embedding_system.embed_query(query)
+            matches = self.vector_store_provider.search(
+                query_embedding,
+                top_k=search_window,
+                filters=store_filters,
+                namespace=self.vector_store_namespace,
+                min_score=min_score,
+            )
+        except Exception as exc:
+            logger.error("Semantic query failed: %s", exc)
+            return []
 
         items: list[dict[str, Any]] = []
-        for item_id, score in results:
-            item = self.cerebro.get_intelligence(item_id)
+        for match in matches:
+            item = self.cerebro.get_intelligence(match.id)
             if item is None:
                 continue
-            if types and item.type not in types:
+            if post_filter_types and item.type not in post_filter_types:
                 continue
-            if projects and not any(project in item.related_projects for project in projects):
+            if projects and not any(p in item.related_projects for p in projects):
                 continue
 
             items.append(
@@ -230,7 +264,7 @@ class KnowledgeIndexer:
                     "title": item.title,
                     "content": item.content[:500],
                     "source": item.source,
-                    "score": round(score, 3),
+                    "score": round(float(match.score), 3),
                     "tags": item.tags,
                     "related_projects": item.related_projects,
                 }

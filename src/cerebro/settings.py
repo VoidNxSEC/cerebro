@@ -30,6 +30,10 @@ class CerebroSettings:
     azure_search_index_name: str | None = None
     azure_search_api_key: str | None = None
 
+    # Qdrant
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str | None = None
+
     # LLM provider
     llm_provider: str = "llamacpp"
 
@@ -66,6 +70,8 @@ class CerebroSettings:
             azure_search_endpoint=os.getenv("AZURE_SEARCH_ENDPOINT"),
             azure_search_index_name=os.getenv("AZURE_SEARCH_INDEX_NAME"),
             azure_search_api_key=os.getenv("AZURE_SEARCH_API_KEY"),
+            qdrant_url=os.getenv("QDRANT_URL", "http://localhost:6333").strip(),
+            qdrant_api_key=os.getenv("QDRANT_API_KEY"),
             llm_provider=os.getenv("CEREBRO_LLM_PROVIDER", "llamacpp").strip().lower(),
         )
 

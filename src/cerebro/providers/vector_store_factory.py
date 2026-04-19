@@ -20,6 +20,7 @@ VECTOR_STORE_PROVIDER_ALIASES: dict[str, str] = {
     "azuresearch": "azure_search",
     "cognitive-search": "azure_search",
     "azure-cognitive-search": "azure_search",
+    "qdrant": "qdrant",
 }
 
 
@@ -61,6 +62,8 @@ def build_vector_store_provider(
     azure_search_endpoint: str | None = None,
     azure_search_index_name: str | None = None,
     azure_search_api_key: str | None = None,
+    # Qdrant specific
+    qdrant_api_key: str | None = None,
 ) -> VectorStoreProvider:
     """Build the configured vector store provider."""
 
@@ -101,6 +104,21 @@ def build_vector_store_provider(
             service_endpoint=azure_search_endpoint or settings.azure_search_endpoint,
             index_name=azure_search_index_name or settings.azure_search_index_name,
             api_key=azure_search_api_key or settings.azure_search_api_key,
+            default_namespace=namespace or settings.vector_store_namespace,
+            embedding_dimensions=(
+                embedding_dimensions
+                if embedding_dimensions is not None
+                else settings.vector_store_embedding_dimensions
+            ),
+        )
+
+    if canonical_name == "qdrant":
+        from cerebro.providers.qdrant import QdrantVectorStoreProvider
+
+        return QdrantVectorStoreProvider(
+            url=url or settings.qdrant_url,
+            api_key=qdrant_api_key or settings.qdrant_api_key,
+            collection_name=collection_name or settings.vector_store_collection_name,
             default_namespace=namespace or settings.vector_store_namespace,
             embedding_dimensions=(
                 embedding_dimensions
