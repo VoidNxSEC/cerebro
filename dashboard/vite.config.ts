@@ -14,6 +14,16 @@ export default defineConfig({
     port: 18321,
     host: true,
     allowedHosts: true,
+    watch: {
+      ignored: [
+        '**/node_modules/**',
+        '**/.venv/**',
+        '**/dist/**',
+        '**/.git/**',
+        '**/data/**',
+        '**/__pycache__/**',
+      ],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8009',
