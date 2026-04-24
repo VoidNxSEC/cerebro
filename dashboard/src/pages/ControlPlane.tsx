@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Bot, ScanEye, FileSearch2, BarChart2,
+  ScanEye, FileSearch2, BarChart2,
   BrainCircuit, CheckCircle2,
   XCircle, Loader2, Clock, Trash2, Activity,
   ChevronDown, ChevronUp, Database, ShieldCheck,
@@ -165,8 +164,8 @@ export function ControlPlane() {
             <div className="h-px flex-1 bg-border/50" />
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {ACTIONS.filter(a => a.category === cat).map((action, i) => (
-              <ActionCard key={action.id} action={action} index={i} />
+            {ACTIONS.filter(a => a.category === cat).map((action) => (
+              <ActionCard key={action.id} action={action} />
             ))}
           </div>
         </motion.div>
@@ -240,8 +239,7 @@ export function ControlPlane() {
 
 // ─── ActionCard ───────────────────────────────────────────────────────────────
 
-function ActionCard({ action, index }: { action: ActionDef; index: number }) {
-  const navigate = useNavigate()
+function ActionCard({ action }: { action: ActionDef }) {
   const { runs, addRun, updateRun } = useAgentStore()
   const { data: projects } = useProjects()
 

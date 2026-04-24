@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, FolderKanban, BarChart3, Search,
-  FileText, Bot, MessageSquare, Settings, ScanEye,
-  Newspaper, Command, X,
+  FileText, MessageSquare, Settings, ScanEye,
+  Newspaper, Command, X, Zap,
 } from 'lucide-react'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useScanMutation, useScanMetrics } from '@/hooks/useApi'

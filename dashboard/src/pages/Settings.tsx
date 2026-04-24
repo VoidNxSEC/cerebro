@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import {
   RefreshCw,
   Moon,
@@ -7,7 +8,9 @@ import {
   Scan,
   Trash2,
   Cpu,
+  Loader2,
 } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -320,5 +323,3 @@ function StatsBadge({ label, value }: { label: string; value: string }) {
     </div>
   )
 }
-
-import { Switch } from '@/components/ui/switch'

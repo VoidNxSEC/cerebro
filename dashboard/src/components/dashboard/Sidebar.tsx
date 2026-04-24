@@ -9,7 +9,6 @@ import {
   FileText,
   Settings,
   MessageSquare,
-  Bot,
   PanelLeftClose,
   PanelLeftOpen,
   Shield,

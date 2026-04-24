@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import {
   FolderKanban,
   Search,
-  Filter,
   Grid,
   List,
   ExternalLink,
