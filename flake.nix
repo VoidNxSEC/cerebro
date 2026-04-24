@@ -232,7 +232,6 @@
 
         commonBuildInputs = [
           pkgs.poetry
-          pkgs.uv # Fast Python package installer
           pkgs.just
           pkgs.git
           pkgs.sops
