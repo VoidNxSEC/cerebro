@@ -1,0 +1,23 @@
+apiVersion: v2
+name: cerebro
+description: Cerebro — Enterprise RAG Platform (API, ingest worker, reranker, NATS)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+keywords:
+  - rag
+  - knowledge-extraction
+  - vector-store
+  - nats
+  - reranker
+
+home: https://github.com/marcosfpina/cerebro
+maintainers:
+  - name: marcosfpina
+
+dependencies:
+  - name: nats
+    version: "1.2.6"
+    repository: https://nats-io.github.io/k8s/helm/charts/
+    condition: nats.enabled

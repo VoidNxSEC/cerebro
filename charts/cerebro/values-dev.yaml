@@ -1,0 +1,20 @@
+# Development overrides — single replica, minimal resources, in-cluster NATS
+api:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+worker:
+  replicaCount: 1
+
+reranker:
+  enabled: false  # Skip reranker in dev to save resources
+
+nats:
+  enabled: true
+  url: nats://cerebro-nats:4222

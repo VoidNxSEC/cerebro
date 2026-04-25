@@ -84,6 +84,11 @@ class RigorousRAGEngine:
         "AzureOpenAIProvider": "azure",
     }
 
+    # Default relevance gate: refuse to pass context to the LLM if the best
+    # retrieved document scores below this threshold (scores are in [0, 1]).
+    # Override via CEREBRO_MIN_RELEVANCE_SCORE env var or constructor param.
+    DEFAULT_MIN_RELEVANCE_SCORE: ClassVar[float] = 0.25
+
     def __init__(
         self,
         llm_provider: LLMProvider | None = None,
@@ -93,6 +98,7 @@ class RigorousRAGEngine:
         persist_directory: str | None = None,
         vector_store_namespace: str | None = None,
         vector_store_collection_name: str | None = None,
+        min_relevance_score: float | None = None,
     ):
         """
         Initialize RigorousRAGEngine with pluggable providers.
@@ -103,6 +109,9 @@ class RigorousRAGEngine:
             data_store_id: Discovery Engine data store ID for Vertex mode
             location: GCP location for Vertex mode
             persist_directory: Directory for vector store persistence
+            min_relevance_score: Minimum best-doc score [0,1] required to proceed
+                to LLM generation. Docs scoring below this threshold produce an
+                explicit no-context refusal instead of a hallucinated answer.
         """
         settings = get_settings()
 
@@ -119,6 +128,13 @@ class RigorousRAGEngine:
             vector_store_collection_name or settings.vector_store_collection_name
         )
         self.default_provider_name = os.getenv("CEREBRO_LLM_PROVIDER", "llamacpp").strip().lower()
+
+        _env_threshold = os.getenv("CEREBRO_MIN_RELEVANCE_SCORE", "").strip()
+        self.min_relevance_score: float = (
+            min_relevance_score
+            if min_relevance_score is not None
+            else (float(_env_threshold) if _env_threshold else self.DEFAULT_MIN_RELEVANCE_SCORE)
+        )
 
         if llm_provider is None:
             self.llm_provider = self._build_default_llm_provider()
@@ -615,10 +631,11 @@ class RigorousRAGEngine:
             source=match.get("source") or metadata.get("source"),
         )
 
-    def _no_context_response(self, k: int, reason: str) -> dict[str, Any]:
+    def _no_context_response(self, k: int, reason: str, best_score: float | None = None) -> dict[str, Any]:
         return {
-            "answer": "No relevant information found in the indexed corpus.",
+            "answer": "I don't have enough relevant information in the knowledge base to answer this question.",
             "error": False,
+            "no_context": True,
             "metrics": {
                 "avg_confidence": 0.0,
                 "hit_rate_k": f"0/{k} (0%)" if k > 0 else "0%",
@@ -628,7 +645,10 @@ class RigorousRAGEngine:
                 "snippets": [],
                 "cost_estimate_usd": 0.0,
                 "grounded": False,
+                "no_context": True,
                 "reason": reason,
+                "best_score": best_score,
+                "min_relevance_score": self.min_relevance_score,
                 "vector_store_backend": self.vector_store_provider.backend_name,
             },
         }
@@ -728,6 +748,16 @@ class RigorousRAGEngine:
                     k,
                     "Retrieval returned no usable document content.",
                 )
+
+            best_score = max((m.score for m in matches), default=0.0)
+            if best_score < self.min_relevance_score:
+                return self._no_context_response(
+                    k,
+                    f"Retrieved documents are not relevant to this query "
+                    f"(best score {best_score:.3f} < threshold {self.min_relevance_score:.3f}).",
+                    best_score=best_score,
+                )
+
             result = self.llm_provider.grounded_generate(
                 query=query,
                 context=context,

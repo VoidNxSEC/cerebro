@@ -1,6 +1,6 @@
 # Cerebro RAG Production Expansion TODO
 
-**Last updated:** 2026-04-21
+**Last updated:** 2026-04-24
 **Scope:** Extend Cerebro from a local-first RAG stack into a production-ready, multi-backend retrieval platform.
 
 ---
@@ -13,6 +13,9 @@
 | v0.2 | 2026-04-19 | Audit pass — mark completed work; align with actual codebase state |
 | v0.3 | 2026-04-19 | Weaviate provider; all 4 Nix backend dev shells; weaviate poetry group |
 | v0.4 | 2026-04-21 | Canonical metadata schema; API /rag/backends + enriched /rag/status; 5 operational runbooks |
+| v0.5 | 2026-04-24 | 4 new runbooks (LLM providers, RAG pipeline, backend selection, reranker); fix §9/§12 status; dep upgrades |
+| v0.6 | 2026-04-24 | Strategic pivot: distributed platform on BREV + k3s + NATS JetStream + SOPS; real integration tests replace mock contract tests |
+| v0.7 | 2026-04-25 | NATS conforms to Spectre Fleet taxonomy (rag.index.v1, document.indexed.v1); integration test suite; .#brev-deploy shell; Helm chart (charts/cerebro/); registered in spectre/apps/cerebro-rag/ |
 
 ---
 
@@ -210,13 +213,13 @@ Nix dev shell backend tracks (`flake.nix`):
 
 ## 9. API / CLI / Dashboard
 
-- [ ] `cerebro rag backends list` — list all registered provider aliases.
-- [ ] `cerebro rag backend info` — show active backend config and capabilities.
-- [ ] `cerebro rag backend health` — run health check against active backend.
-- [ ] `cerebro rag backend init` — bootstrap schema for active backend.
-- [ ] `cerebro rag backend migrate` — run migration/index update.
-- [ ] Expose backend name, namespace, document count, filter support in `/rag/status` fully.
-- [ ] Surface active backend in dashboard Control Plane panel.
+- [x] `cerebro rag backends list` — list all registered provider aliases.
+- [x] `cerebro rag backend info` — show active backend config and capabilities.
+- [x] `cerebro rag backend health` — run health check against active backend.
+- [x] `cerebro rag backend init` — bootstrap schema for active backend.
+- [x] `cerebro rag backend migrate` — run migration/index update.
+- [x] Expose backend name, namespace, document count, filter support in `/rag/status` fully.
+- [ ] Surface active backend in dashboard Control Plane panel (UI component — API already exposes `/rag/backends`).
 - [ ] Project-scoped chat requests respect namespace in semantic retrieval.
 
 ---
@@ -233,7 +236,12 @@ Nix dev shell backend tracks (`flake.nix`):
   - [x] OpenSearch — snapshot repository (fs/S3), index alias rollback, hybrid search
   - [x] Azure AI Search — index schema export, alias rollback, namespace audit
   - [x] Weaviate — backup (fs/S3), restore, multi-tenancy, hybrid search, rollback
-- [ ] Backup/restore guidance in `docs/`.
+- [x] Cross-cutting operational runbooks:
+  - [x] `llm_providers.md` — 7 LLM backends (llamacpp, anthropic, gemini, groq, azure, openai_compatible, gcp)
+  - [x] `rag_pipeline.md` — end-to-end ingestion/query/rerank operations
+  - [x] `backend_selection.md` — decision tree for choosing vector store
+  - [x] `reranker.md` — `cerebro-reranker` sidecar, fallback, NATS future path
+- [x] Backup/restore guidance folded into per-backend runbooks (§3–4 of each).
 
 ---
 
@@ -252,12 +260,13 @@ Nix dev shell backend tracks (`flake.nix`):
 
 ## 12. Nix / Flake
 
-- [ ] Backend-specific dev shells in `flake.nix`:
-  - [ ] `.#rag-pgvector` — `postgresql` + `psycopg`
-  - [ ] `.#rag-qdrant` — `qdrant` + `qdrant-client`
-  - [ ] `.#rag-opensearch` — `opensearch` + `opensearch-py`
-- [ ] Default shell remains lightweight and local-first (no heavy backend deps).
-- [ ] Each optional backend shell declares only the dependencies it needs.
+- [x] Backend-specific dev shells in `flake.nix`:
+  - [x] `.#rag-pgvector` — `postgresql` + `psycopg`
+  - [x] `.#rag-qdrant` — `qdrant` + `qdrant-client`
+  - [x] `.#rag-opensearch` — `opensearch` + `opensearch-py`
+  - [x] `.#rag-weaviate` — `weaviate` + `weaviate-client`
+- [x] Default shell remains lightweight and local-first (no heavy backend deps).
+- [x] Each optional backend shell declares only the dependencies it needs.
 - [ ] CI integration test jobs use `nix develop .#rag-<backend> --command pytest tests/integration`.
 
 ---
@@ -348,20 +357,82 @@ A backend is production-ready when **all** of the following are true:
 | Benchmark data exists | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | Operational runbook exists | ⬜ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Rollback procedure exists | ⬜ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Docs state when to choose / not choose | ⬜ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Docs state when to choose / not choose | ✅* | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-`chroma` is intentionally development-only and exempt from the Nix shell, integration test, benchmark, and runbook criteria.
+`chroma` is intentionally development-only and exempt from the Nix shell, integration test, benchmark, and runbook criteria. (*) `backend_selection.md` documents when to choose/not choose it.
 `azure_search` has no Nix server package — use the Azure-hosted service directly.
 
 ---
 
 ## 16. Recommended Next Steps
 
-Priority order based on Definition of Done gaps:
+**Strategic pivot (v0.6):** Cerebro is being repositioned from a single-node RAG
+platform to a distributed GPU-orchestrated system running on rented Nvidia BREV
+nodes joined into a k3s cluster. Mock-based provider contract tests are
+de-prioritized in favor of real end-to-end integration tests.
 
-1. **Provider contract tests** (§13) — Qdrant, OpenSearch, Azure Search, Weaviate missing test coverage.
-2. **Grounded/no-context refusal** (§14 Phase 0) — last remaining Phase 0 item; `RigorousRAGEngine` should return explicit no-context signal.
-3. **Content hashing dedup** (§8) — use `content_hash` (now populated) to skip re-embedding unchanged chunks.
-4. **Dashboard backend selector UI** — consume `GET /rag/backends` in the Control Plane panel to surface active backend and capabilities.
-5. **Agent pipeline primitives** — structured multi-step agent flows on top of the RAG layer; reflect in dashboard with per-agent views.
-6. **Integration test suites** (§13) — one per backend, gated behind Nix shells and `CEREBRO_RUN_INTEGRATION=1`.
+### Active workstream: Distribution (Phase 6) — status
+
+1. **NATS JetStream ingestion stream** ✅ — `src/cerebro/nats/` conforms to
+   Spectre Fleet taxonomy: `rag.index.v1` (ingest), `document.indexed.v1.<correlation_id>`
+   (completion). Spectre envelope: `event_id`, `event_type`, `correlation_id`,
+   `source_service`, `timestamp`, `payload`, `metadata`.
+2. **Real integration test via NATS** ✅ — `tests/integration/test_nats_ingest_query.py`
+   (5 tests: publish+complete, query-after-ingest, idempotency, bad-embedding error,
+   namespace cleanup). Gated by `CEREBRO_RUN_INTEGRATION=1`.
+3. **`.#brev-deploy` dev shell** ✅ — `flake.nix` shell with `kubectl`, `kubernetes-helm`,
+   `kubeseal`, `k3sup`, `k9s`, `brev-cli`, plus usage instructions in hook.
+4. **Helm chart** ✅ — `charts/cerebro/` with deployments for api, ingest-worker,
+   reranker; NATS as sub-chart dependency; `values-dev.yaml` and `values-prod.yaml`
+   (GPU nodeSelector for reranker on BREV nodes). `helm lint` passes (0 failures).
+5. **Spectre registration** ✅ — `spectre/apps/cerebro-rag/README.md` documents
+   the integration contract and points to the Python service.
+
+### Deferred (low-priority mock work)
+
+- Provider contract tests for Azure Search and Weaviate (pgvector, qdrant,
+  opensearch already covered). Real integration tests will supersede these.
+
+### Other gaps (unchanged priority)
+
+- **Grounded/no-context refusal** (§14 Phase 0) — `RigorousRAGEngine` should
+  return explicit no-context signal.
+- **Content hashing dedup** (§8) — use `content_hash` to skip re-embedding.
+- **Dashboard backend selector UI** — consume `GET /rag/backends` in Control Plane.
+- **Agent pipeline primitives** — structured multi-step agent flows.
+
+---
+
+## 17. Phase 6 — Distribution (BREV + k3s + NATS)
+
+### Stack decisions
+
+| Layer | Pick | Rationale |
+|-------|------|-----------|
+| GPU compute | Nvidia BREV SSH-joined k3s workers | BREV exposes SSH + kubeconfig; ephemeral nodes join via `k3s agent --token ...`. No need for EKS/GKE overhead. |
+| Orchestration | k3s + Helm chart per service | Lightweight, fits ephemeral BREV nodes. |
+| Inter-node data | NATS JetStream (already in `src/cerebro/nats/`) | Persistent streams, consumer groups, at-least-once. Use for ingestion events, embedding jobs, query fanout, reranker offload. |
+| Secrets | SOPS (age) + `kubeseal` → SealedSecrets | Nix renders SealedSecret manifest at deploy time; no plain secrets in git or env files. |
+| Build | Nix `dockerTools.buildLayeredImage` | Reproducible OCI images, no Dockerfiles, pinned to flake.lock. |
+| Deploy shell | `.#brev-deploy` | Bundles tooling + wrapper scripts. |
+
+### Advanced inter-node tech (optional, later)
+
+- **Ray** — distributed embeddings across GPU pods when NATS consumer groups
+  aren't expressive enough (heterogeneous compute, object spill).
+- **NCCL** — multi-GPU collective ops inside a single reranker pod.
+- **Arrow Flight** — large vector transfers between backends during migration.
+
+NATS JetStream covers 80% of the real need; introduce Ray/NCCL/Flight only when
+a specific workload hits NATS limits.
+
+### Phase 6 success criteria
+
+- [x] NATS module conforms to Spectre Fleet taxonomy
+- [x] Integration test suite exists and skips gracefully without a live cluster
+- [x] `.#brev-deploy` shell provides kubectl, helm, kubeseal, k3sup, k9s, brev-cli
+- [x] Helm chart lints clean; GPU nodeSelector in `values-prod.yaml`
+- [x] Cerebro registered in `spectre/apps/cerebro-rag/`
+- [ ] `nix develop .#brev-deploy --command helm upgrade --install cerebro ...` deploys to a live k3s cluster
+- [ ] `CEREBRO_RUN_INTEGRATION=1 pytest tests/integration/test_nats_ingest_query.py` passes against deployed cluster
+- [ ] A BREV GPU node joins k3s via `k3sup join` and reranker schedules on it

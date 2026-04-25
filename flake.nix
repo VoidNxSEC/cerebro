@@ -241,6 +241,8 @@
           pkgs.pip-audit
           pkgs.nodejs_24
           pkgs.gum # Charmbracelet UI styling for premium terminal DX
+          pkgs.nats-server # Local JetStream server for distributed ingest pipeline
+          pkgs.natscli # `nats` CLI for inspecting streams, consumers, and messages
           pkgs.stdenv.cc.cc.lib
           pkgs.zlib
           # pkgs.llama-cpp  # Removido: puxa CUDA pesado, instalar separado se necessário
@@ -460,6 +462,34 @@
           echo "  Run integration tests: CEREBRO_RUN_INTEGRATION=1 pytest tests/integration -m integration"
         '';
 
+        brevDeployShellHook = ''
+          export CEREBRO_DEPLOY_ENV="''${CEREBRO_DEPLOY_ENV:-dev}"
+          export KUBECONFIG="''${KUBECONFIG:-$HOME/.kube/config}"
+          export SOPS_AGE_KEY_FILE="''${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
+          export NATS_URL="''${NATS_URL:-nats://localhost:4222}"
+
+          echo ""
+          echo "Cerebro BREV Deploy shell (kubectl, helm, kubeseal, k3sup, k9s, brev-cli)"
+          echo ""
+          echo "Provision & join a BREV GPU node:"
+          echo "  brev login"
+          echo "  brev create --name cerebro-gpu --instance-type g6.xlarge"
+          echo "  k3sup join --ip <brev-ip> --server-ip <k3s-server-ip> --user ubuntu --ssh-key ~/.ssh/id_ed25519"
+          echo ""
+          echo "Deploy Cerebro:"
+          echo "  helm dep update charts/cerebro"
+          echo "  helm upgrade --install cerebro charts/cerebro -f charts/cerebro/values-prod.yaml \\"
+          echo "    --set image.tag=\$(git rev-parse --short HEAD)"
+          echo ""
+          echo "Seal a secret:"
+          echo "  kubectl create secret generic cerebro-secrets --dry-run=client \\"
+          echo "    --from-literal=CEREBRO_API_KEY=\$CEREBRO_API_KEY -o yaml \\"
+          echo "    | kubeseal --format yaml > charts/cerebro/templates/sealed-secret.yaml"
+          echo ""
+          echo "Monitor:"
+          echo "  k9s"
+        '';
+
       in
       {
         # Installable package — enables `nix build` and `nix run`
@@ -536,6 +566,20 @@
           ]
           ++ commonBuildInputs;
           shellHook = baseShellHook + ragWeaviateShellHook;
+        };
+
+        devShells.brev-deploy = pkgs.mkShell {
+          buildInputs = [
+            corePythonEnv
+            pkgs.kubectl
+            pkgs.kubernetes-helm
+            pkgs.kubeseal
+            pkgs.k3sup
+            pkgs.k9s
+            pkgs.brev-cli
+          ]
+          ++ commonBuildInputs;
+          shellHook = baseShellHook + brevDeployShellHook;
         };
 
       }

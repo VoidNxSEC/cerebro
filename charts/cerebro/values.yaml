@@ -1,0 +1,82 @@
+image:
+  repository: ghcr.io/marcosfpina/cerebro
+  pullPolicy: IfNotPresent
+  tag: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# ── Cerebro application config ──────────────────────────────────────────────
+cerebro:
+  llmProvider: llamacpp
+  vectorStoreProvider: pgvector
+  namespace: default
+  # Additional env vars injected via ConfigMap
+  extraEnv: {}
+  # Secrets injected via Secret (use kubeseal for production)
+  secrets: {}
+  #   CEREBRO_API_KEY: ""
+  #   CEREBRO_VECTOR_STORE_URL: ""
+
+# ── API service ─────────────────────────────────────────────────────────────
+api:
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  nodeSelector: {}
+
+# ── Ingest worker ────────────────────────────────────────────────────────────
+worker:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  nodeSelector: {}
+
+# ── Reranker sidecar ─────────────────────────────────────────────────────────
+reranker:
+  enabled: true
+  replicaCount: 1
+  port: 8090
+  image:
+    repository: ghcr.io/marcosfpina/cerebro-reranker
+    pullPolicy: IfNotPresent
+    tag: latest
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  nodeSelector: {}
+
+# ── NATS (dependency from nats-io helm chart) ────────────────────────────────
+nats:
+  enabled: true
+  # When nats.enabled=false, set nats.url to an external NATS server
+  url: nats://cerebro-nats:4222
+  config:
+    jetstream:
+      enabled: true
+      fileStore:
+        enabled: true
+        dir: /data

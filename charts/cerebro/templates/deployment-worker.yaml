@@ -1,0 +1,48 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cerebro.fullname" . }}-worker
+  labels:
+    {{- include "cerebro.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ingest-worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "cerebro.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ingest-worker
+  template:
+    metadata:
+      labels:
+        {{- include "cerebro.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ingest-worker
+    spec:
+      serviceAccountName: {{ include "cerebro.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: cerebro-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "-m", "cerebro.nats.worker"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "cerebro.fullname" . }}-config
+            {{- if .Values.cerebro.secrets }}
+            - secretRef:
+                name: {{ include "cerebro.fullname" . }}-secrets
+            {{- end }}
+          env:
+            - name: CEREBRO_WORKER_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+      {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

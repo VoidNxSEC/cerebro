@@ -1,0 +1,22 @@
+Cerebro has been deployed!
+
+API endpoint:
+  kubectl port-forward svc/{{ include "cerebro.fullname" . }}-api 8000:{{ .Values.api.service.port }}
+  curl http://localhost:8000/health
+
+NATS JetStream (ingest pipeline):
+  Subject: rag.index.v1  →  stream: CEREBRO_INGEST
+  Completion: document.indexed.v1.<correlation_id>
+
+{{- if .Values.reranker.enabled }}
+Reranker (internal ClusterIP only):
+  http://{{ include "cerebro.fullname" . }}-reranker:{{ .Values.reranker.port }}/v1/rerank
+{{- end }}
+
+{{- if .Values.worker.enabled }}
+Ingest workers: {{ .Values.worker.replicaCount }} replica(s) consuming rag.index.v1 events
+{{- end }}
+
+Run integration tests:
+  CEREBRO_RUN_INTEGRATION=1 NATS_URL=nats://<nats-svc>:4222 \
+    pytest tests/integration/test_nats_ingest_query.py -v

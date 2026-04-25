@@ -158,8 +158,9 @@ def test_query_with_metrics_no_local_data(mock_llm_provider, mock_vector_store_p
 
     result = engine.query_with_metrics("test query")
 
-    assert "No relevant information found" in result["answer"]
+    assert result["no_context"] is True
     assert result["error"] is False
+    assert result["metrics"]["grounded"] is False
     assert result["metrics"]["avg_confidence"] == 0.0
     assert "0/5" in result["metrics"]["hit_rate_k"]
     assert result["metrics"]["grounded"] is False
@@ -217,6 +218,80 @@ def test_query_with_metrics_uses_local_context(mock_llm_provider, mock_vector_st
         context=["def hello():\n    print('world')"],
         top_k=5,
     )
+
+
+def test_query_refuses_when_scores_below_threshold(mock_llm_provider, mock_vector_store_provider):
+    """Retrieval results below min_relevance_score must produce a no-context refusal."""
+    from unittest.mock import MagicMock, patch
+
+    mock_vector_store_provider.get_document_count.return_value = 10
+    mock_vector_store_provider.search.return_value = [
+        VectorSearchResult(id="doc_1", content="unrelated content", metadata={}, score=0.08),
+        VectorSearchResult(id="doc_2", content="other unrelated", metadata={}, score=0.05),
+    ]
+
+    with patch("cerebro.core.rag.engine.EmbeddingSystem") as mock_embed_cls:
+        mock_embed = MagicMock()
+        mock_embed.embed_query.return_value = [0.1, 0.2]
+        mock_embed_cls.return_value = mock_embed
+
+        engine = RigorousRAGEngine(
+            llm_provider=mock_llm_provider,
+            vector_store_provider=mock_vector_store_provider,
+            min_relevance_score=0.25,
+        )
+        result = engine.query_with_metrics("What is the capital of Mars?")
+
+    assert result["no_context"] is True
+    assert result["error"] is False
+    assert result["metrics"]["grounded"] is False
+    assert result["metrics"]["best_score"] == pytest.approx(0.08)
+    assert "0.080" in result["metrics"]["reason"]
+    mock_llm_provider.grounded_generate.assert_not_called()
+
+
+def test_query_proceeds_when_scores_meet_threshold(mock_llm_provider, mock_vector_store_provider):
+    """When the best score meets min_relevance_score, the LLM must be called."""
+    from unittest.mock import MagicMock, patch
+
+    mock_vector_store_provider.get_document_count.return_value = 5
+    mock_vector_store_provider.search.return_value = [
+        VectorSearchResult(id="doc_1", content="relevant content", metadata={}, score=0.30),
+    ]
+    mock_llm_provider.grounded_generate.return_value = {
+        "answer": "The answer.",
+        "citations": [],
+        "confidence": 0.80,
+        "cost_estimate": 0.0,
+    }
+
+    with patch("cerebro.core.rag.engine.EmbeddingSystem") as mock_embed_cls:
+        mock_embed = MagicMock()
+        mock_embed.embed_query.return_value = [0.1, 0.2]
+        mock_embed_cls.return_value = mock_embed
+
+        engine = RigorousRAGEngine(
+            llm_provider=mock_llm_provider,
+            vector_store_provider=mock_vector_store_provider,
+            min_relevance_score=0.25,
+        )
+        result = engine.query_with_metrics("relevant query")
+
+    assert result.get("no_context") is not True
+    assert result["error"] is False
+    mock_llm_provider.grounded_generate.assert_called_once()
+
+
+def test_min_relevance_score_from_env(monkeypatch):
+    """CEREBRO_MIN_RELEVANCE_SCORE env var must override the default threshold."""
+    monkeypatch.setenv("CEREBRO_MIN_RELEVANCE_SCORE", "0.5")
+    from cerebro.core.rag.engine import RigorousRAGEngine as _E
+    from unittest.mock import MagicMock
+    mock_llm = MagicMock()
+    mock_vs = MagicMock()
+    mock_vs.backend_name = "test"
+    engine = _E(llm_provider=mock_llm, vector_store_provider=mock_vs)
+    assert engine.min_relevance_score == pytest.approx(0.5)
 
 
 def test_embedding_system_uses_project_local_cache_dir(tmp_path, monkeypatch):

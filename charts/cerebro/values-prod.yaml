@@ -1,0 +1,52 @@
+# Production overrides — BREV GPU nodes, SealedSecrets, external pgvector
+cerebro:
+  llmProvider: llamacpp
+  vectorStoreProvider: pgvector
+  namespace: production
+
+api:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+worker:
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  # Schedule workers on CPU nodes, not GPU-tainted nodes
+  nodeSelector:
+    kubernetes.io/arch: amd64
+
+reranker:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      nvidia.com/gpu: "1"
+  # Schedule reranker on GPU-tainted BREV nodes
+  nodeSelector:
+    nvidia.com/gpu: "true"
+
+nats:
+  enabled: true
+  url: nats://cerebro-nats:4222
+  config:
+    cluster:
+      enabled: true
+      replicas: 3
