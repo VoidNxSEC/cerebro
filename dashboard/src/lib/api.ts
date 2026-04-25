@@ -18,6 +18,7 @@ import type {
     WatcherStatus,
     AiHealth,
     RagRuntimeStatus,
+    RagBackendCapabilities,
     ChatRequest,
     ChatResponse,
 } from '@/types'
@@ -159,6 +160,10 @@ class ApiClient {
 
     async getRagStatus(): Promise<RagRuntimeStatus> {
         return this.fetch<RagRuntimeStatus>('/rag/status')
+    }
+
+    async getRagBackends(): Promise<RagBackendCapabilities[]> {
+        return this.fetch<RagBackendCapabilities[]>('/rag/backends')
     }
 
     async chat(request: ChatRequest): Promise<ChatResponse> {

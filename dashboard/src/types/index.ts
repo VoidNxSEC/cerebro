@@ -187,6 +187,15 @@ export interface RagRuntimeStatus {
   error: string | null
 }
 
+export interface RagBackendCapabilities {
+  name: string
+  aliases: string[]
+  active: boolean
+  supports_filters: boolean
+  supports_hybrid: boolean
+  production_ready: boolean
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string

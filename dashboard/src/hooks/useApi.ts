@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useDashboardStore } from '@/stores/dashboard'
 import api from '@/lib/api'
 import { useToast } from '@/hooks/use-toast'
-import type { IntelligenceType, QueryResult, AiHealth, ChatRequest, RagRuntimeStatus } from '@/types'
+import type { IntelligenceType, QueryResult, AiHealth, ChatRequest, RagRuntimeStatus, RagBackendCapabilities } from '@/types'
 
 // Query keys
 export const queryKeys = {
@@ -249,5 +249,13 @@ export function useRagStatus() {
     queryKey: queryKeys.ragStatus,
     queryFn: api.getRagStatus,
     refetchInterval: autoRefresh ? refreshInterval : false,
+  })
+}
+
+export function useRagBackends() {
+  return useQuery<RagBackendCapabilities[]>({
+    queryKey: ['rag-backends'],
+    queryFn: () => api.getRagBackends(),
+    staleTime: 30_000,
   })
 }

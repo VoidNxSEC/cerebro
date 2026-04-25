@@ -5,17 +5,19 @@ import {
   BrainCircuit, CheckCircle2,
   XCircle, Loader2, Clock, Trash2, Activity,
   ChevronDown, ChevronUp, Database, ShieldCheck,
-  Zap,
+  Zap, Filter, GitMerge, Server,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   useScanMutation, useScanMetrics,
-  useAiHealth, useProjects, useRagAction, useKnowledgeAction, useOpsHealth
+  useAiHealth, useProjects, useRagAction, useKnowledgeAction, useOpsHealth,
+  useRagBackends,
 } from '@/hooks/useApi'
 import { useAgentStore } from '@/stores/dashboard'
 import type { AgentRun } from '@/stores/dashboard'
+import type { RagBackendCapabilities } from '@/types'
 import { cn, formatRelativeTime } from '@/lib/utils'
 
 // ─── Action definitions ──────────────────────────────────────────────────────
@@ -109,6 +111,97 @@ const ACTIONS: ActionDef[] = [
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
+// ─── Backend Status Panel ────────────────────────────────────────────────────
+
+function BackendStatusPanel() {
+  const { data: backends, isLoading } = useRagBackends()
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.45 }}
+      className="space-y-4"
+    >
+      <div className="flex items-center gap-4">
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/70 pl-1">
+          Vector Store Backends
+        </h2>
+        <div className="h-px flex-1 bg-border/50" />
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-muted-foreground text-sm pl-1">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading backends…
+        </div>
+      ) : !backends?.length ? (
+        <p className="text-sm text-muted-foreground pl-1">No backends available.</p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {backends.map((b) => (
+            <BackendCard key={b.name} backend={b} />
+          ))}
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
+function BackendCard({ backend: b }: { backend: RagBackendCapabilities }) {
+  return (
+    <div
+      className={cn(
+        'rounded-xl border p-4 glass transition-all',
+        b.active
+          ? 'border-primary/40 bg-primary/5 shadow-md shadow-primary/10'
+          : 'border-border/50 bg-card/40',
+      )}
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <div className={cn('rounded-lg p-1.5', b.active ? 'bg-primary/15' : 'bg-muted')}>
+            <Server className={cn('h-4 w-4', b.active ? 'text-primary' : 'text-muted-foreground')} />
+          </div>
+          <span className="font-semibold text-sm capitalize">{b.name}</span>
+        </div>
+        {b.active && (
+          <Badge variant="default" className="text-[10px] px-1.5 py-0.5 shrink-0">
+            ACTIVE
+          </Badge>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {b.supports_filters && (
+          <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5">
+            <Filter className="h-2.5 w-2.5" />
+            Filters
+          </Badge>
+        )}
+        {b.supports_hybrid && (
+          <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5">
+            <GitMerge className="h-2.5 w-2.5" />
+            Hybrid
+          </Badge>
+        )}
+        {b.production_ready ? (
+          <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5 text-emerald-400 border-emerald-400/20">
+            <CheckCircle2 className="h-2.5 w-2.5" />
+            Production
+          </Badge>
+        ) : (
+          <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5 text-amber-400 border-amber-400/20">
+            Dev only
+          </Badge>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
 export function ControlPlane() {
   const { data: aiHealth } = useAiHealth()
   const { runs, clearRuns } = useAgentStore()
@@ -170,6 +263,9 @@ export function ControlPlane() {
           </div>
         </motion.div>
       ))}
+
+      {/* Backend Status */}
+      <BackendStatusPanel />
 
       {/* Activity Log */}
       <motion.div

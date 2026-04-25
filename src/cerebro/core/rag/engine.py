@@ -305,11 +305,26 @@ class RigorousRAGEngine:
         if not documents:
             return 0
 
+        # Deduplicate within the batch by content_hash (last occurrence wins).
+        # Prevents re-embedding identical chunks that appear multiple times in
+        # the same JSONL file, which is common after repeated analysis runs.
+        seen: dict[str, dict[str, Any]] = {}
+        for doc in documents:
+            seen[doc["content_hash"]] = doc
+        unique = list(seen.values())
+        skipped = len(documents) - len(unique)
+        if skipped:
+            logger.info(
+                "Ingest dedup: skipped %d duplicate chunk(s) in %s (same content_hash).",
+                skipped,
+                jsonl_path,
+            )
+
         self.vector_store_provider.initialize_schema()
-        texts = [document["content"] for document in documents]
+        texts = [doc["content"] for doc in unique]
         embeddings = self._embed_document_texts(texts)
         return self.vector_store_provider.upsert_documents(
-            documents,
+            unique,
             embeddings,
             namespace=self.vector_store_namespace,
         )

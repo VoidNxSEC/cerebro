@@ -146,10 +146,27 @@ class IngestWorker:
             provider_name = self.provider_override or payload.get("provider")
 
             enriched = [self._enrich(doc, namespace) for doc in documents]
+
+            # Deduplicate within the message batch by content_hash.
+            seen: dict[str, dict] = {}
+            for doc in enriched:
+                seen[doc["content_hash"]] = doc
+            unique = list(seen.values())
+            if len(unique) < len(enriched):
+                logger.debug(
+                    "IngestWorker %s dedup: %d → %d unique chunks (correlation_id=%s).",
+                    self.worker_id, len(enriched), len(unique), correlation_id,
+                )
+            if embeddings:
+                # Re-align embeddings to deduplicated order if lengths differ.
+                if len(embeddings) == len(enriched) and len(unique) < len(enriched):
+                    hash_to_idx = {doc["content_hash"]: i for i, doc in enumerate(enriched)}
+                    embeddings = [embeddings[hash_to_idx[doc["content_hash"]]] for doc in unique]
+
             inserted = await asyncio.get_running_loop().run_in_executor(
                 None,
                 self._upsert,
-                enriched,
+                unique,
                 embeddings,
                 namespace,
                 provider_name,
