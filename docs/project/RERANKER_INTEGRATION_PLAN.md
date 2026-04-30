@@ -28,7 +28,7 @@ Atualizar o script de inicialização `start_cerebro.sh` para:
 
 ### 3. Configuração
 Adicionar variáveis de ambiente/configuração:
-- `CEREBRO_RERANKER_URL`: URL do serviço (default: `http://localhost:8000`).
+- `CEREBRO_RERANKER_URL`: URL do serviço (default: `http://localhost:8090`).
 - `CEREBRO_RERANKER_MODE`: `service` (preferido), `local` (legado), `hybrid` (tenta serviço, falha para local).
 
 ## Roadmap de Execução

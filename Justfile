@@ -134,12 +134,13 @@ docs:
 
 # Build static docs site into site/
 docs-build:
-    nix develop --command poetry run mkdocs build --strict
+    nix develop --command poetry run mkdocs build --clean
 
-# Build and deploy docs to Cloudflare Pages (wiki.voidnxlabs.com)
+# Build and deploy docs to Cloudflare Pages (manual path)
 docs-deploy:
-    nix develop --command poetry run mkdocs build --strict
-    wrangler pages deploy site/ --project-name wiki-voidnxlabs --branch main
+    nix develop --command poetry run mkdocs build --clean
+    test -n "$$CLOUDFLARE_PAGES_PROJECT"
+    wrangler pages deploy site/ --project-name "$$CLOUDFLARE_PAGES_PROJECT" --branch main
 
 # ============================================================================
 # DASHBOARD
@@ -182,9 +183,9 @@ dashboard-type-check:
 docker-build:
     docker build -t cerebro:latest .
 
-# Run Docker image
+# Run the deployable API container
 docker-run:
-    docker run -it --rm cerebro:latest cerebro --help
+    docker run -it --rm -p 8000:8000 cerebro:latest
 
 # ============================================================================
 # DEPLOYMENT

@@ -10,7 +10,7 @@ Honest status of every major feature. Each entry includes how to verify it and w
 | Grounded refusal (relevance gate 0.25) | ✅ Implemented | `cerebro test grounded-search "unrelated question"` → `no_context: true` | LLM provider |
 | Multi-backend vector stores | ✅ Code exists | Set `CEREBRO_VECTOR_STORE_PROVIDER=qdrant` (or chroma, weaviate, opensearch, pgvector, azure-ai-search) | Each backend running |
 | Reranker — HybridEngine (MiniLM → Electra → DeBERTa) | ✅ Works | Start `cerebro-reranker` on port 8090; `cerebro rag rerank` uses it automatically | `~/master/cerebro-reranker` running |
-| Backend selector dashboard | ✅ Works | `cerebro serve` → open `http://localhost:3000` → ControlPlane | none |
+| Backend selector dashboard | ✅ Works | `cerebro dashboard` → open `http://localhost:18321` → ControlPlane | none |
 | TUI | ✅ Works | `cerebro tui` | none |
 | CLI (all 45 commands) | ✅ Works | `cerebro --help` | varies per group |
 | Knowledge extraction (AST + metadata) | ✅ Works | `cerebro knowledge analyze /path/to/repo "desc"` | none |
@@ -38,7 +38,7 @@ Offline-only (no env vars needed):
   cerebro metrics scan/watch/report/compare/check
   cerebro rag ingest (chroma backend)
   cerebro tui
-  cerebro serve (dashboard)
+  cerebro dashboard (dashboard)
 
 Needs LLM provider configured:
   cerebro rag query

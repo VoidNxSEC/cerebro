@@ -9,7 +9,7 @@
 [![Nix](https://img.shields.io/badge/Nix-Reproducible-5277C3?style=flat-square&logo=nixos&logoColor=white)](https://nixos.org/)
 [![React](https://img.shields.io/badge/React-Dashboard-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Native-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![Azure Pipelines](https://img.shields.io/badge/Azure-Pipelines-0078D4?style=flat-square&logo=azurepipelines&logoColor=white)](https://azure.microsoft.com/en-us/products/devops/pipelines)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/VoidNxSEC/cerebro/ci.yml?branch=main&style=flat-square&label=GitHub%20Actions)](https://github.com/VoidNxSEC/cerebro/actions/workflows/ci.yml)
 
 `v1.0.0b1` · `cerebro` CLI · Python 3.13+ · Nix-first
 
@@ -39,8 +39,8 @@ cerebro rag ingest ./data/analyzed/all_artifacts.jsonl
 # Query
 cerebro rag query "Explain the RAG pipeline architecture"
 
-# Launch the full API + dashboard
-cerebro serve
+# Launch the API-backed dashboard
+cerebro dashboard
 ```
 
 ---
@@ -53,7 +53,7 @@ Cerebro exposes three fully-featured entry points sharing the same backend:
 |-----------|---------|-------------|
 | **CLI** | `cerebro` / `phantom` | Typer-based CLI for automation, CI/CD, and scripting |
 | **TUI** | `cerebro tui` | Textual interactive terminal UI |
-| **Dashboard** | `cerebro serve` then open `localhost:3000` | React/Vite/TypeScript web dashboard |
+| **Dashboard** | `cerebro dashboard` then open `localhost:18321` | React/Vite/TypeScript web dashboard backed by the API on `localhost:8009` |
 
 ### CLI Command Groups
 
@@ -215,6 +215,22 @@ The central retrieval-augmented generation engine. Features:
 - Prompt injection protection (regex heuristics + control character sanitization)
 - Grounded generation — refuses to label answers as grounded when retrieval fails
 
+---
+
+## Deployment
+
+Production deploy is centered on the Nix-built API image plus Kubernetes:
+
+- Azure ACR publish: [`.github/deploy-acr.yml`](.github/deploy-acr.yml)
+- Azure AKS rollout: [`.github/deploy-aks.yml`](.github/deploy-aks.yml)
+- Deployment runbook: [`docs/guides/DEPLOYMENT.md`](docs/guides/DEPLOYMENT.md)
+
+Notes:
+
+- `cerebro dashboard` is a local developer workflow. It starts the backend on `:8009` and the Vite frontend on `:18321`.
+- The deployable container serves the FastAPI API on `:8000`.
+- Cloud Run remains an optional path via [`.github/deploy.yml`](.github/deploy.yml), using the repo `Dockerfile`.
+
 ### CerebroIntelligence
 
 Hermetic static analyzer operating on codebases without executing them:
@@ -291,8 +307,8 @@ Config snapshot: `AzureDeploymentConfig.from_env()` reads all Azure settings fro
 | Vertex AI Search | Optional fallback retrieval backend |
 | Dialogflow CX | Conversational interface |
 | BigQuery | Billing and usage analytics |
-| Cloud Run | Serverless deployment |
-| Artifact Registry | Container images |
+| Cloud Run | Optional serverless deployment path |
+| Artifact Registry | Optional container registry path |
 
 Config snapshot: `GcpDeploymentConfig.from_env()`.
 
@@ -300,19 +316,20 @@ Config snapshot: `GcpDeploymentConfig.from_env()`.
 
 ## CI/CD
 
-Cerebro CI uses a custom Azure Pipelines template. See `.azure-pipelines/` for configuration.
+The active automation surface is GitHub Actions plus the checked-in GitLab CI file.
 
-**Pipeline stages:** `Validate` → `Test` → `Build` → `LoadTest` → `Deploy`
+### GitHub Actions
 
-| Stage | What runs |
-|-------|-----------|
-| Validate | `nix flake check`, `ruff`, `mypy` |
-| Test (unit) | `pytest tests/unit` |
-| Test (integration) | `pytest tests/integration` with Postgres 16 + NATS 2.10 sidecars |
-| Test (security) | Trufflehog secret scan + Trivy filesystem scan |
-| Build | Docker multi-stage → ACR push + Trivy image scan |
-| LoadTest | Azure Load Testing: `/chat`, `/intelligence/query`, `/rag/status` |
-| Deploy | `KubernetesManifest` → AKS namespace `cerebro` (main branch only, approval gate) |
+- [`.github/ci.yml`](.github/ci.yml) runs the repo CI runner on push and pull request to `main`.
+- [`.github/nix-build.yml`](.github/nix-build.yml) validates the flake build surface.
+- [`.github/deploy-acr.yml`](.github/deploy-acr.yml) publishes the Nix-built API image to ACR.
+- [`.github/deploy-aks.yml`](.github/deploy-aks.yml) deploys that image to AKS.
+- [`.github/deploy.yml`](.github/deploy.yml) is the optional Cloud Run path.
+- [`.github/docs.yml`](.github/docs.yml) builds the MkDocs site for doc-surface regression checks.
+
+### GitLab CI
+
+- [`.gitlab-ci.yml`](.gitlab-ci.yml) and [`.gitlab-ci/`](.gitlab-ci/) remain available for GitLab-driven pipelines.
 
 ---
 

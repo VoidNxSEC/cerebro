@@ -168,7 +168,7 @@ nix develop --command uvicorn app.main:app --port 8090
 cd ~/master/cerebro
 nix develop --command cerebro dashboard
 # Dashboard: http://localhost:18321
-# API:       http://localhost:8000
+# API:       http://localhost:8009
 
 # Terminal 5 — CLI (optional)
 nix develop --command cerebro rag query "describe the main services"

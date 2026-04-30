@@ -1,9 +1,8 @@
 site_name: Cerebro
 site_description: Enterprise Knowledge Extraction Platform
 site_author: voidnxlabs
-site_url: https://marcosfpina.github.io/cerebro
-repo_url: https://github.com/marcosfpina/cerebro
-repo_name: marcosfpina/cerebro
+repo_url: https://github.com/VoidNxSEC/cerebro
+repo_name: VoidNxSEC/cerebro
 docs_dir: docs
 site_dir: site
 
@@ -60,6 +59,7 @@ nav:
   - Getting Started:
       - Quick Start: guides/QUICK_START.md
       - Cheatsheet: guides/CHEATSHEET.md
+      - Deployment Guide: guides/DEPLOYMENT.md
       - Keyboard Shortcuts: guides/KEYBOARD_SHORTCUTS.md
       - Knowledge Base Quickstart: guides/QUICKSTART_KB.md
   - Architecture:

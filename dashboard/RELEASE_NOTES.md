@@ -116,7 +116,7 @@ First production-ready release of the Cerebro Intelligence Dashboard.
 ## 🔌 Integration
 
 ### Backend Requirements
-- **Phantom API**: FastAPI backend on `localhost:8000`
+- **Cerebro API**: FastAPI backend on `localhost:8009` during local dashboard development
 - **Cerebro RAG**: FAISS-powered semantic search
 - **ADR Knowledge Base**: Markdown ADRs indexed
 
@@ -178,7 +178,7 @@ dashboard/
 
 ### Development
 ```bash
-npm run dev  # → http://localhost:3000
+npm run dev  # → http://localhost:18321
 ```
 
 ### Production Build
@@ -226,7 +226,7 @@ docker run -p 3000:80 cerebro-dashboard
 ## 🐛 Known Issues
 
 ### Functional
-- Backend integration pending (API endpoints not implemented)
+- Backend integration depends on the local Cerebro API being available on `localhost:8009`
 - Mock data needed for standalone testing
 - WebSocket support not yet added
 
@@ -320,7 +320,7 @@ MIT License - Part of the Cerebro project
 **Status**: ✅ **Production Ready** (pending backend)
 
 **Next Steps**: 
-1. Implement Phantom API endpoints
+1. Expand Cerebro API endpoint coverage for the dashboard
 2. Integrate with Cerebro RAG
 3. Add real-time data
 4. Deploy to staging

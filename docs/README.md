@@ -31,6 +31,7 @@ docs/
 ### Interfaces and operations
 
 - [Keyboard Shortcuts](guides/KEYBOARD_SHORTCUTS.md)
+- [Deployment Guide](guides/DEPLOYMENT.md)
 - [Dashboard Integration](guides/DASHBOARD_INTEGRATION.md)
 - [GitLab CI/CD](guides/GITLAB_CI_CD.md)
 - [Contributing](guides/CONTRIBUTING_DOCS.md)

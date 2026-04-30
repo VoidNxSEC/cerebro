@@ -36,6 +36,7 @@ Quick navigation for the current documentation set.
 ### Guides
 
 - [Quick Start](guides/QUICK_START.md)
+- [Deployment Guide](guides/DEPLOYMENT.md)
 - [Cheatsheet](guides/CHEATSHEET.md)
 - [Keyboard Shortcuts](guides/KEYBOARD_SHORTCUTS.md)
 - [Dashboard Integration](guides/DASHBOARD_INTEGRATION.md)

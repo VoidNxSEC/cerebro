@@ -1,8 +1,8 @@
 """
-Dashboard API Server — serves the React dashboard at localhost:8000.
+Dashboard API Server — serves the React dashboard API for local development.
 
 Reads real data from MetricsCollector snapshots (zero extra tokens).
-Run:  cerebro dashboard-api   (or directly: uvicorn phantom.dashboard_server:app)
+Run:  uvicorn cerebro.dashboard_server:app --host 0.0.0.0 --port 8009
 """
 
 import os

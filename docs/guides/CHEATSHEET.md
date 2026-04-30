@@ -109,8 +109,9 @@ cerebro test verify-api
 cerebro tui
 
 # API server + dashboard
-cerebro serve
-# then open http://localhost:3000
+cerebro dashboard
+# frontend: http://localhost:18321
+# backend:  http://localhost:8009
 
 # CLI
 cerebro --help
@@ -160,3 +161,18 @@ Key variables:
 nix develop            # Default dev shell
 nix develop .#brev-deploy  # GPU/Kubernetes deploy tools
 ```
+
+---
+
+## Deploy
+
+```bash
+# Build the deployable API image with Nix
+nix build .#dockerImage
+
+# Build and run the Dockerfile-based API container locally
+docker build -t cerebro:latest .
+docker run --rm -p 8000:8000 cerebro:latest
+```
+
+See also: `docs/guides/DEPLOYMENT.md`

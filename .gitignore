@@ -1,7 +1,7 @@
 # ============================================================
 # Cerebro / Phantom .gitignore
 # ============================================================
-
+.codex
 # ── Python ────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
@@ -20,6 +20,8 @@ venv/
 build/
 dist/
 wheels/
+site/
+.wrangler/
 
 # ── Nix ───────────────────────────────────────────────────
 result
@@ -59,6 +61,7 @@ application_default_credentials.json
 
 # ── Claude / IDE / OS ─────────────────────────────────────
 .claude/
+.codex/
 **/.mcp.json
 .vscode/
 .idea/

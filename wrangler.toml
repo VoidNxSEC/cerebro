@@ -1,8 +1,7 @@
-name = "wiki-voidnxlabs"
+name = "cerebro-docs"
 compatibility_date = "2025-01-01"
 
 # Static site served via Cloudflare Pages
-# Deploy with: wrangler pages deploy site/ --project-name wiki-voidnxlabs
+# Deploy with: wrangler pages deploy site/ --project-name "$CLOUDFLARE_PAGES_PROJECT"
 #
-# Custom domain: wiki.voidnxlabs.com
-# Set up in: Cloudflare Dashboard → Pages → wiki-voidnxlabs → Custom Domains
+# Set `CLOUDFLARE_PAGES_PROJECT` to the real Pages project for this workspace.

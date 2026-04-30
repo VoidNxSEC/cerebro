@@ -1,6 +1,6 @@
 # 🎯 CEREBRO Dashboard - Technical Integration Guide
 
-**Status**: Backend Integration Pending  
+**Status**: Backend integrated for local development; keep ports and examples aligned with the current runtime.
 **Date**: 2026-01-26  
 **Version**: 1.0.0
 
@@ -8,7 +8,7 @@
 
 ## 📋 Overview
 
-This document details the integration between Cerebro Dashboard (React frontend) and Phantom Backend (FastAPI), including API contract specifications, data flow, and implementation roadmap.
+This document details the integration between the Cerebro Dashboard (React frontend) and the Cerebro API (FastAPI), including API contract specifications, data flow, and implementation notes.
 
 ---
 
@@ -19,12 +19,12 @@ This document details the integration between Cerebro Dashboard (React frontend)
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        A[React Dashboard<br/>:3000]
+        A[React Dashboard<br/>:18321]
         B[Vite Dev Proxy]
     end
     
     subgraph "Backend Layer"
-        C[Phantom FastAPI<br/>:8000]
+        C[Cerebro FastAPI<br/>:8009]
         D[Judge API]
         E[Cerebro RAG Engine]
     end
@@ -36,7 +36,7 @@ graph TB
     end
     
     A -->|HTTP Request| B
-    B -->|/api/* → :8000/*| C
+    B -->|/api/* → :8009/*| C
     C --> D
     D --> E
     E --> F
@@ -54,8 +54,8 @@ graph TB
 1. **User Action** → React component triggers state change
 2. **TanStack Query** → Calls API hook (`useApi.ts`)
 3. **API Client** → HTTP request to `/api/endpoint`
-4. **Vite Proxy** → Rewrites to `localhost:8000/endpoint`
-5. **Phantom Backend** → Processes request, queries Cerebro RAG
+4. **Vite Proxy** → Rewrites to `localhost:8009/endpoint`
+5. **Cerebro API** → Processes request, queries Cerebro RAG
 6. **Response** → JSON data flows back through proxy
 7. **React Update** → UI re-renders with new data
 
@@ -65,7 +65,7 @@ graph TB
 
 ### Required Endpoints
 
-The dashboard expects the following REST API endpoints from the Phantom backend:
+The dashboard expects the following REST API endpoints from the Cerebro API:
 
 #### 1. System Status
 
@@ -511,10 +511,10 @@ POST /api/actions/summarize/:projectName
 **Goal**: Dashboard displays data (even if mocked)
 
 **Tasks**:
-1. Create FastAPI app in `phantom/src/phantom/api/app.py`
+1. Use the existing FastAPI app in `src/cerebro/api/server.py`
 2. Implement `/api/status` with hardcoded values
 3. Implement `/api/projects` returning static list
-4. Add CORS middleware for `localhost:3000`
+4. Add CORS middleware for `http://localhost:18321`
 5. Test with `curl` and browser
 
 **Acceptance Criteria**:
@@ -585,7 +585,7 @@ POST /api/actions/summarize/:projectName
 For frontend development without backend:
 
 ```python
-# phantom/src/phantom/api/mock_server.py
+# src/cerebro/api/mock_server.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -593,7 +593,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:18321"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -644,7 +644,7 @@ Create `integration-tests/test_dashboard_api.sh`:
 #!/usr/bin/env bash
 set -e
 
-API_BASE="http://localhost:8000/api"
+API_BASE="http://localhost:8009/api"
 
 echo "🧪 Testing Cerebro Dashboard API Integration"
 echo "============================================"
@@ -709,7 +709,7 @@ echo "✅ All tests passed!"
 ## 🔒 Security Considerations
 
 ### CORS
-- Allow `localhost:3000` in development
+- Allow `http://localhost:18321` in development
 - Restrict to `cerebro.example.com` in production
 
 ### Authentication
@@ -746,6 +746,6 @@ echo "✅ All tests passed!"
 
 **Status**: ✅ **Ready for Backend Development**
 
-**Contact**: Dashboard frontend complete, awaiting Phantom API implementation
+**Contact**: Dashboard frontend and local API are both present; update this guide when ports or API contracts change
 
 **Last Updated**: 2026-01-26

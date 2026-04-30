@@ -10,12 +10,16 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+    env:
+      CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'cerebro' }}
+      GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
 
     steps:
       - uses: actions/checkout@v4
 
       # Optional vendor-specific deployment path for teams using GCP/Cloud Run.
-      # This requires configuring Workload Identity Federation.
+      # This uses the repository Dockerfile, so the container must honor $PORT.
+      # It still requires configuring Workload Identity Federation.
       # See: https://github.com/google-github-actions/auth
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
@@ -27,18 +31,24 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
 
-      # Since we are using Nix, we might want to build a Docker image with Nix
-      # or just use a standard Python runtime. For simplicity here, we assume
-      # a standard Python build or a Dockerfile (which we should verify/create).
-
       # Deploy from source when the optional Cloud Run path is explicitly triggered.
       - name: 'Deploy to Cloud Run'
         uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
-          service: 'phantom-cerebro'
-          region: '${{ vars.GCP_REGION || "us-central1" }}'
+          service: '${{ env.CLOUD_RUN_SERVICE }}'
+          region: '${{ env.GCP_REGION }}'
           source: '.'
           env_vars: |
             GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID || vars.GOOGLE_CLOUD_PROJECT_ID }}
             GOOGLE_CLOUD_PROJECT_ID=${{ vars.GCP_PROJECT_ID || vars.GOOGLE_CLOUD_PROJECT_ID }}
             DATA_STORE_ID=${{ vars.DATA_STORE_ID }}
+
+      - name: Publish deployment summary
+        run: |
+          {
+            echo "## Cloud Run Deploy"
+            echo
+            echo "- Service: \`${CLOUD_RUN_SERVICE}\`"
+            echo "- Region: \`${GCP_REGION}\`"
+            echo "- Source: \`Dockerfile\`"
+          } >> "$GITHUB_STEP_SUMMARY"
