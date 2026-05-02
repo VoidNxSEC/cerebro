@@ -1,6 +1,6 @@
 # Cerebro RAG Production Expansion TODO
 
-**Last updated:** 2026-04-24
+**Last updated:** 2026-05-01
 **Scope:** Extend Cerebro from a local-first RAG stack into a production-ready, multi-backend retrieval platform.
 
 ---
@@ -16,6 +16,7 @@
 | v0.5 | 2026-04-24 | 4 new runbooks (LLM providers, RAG pipeline, backend selection, reranker); fix §9/§12 status; dep upgrades |
 | v0.6 | 2026-04-24 | Strategic pivot: distributed platform on BREV + k3s + NATS JetStream + SOPS; real integration tests replace mock contract tests |
 | v0.7 | 2026-04-25 | NATS conforms to Spectre Fleet taxonomy (rag.index.v1, document.indexed.v1); integration test suite; .#brev-deploy shell; Helm chart (charts/cerebro/); registered in spectre/apps/cerebro-rag/ |
+| v0.8 | 2026-05-01 | Comprehensive integration test suites: 80+ tests across 5 backends (pgvector, qdrant, opensearch, azure_search, weaviate); shared fixtures; per-backend test modules with namespace isolation |
 
 ---
 
@@ -282,10 +283,17 @@ Nix dev shell backend tracks (`flake.nix`):
 - [ ] Serialization/filter mapping tests for canonical metadata schema.
 - [ ] Engine tests for edge cases: empty context, backend failure, namespace mismatch, duplicate upsert.
 
-### Integration tests
+### Integration tests ✅ (v0.8 - 2026-05-01)
 
-- [ ] Integration suites per backend, gated behind Nix dev shells and `CEREBRO_RUN_INTEGRATION=1` env flag.
-- [ ] Each suite covers: bootstrap, ingest, query, filtered query, re-ingest (idempotency), delete, health check.
+- [x] Integration suites per backend, gated behind Nix dev shells and `CEREBRO_RUN_INTEGRATION=1` env flag.
+  - [x] `test_pgvector_integration.py` — 16 tests + cleanup: bootstrap, ingest, query, filters, namespace isolation, idempotency, delete, clear, health, export, min_score
+  - [x] `test_qdrant_integration.py` — 16 tests + cleanup: same contract as pgvector
+  - [x] `test_opensearch_integration.py` — 16 tests + cleanup: same contract, export marked as optional
+  - [x] `test_azure_search_integration.py` — 15 tests + cleanup: export skipped (Azure doesn't return vectors via search API)
+  - [x] `test_weaviate_integration.py` — 16 tests + cleanup: same contract with property filters
+- [x] Shared fixture module `conftest_integration.py` with standardized test corpus (5 documents, 768-dim embeddings)
+- [x] Pytest configuration `conftest.py` for integration directory
+- [x] `README.md` with comprehensive running instructions per backend
 
 ### Performance tests
 
@@ -329,14 +337,14 @@ Nix dev shell backend tracks (`flake.nix`):
 
 - [x] `Weaviate` implemented — HNSW COSINE, hybrid BM25+vector, local Nix shell.
 
-### Phase 5: Production polish
+### Phase 5: Production polish ✅ (integration tests complete)
 
 - [x] Nix dev shells per backend track — `.#rag-pgvector`, `.#rag-qdrant`, `.#rag-opensearch`, `.#rag-weaviate`.
-- [ ] Integration test suites gated behind backend shells.
-- [ ] Provider contract tests for all backends.
-- [ ] CLI `cerebro rag backends` introspection commands.
+- [x] Integration test suites gated behind backend shells — `tests/integration/test_<backend>_integration.py` (80+ tests, v0.8).
+- [ ] Provider contract tests for all backends (unit-level mock tests).
+- [x] CLI `cerebro rag backends` introspection commands.
 - [ ] Observability: latency histograms, liveness probes.
-- [ ] Operational runbooks and backup/restore guidance.
+- [x] Operational runbooks and backup/restore guidance.
 - [ ] Dashboard Control Plane backend surface.
 
 ---
@@ -353,14 +361,14 @@ A backend is production-ready when **all** of the following are true:
 | Namespaces work | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Health check returns actionable detail | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Nix dev shell exists | ⬜ | ✅ | ✅ | ✅ | ⬜ | ✅ |
-| Integration tests pass in Nix shell | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Integration tests pass in Nix shell | ⬜ | ✅ | ✅ | ✅ | ✅* | ✅ |
 | Benchmark data exists | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | Operational runbook exists | ⬜ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Rollback procedure exists | ⬜ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Docs state when to choose / not choose | ✅* | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 `chroma` is intentionally development-only and exempt from the Nix shell, integration test, benchmark, and runbook criteria. (*) `backend_selection.md` documents when to choose/not choose it.
-`azure_search` has no Nix server package — use the Azure-hosted service directly.
+`azure_search` has no Nix server package — use the Azure-hosted service directly. Integration tests for Azure Search run without Nix shell (cloud-hosted only).
 
 ---
 
