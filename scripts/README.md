@@ -1,6 +1,6 @@
 # 🧪 Cerebro Testing & Validation
 
-Scripts de validação e CI/CD para o Phantom Framework.
+Validation and CI/CD scripts for the Cerebro platform.
 
 ## 📁 Scripts Disponíveis
 
@@ -158,5 +158,5 @@ Ao adicionar novos comandos, adicione testes correspondentes em:
 
 ---
 
-**Mantido por:** Phantom Framework Team
-**Última atualização:** 2026-01-02
+**Maintained by:** Cerebro Team
+**Last updated:** 2026-05-02

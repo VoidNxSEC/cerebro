@@ -1,5 +1,5 @@
 #!/bin/bash
-# Speedrun script - Executa pipeline completo de consumo de créditos
+# Speedrun script - Full pipeline for GCP Discovery Engine batch processing
 
 set -e
 
@@ -37,17 +37,17 @@ function print_warning() {
 
 function cmd_help() {
     cat <<EOF
-🚀 SPEEDRUN - Phoenix Cloud Run Credit Burner
+🚀 SPEEDRUN - GCP Discovery Engine Batch Query Pipeline
 
 Usage: ./speedrun.sh <command> [options]
 
 Commands:
-  setup                  Setup inicial (validar env, criar datastore)
-  generate [N]           Gerar N queries (default: 10000)
-  burn <file> [workers]  Processar queries do arquivo
-  monitor                Monitorar consumo em tempo real
-  status                 Ver status atual dos créditos
-  all                    Executar tudo (setup + generate + burn)
+  setup                  Initial setup (validate env, create datastore)
+  generate [N]           Generate N queries (default: 10000)
+  process <file> [workers]  Process queries from file
+  monitor                Monitor credit consumption in real time
+  status                 Show current credit status
+  all                    Run everything (setup + generate + process)
 
 Examples:
   ./speedrun.sh setup
@@ -66,31 +66,29 @@ EOF
 function cmd_setup() {
     print_header "🔧 SETUP - Validando ambiente"
 
-    # Check nix develop
     if ! command -v nix &> /dev/null; then
-        print_error "Nix não encontrado. Instale NixOS/Nix primeiro."
+        print_error "Nix not found. Install NixOS/Nix first."
         exit 1
     fi
 
-    print_success "Nix encontrado"
+    print_success "Nix found"
 
-    # Validate GCP
-    print_header "🔐 Validando GCP"
-    nix develop --command python phantom.py gcp validate
+    print_header "🔐 Validating GCP"
+    nix develop --command cerebro gcp validate
 
-    print_success "Setup completo!"
+    print_success "Setup complete!"
 }
 
 function cmd_generate() {
     local count=${1:-10000}
 
-    print_header "📝 Gerando $count queries"
+    print_header "📝 Generating $count queries"
 
     nix develop --command python scripts/generate_queries.py \
         --count "$count" \
         --output "$QUERIES_FILE"
 
-    print_success "Queries geradas: $QUERIES_FILE"
+    print_success "Queries generated: $QUERIES_FILE"
 }
 
 function cmd_burn() {
@@ -98,16 +96,16 @@ function cmd_burn() {
     local workers=${2:-$WORKERS}
 
     if [ ! -f "$file" ]; then
-        print_error "Arquivo não encontrado: $file"
-        print_warning "Execute: ./speedrun.sh generate"
+        print_error "File not found: $file"
+        print_warning "Run: ./speedrun.sh generate"
         exit 1
     fi
 
-    print_header "🔥 QUEIMANDO CRÉDITOS - $file (workers: $workers)"
+    print_header "🔥 Processing queries — $file (workers: $workers)"
 
     if [ -z "$ENGINE_ID" ]; then
-        print_error "ENGINE_ID não definido!"
-        print_warning "Defina: export ENGINE_ID=seu-engine-id"
+        print_error "ENGINE_ID not set!"
+        print_warning "Set: export ENGINE_ID=your-engine-id"
         exit 1
     fi
 
@@ -118,11 +116,11 @@ function cmd_burn() {
         --engine "$ENGINE_ID" \
         --workers "$workers"
 
-    print_success "Batch processing completo!"
+    print_success "Batch processing complete!"
 }
 
 function cmd_monitor() {
-    print_header "📊 Monitorando créditos em tempo real"
+    print_header "📊 Monitoring credits in real time"
 
     nix develop --command python scripts/monitor_credits.py \
         --project "$PROJECT_ID" \
@@ -131,7 +129,7 @@ function cmd_monitor() {
 }
 
 function cmd_status() {
-    print_header "💰 Status atual dos créditos"
+    print_header "💰 Current credit status"
 
     nix develop --command python scripts/monitor_credits.py \
         --project "$PROJECT_ID" \
@@ -140,14 +138,14 @@ function cmd_status() {
 }
 
 function cmd_all() {
-    print_header "🚀 SPEEDRUN COMPLETO"
+    print_header "🚀 FULL SPEEDRUN"
 
     cmd_setup
     cmd_generate 10000
     cmd_burn "$QUERIES_FILE" 20
 
-    print_success "🎉 Speedrun completo!"
-    print_warning "Execute './speedrun.sh monitor' para acompanhar"
+    print_success "🎉 Speedrun complete!"
+    print_warning "Run './speedrun.sh monitor' to track progress"
 }
 
 # Main
@@ -174,7 +172,7 @@ case "${1:-help}" in
         cmd_help
         ;;
     *)
-        print_error "Comando desconhecido: $1"
+        print_error "Unknown command: $1"
         cmd_help
         exit 1
         ;;

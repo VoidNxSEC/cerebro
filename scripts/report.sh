@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Gerador de Relatório de Validação
-# Analisa logs e gera relatório com taxas de sucesso
+# Validation report generator
+# Analyzes logs and computes success rates
 #
 
 set -e

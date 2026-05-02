@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """
-PERSONAL MOAT BUILDER - Analisa seu perfil e gera queries para skills únicos
-
-Estratégia: Você tem 70% em várias skills. Queries para chegar a 95% nas certas = moat.
-
-ROI: Expertise única = zero competição = premium pricing
+Personal skill moat builder — analyzes a skill profile and generates targeted queries
+to deepen expertise in high-value technical areas.
 """
 
 import json

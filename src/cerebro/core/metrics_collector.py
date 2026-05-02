@@ -199,7 +199,7 @@ class MetricsCollector:
                         continue
                     if (sub / ".git").exists():
                         _add(sub)
-                    # two levels (phantom-ray/phantom-stack/services/*)
+                    # two levels deep (e.g. org/repo/services/*)
                     try:
                         for subsub in sorted(sub.iterdir()):
                             if not subsub.is_dir() or subsub.name.startswith(".") or subsub.name in SKIP_DIRS:

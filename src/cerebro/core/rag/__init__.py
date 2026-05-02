@@ -1,5 +1,5 @@
 """
-Phantom Core RAG - Retrieval-Augmented Generation server
+Cerebro Core RAG - Retrieval-Augmented Generation server
 """
 
 # Server is imported dynamically to avoid heavy dependencies

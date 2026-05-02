@@ -7,11 +7,11 @@ from typing import List, Dict
 def transform_docs(input_dir: str = "docs/commands", output_file: str = "data/ingestion/docs_vertex.jsonl"):
     """
     ETL Pipeline:
-    1. Extract: Lê arquivos Markdown gerados
-    2. Transform: Converte para Schema do Vertex AI Search
-    3. Load: Salva JSONL pronto para GCS/BigQuery
+    1. Extract: Read generated Markdown files
+    2. Transform: Convert to Vertex AI Search schema
+    3. Load: Write JSONL ready for GCS/BigQuery ingestion
     """
-    print(f"🏭 Iniciando ETL de Documentação...")
+    print(f"🏭 Starting documentation ETL...")
     
     in_path = Path(input_dir)
     out_path = Path(output_file)

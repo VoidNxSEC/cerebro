@@ -169,7 +169,7 @@ def main():
 
     print("\n📝 NEXT STEPS:")
     print("1. Enable APIs with the commands above")
-    print("2. Create a Data Store (phantom gcp datastores create)")
+    print("2. Create a Data Store (cerebro gcp datastores create)")
     print("3. Run queries that consume credits")
 
     sys.exit(0 if status.authenticated else 1)

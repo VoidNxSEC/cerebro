@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """
-SALARY INTEL - Gera queries de negociação baseado em dados REAIS de mercado
-
-ROI: 1 negociação bem feita = R$ 50k-200k/ano a mais
+Salary intelligence query generator using real market compensation data.
 """
 
 import json

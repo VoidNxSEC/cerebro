@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """
-TREND PREDICTOR - Identifica tech emergente ANTES de virar mainstream
-Analisa GitHub trending, HN, e Reddit para gerar queries sobre futuro.
-
-ROI: Early mover advantage = ser expert quando tech explode
+Tech trend predictor — identifies emerging technologies by analyzing GitHub trending,
+Hacker News, and Reddit, then generates targeted queries for knowledge building.
 """
 
 import json

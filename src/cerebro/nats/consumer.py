@@ -1,9 +1,9 @@
 """
 Cerebro NATS consumer.
 
-Subscribes to ``ingest.file.sanitized.v1`` published by Phantom after a file
-passes the DAG pipeline.  For each event, runs knowledge extraction and
-publishes a ``cognition.insight.generated.v1`` event back onto the bus.
+Subscribes to ``ingest.file.sanitized.v1`` published after a file passes the
+DAG pipeline.  For each event, runs knowledge extraction and publishes a
+``cognition.insight.generated.v1`` event back onto the bus.
 """
 
 import asyncio
@@ -180,7 +180,7 @@ def _extract_knowledge(
     if not themes:
         themes = _infer_themes(mime_type, ext)
     if not summary:
-        summary = f"File {original_filename} processed by Phantom pipeline."
+        summary = f"File {original_filename} processed by Cerebro pipeline."
 
     return themes, concepts, summary, artifacts_count
 
