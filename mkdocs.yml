@@ -61,7 +61,6 @@ nav:
       - Cheatsheet: guides/CHEATSHEET.md
       - Deployment Guide: guides/DEPLOYMENT.md
       - Keyboard Shortcuts: guides/KEYBOARD_SHORTCUTS.md
-      - Knowledge Base Quickstart: guides/QUICKSTART_KB.md
   - Architecture:
       - Overview: architecture/ARCHITECTURE.md
       - Data Flow: architecture/ARCHITECTURE_DATA_FLOW.md
@@ -91,12 +90,6 @@ nav:
       - Strategy:
           - Executive Summary: features/strategy/EXECUTIVE_SUMMARY.md
           - ROI Analysis: features/strategy/HACKS_ROI.md
-      - GCP Credits (optional):
-          - Overview: features/gcp-credits/README.md
-          - Automation Systems: features/gcp-credits/AUTOMATION_SYSTEMS.md
-          - Detailed Guide: features/gcp-credits/CREDIT_BURNER_DETAILED.md
-          - High-ROI Queries: features/gcp-credits/HIGH_ROI_QUERIES.md
-          - Speedrun: features/gcp-credits/README_SPEEDRUN.md
   - Guides:
       - Dashboard Integration: guides/DASHBOARD_INTEGRATION.md
       - Dashboard Quick Summary: guides/DASHBOARD_QUICK_SUMMARY.md
@@ -119,21 +112,29 @@ nav:
       - TODO Plan: project/TODO_PLAN.md
       - Migration Complete: project/MIGRATION_COMPLETE.md
       - Portfolio README: project/README_PORTFOLIO.md
-  - History:
-      - Phase 1 - Core Extraction: phases/PHASE1_IMPLEMENTATION.md
-      - Phase 1 Validation: phases/PHASE1_VALIDATION.md
-      - Phase 1 Quickstart: phases/QUICKSTART_PHASE1.md
-      - Phase 2 - RAG Pipeline: phases/PHASE2_COMPLETE.md
-      - Phase 2 Roadmap: phases/PHASE2_ROADMAP.md
-      - Phase 3 - TUI + Commands: phases/PHASE3_IMPLEMENTATION_COMPLETE.md
-      - Phase 3 Quick Start: phases/PHASE3_QUICK_START.md
-      - Phase 3 Status: phases/PHASE3_STATUS.md
-      - Phase 4 - Metrics + Dashboard: phases/PHASE4_COMPLETE.md
-      - ADR Implementation: phases/ADR_IMPLEMENTATION_COMPLETE.md
-      - Implementation Summary: phases/IMPLEMENTATION_SUMMARY.md
-      - Performance Report: phases/PERFORMANCE_REPORT.md
-      - Next Steps (historical): phases/NEXT-STEPS.md
-      - Project Complete: phases/PROJECT_COMPLETE.md
-  - Translations:
-      - Resumo Executivo (PT-BR): i18n/RESUMO_EXECUTIVO.md
-      - Helper (PT-BR): i18n/helper.md
+  - Archive:
+      - Legacy Guides:
+          - Knowledge Base Quickstart: archive/QUICKSTART_KB.md
+          - GCP Credits Overview: archive/gcp-credits/README.md
+          - Automation Systems: archive/gcp-credits/AUTOMATION_SYSTEMS.md
+          - Detailed Guide: archive/gcp-credits/CREDIT_BURNER_DETAILED.md
+          - High-ROI Queries: archive/gcp-credits/HIGH_ROI_QUERIES.md
+          - Speedrun: archive/gcp-credits/README_SPEEDRUN.md
+      - Historical Phases:
+          - Phase 1 - Core Extraction: archive/phases/PHASE1_IMPLEMENTATION.md
+          - Phase 1 Validation: archive/phases/PHASE1_VALIDATION.md
+          - Phase 1 Quickstart: archive/phases/QUICKSTART_PHASE1.md
+          - Phase 2 - RAG Pipeline: archive/phases/PHASE2_COMPLETE.md
+          - Phase 2 Roadmap: archive/phases/PHASE2_ROADMAP.md
+          - Phase 3 - TUI + Commands: archive/phases/PHASE3_IMPLEMENTATION_COMPLETE.md
+          - Phase 3 Quick Start: archive/phases/PHASE3_QUICK_START.md
+          - Phase 3 Status: archive/phases/PHASE3_STATUS.md
+          - Phase 4 - Metrics + Dashboard: archive/phases/PHASE4_COMPLETE.md
+          - ADR Implementation: archive/phases/ADR_IMPLEMENTATION_COMPLETE.md
+          - Implementation Summary: archive/phases/IMPLEMENTATION_SUMMARY.md
+          - Performance Report: archive/phases/PERFORMANCE_REPORT.md
+          - Next Steps (historical): archive/phases/NEXT-STEPS.md
+          - Project Complete: archive/phases/PROJECT_COMPLETE.md
+      - Translations (PT-BR):
+          - Resumo Executivo: archive/i18n/RESUMO_EXECUTIVO.md
+          - Helper: archive/i18n/helper.md

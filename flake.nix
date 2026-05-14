@@ -401,7 +401,7 @@
           echo "Optional cloud integration shell active:"
           echo "  cerebro gcp status"
           echo "  cerebro gcp monitor"
-          echo "  ./start_embedding_server.sh"
+          echo "  ./scripts/start_embedding_server.sh"
         '';
 
         azureShellHook = ''
