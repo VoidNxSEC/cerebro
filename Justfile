@@ -57,6 +57,28 @@ test-integration:
 test-vertex-limits:
     nix develop .#gcp --command pytest tests/integration/test_vertex_limits.py -v -m integration
 
+# RAG prod-readiness: smoke test with local ChromaDB + LlamaCpp (no external deps)
+test-rag-local:
+    @echo "=== RAG prod-readiness: ChromaDB + LlamaCpp ==="
+    nix develop --command python scripts/rag_smoke_test.py
+    @echo "=== RAG local smoke: PASSED ==="
+
+# RAG prod-readiness: pgvector integration (requires PostgreSQL with pgvector extension)
+# Usage: CEREBRO_VECTOR_STORE_URL=postgresql+psycopg://user:pass@host/db just test-rag-pgvector
+test-rag-pgvector:
+    @echo "=== RAG prod-readiness: pgvector integration ==="
+    CEREBRO_RUN_INTEGRATION=1 CEREBRO_VECTOR_STORE_PROVIDER=pgvector \
+    nix develop .#rag-pgvector --command \
+        pytest tests/integration/test_pgvector_integration.py -v --tb=short
+    @echo "=== RAG pgvector: PASSED ==="
+
+# Full RAG prod-readiness suite: unit + local smoke + (optional) pgvector
+test-rag-prod:
+    @echo "=== RAG PROD-READINESS FULL SUITE ==="
+    just test-unit
+    just test-rag-local
+    @echo "=== ALL RAG PROD CHECKS PASSED ==="
+
 # ============================================================================
 # CODE QUALITY
 # ============================================================================
@@ -178,6 +200,10 @@ dashboard-type-check:
 # ============================================================================
 # DOCKER
 # ============================================================================
+
+# First-run bootstrap: .env, build, start, health check
+bootstrap *ARGS:
+    bash scripts/bootstrap.sh {{ARGS}}
 
 # Build Docker image
 docker-build:
