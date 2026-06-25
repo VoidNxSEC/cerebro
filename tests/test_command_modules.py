@@ -12,7 +12,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-def test_module(module_name: str, app_name: str):
+def _check_module(module_name: str, app_name: str):
     """Test importing and accessing a command module."""
     try:
         print(f"\n{'='*60}")
@@ -57,7 +57,7 @@ def main():
 
     results = {}
     for module_name, app_name in modules:
-        results[module_name] = test_module(module_name, app_name)
+        results[module_name] = _check_module(module_name, app_name)
 
     # Summary
     print("\n" + "="*60)

@@ -535,7 +535,7 @@
         devShells.rag-pgvector = pkgs.mkShell {
           buildInputs = [
             (pkgs.python313.withPackages (ps: (corePythonPackages ps) ++ [ ps.psycopg ]))
-            pkgs.postgresql
+            (pkgs.postgresql.withPackages (p: [ p.pgvector ]))
           ]
           ++ commonBuildInputs;
           shellHook = baseShellHook + ragPgvectorShellHook;

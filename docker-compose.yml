@@ -1,0 +1,119 @@
+services:
+
+  # ── Cerebro RAG API ──────────────────────────────────────────────────────────
+  cerebro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cerebro:latest
+    container_name: cerebro
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8000"
+      PYTHONUNBUFFERED: "1"
+      CEREBRO_VECTOR_STORE_PROVIDER: "${CEREBRO_VECTOR_STORE_PROVIDER:-chroma}"
+      CEREBRO_VECTOR_STORE_PERSIST_DIRECTORY: "/app/data/vector_db"
+      CEREBRO_VECTOR_STORE_COLLECTION_NAME: "${CEREBRO_VECTOR_STORE_COLLECTION_NAME:-cerebro_knowledge}"
+      CEREBRO_MODEL: "${CEREBRO_MODEL:-TheBloke/Mistral-7B-Instruct-v0.2-GPTQ}"
+      CEREBRO_QUANTIZATION: "${CEREBRO_QUANTIZATION:-4bit}"
+      # pgvector
+      CEREBRO_VECTOR_STORE_URL: "${CEREBRO_VECTOR_STORE_URL:-}"
+      # qdrant
+      QDRANT_URL: "${QDRANT_URL:-http://qdrant:6333}"
+      QDRANT_API_KEY: "${QDRANT_API_KEY:-}"
+      # opensearch
+      OPENSEARCH_URL: "${OPENSEARCH_URL:-http://opensearch:9200}"
+      OPENSEARCH_USERNAME: "${OPENSEARCH_USERNAME:-admin}"
+      OPENSEARCH_PASSWORD: "${OPENSEARCH_PASSWORD:-admin}"
+      # anthropic / openai-compatible
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_COMPATIBLE_BASE_URL: "${OPENAI_COMPATIBLE_BASE_URL:-}"
+    volumes:
+      - cerebro_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    depends_on:
+      qdrant:
+        condition: service_healthy
+        required: false
+      postgres:
+        condition: service_healthy
+        required: false
+      opensearch:
+        condition: service_healthy
+        required: false
+
+  # ── Qdrant (optional – activate with: --profile qdrant) ─────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: cerebro_qdrant
+    restart: unless-stopped
+    profiles: [qdrant]
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:6333/readyz"]
+      interval: 20s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # ── PostgreSQL + pgvector (optional – activate with: --profile pgvector) ─────
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: cerebro_postgres
+    restart: unless-stopped
+    profiles: [pgvector]
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-cerebro}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-cerebro}"
+      POSTGRES_DB: "${POSTGRES_DB:-cerebro}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cerebro}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  # ── OpenSearch (optional – activate with: --profile opensearch) ──────────────
+  opensearch:
+    image: opensearchproject/opensearch:2
+    container_name: cerebro_opensearch
+    restart: unless-stopped
+    profiles: [opensearch]
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    environment:
+      discovery.type: single-node
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "${OPENSEARCH_PASSWORD:-Admin@cerebro1}"
+      DISABLE_SECURITY_PLUGIN: "true"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+
+volumes:
+  cerebro_data:
+  qdrant_data:
+  postgres_data:
+  opensearch_data:
