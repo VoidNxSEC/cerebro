@@ -11,6 +11,8 @@ stages:
 
 variables:
   DOCKER_IMAGE: "python:3.13-slim"
+  GCP_REGION: "us-central1"
+  GCP_PROJECT_ID: "gen-lang-client-0530325234"
   POETRY_VIRTUALENVS_IN_PROJECT: "true"
   POETRY_VIRTUALENVS_CREATE: "true"
 
@@ -26,9 +28,8 @@ validate:imports:
     - curl -sSL https://install.python-poetry.org | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry install --no-root
-    - poetry run python -c "from cerebro.core.rag import engine"
-    - poetry run python -c "from cerebro.providers.llamacpp import LlamaCppProvider"
-    - poetry run python -c "from cerebro.providers.chroma import ChromaVectorStoreProvider"
+    - poetry run python -c "from phantom.core import gcp"
+    - poetry run python -c "from phantom.modules import credit_burner"
     - poetry run python -c "import typer; import rich"
   cache:
     paths:
@@ -38,25 +39,6 @@ validate:imports:
     - main
     - merge_requests
 
-validate:optional-gcp-imports:
-  stage: validate
-  image: ${DOCKER_IMAGE}
-  script:
-    - apt-get update && apt-get install -y git curl
-    - curl -sSL https://install.python-poetry.org | python3 -
-    - export PATH="/root/.local/bin:$PATH"
-    - poetry install --no-root --with gcp
-    - poetry run python -c "from cerebro.core import gcp"
-    - poetry run python -c "from cerebro.modules import credit_burner"
-  cache:
-    paths:
-      - .venv/
-      - .cache/pip/
-  allow_failure: true
-  only:
-    - main
-  when: manual
-
 validate:syntax:
   stage: validate
   image: ${DOCKER_IMAGE}
@@ -65,7 +47,7 @@ validate:syntax:
     - curl -sSL https://install.python-poetry.org | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry install --no-root
-    - find src/cerebro/ -name "*.py" -exec python -m py_compile {} \;
+    - find src/phantom/ -name "*.py" -exec python -m py_compile {} \;
   cache:
     paths:
       - .venv/
@@ -75,7 +57,7 @@ validate:syntax:
     - merge_requests
 
 # ============================================================================
-# STAGE 2: TEST - Local-first tests, optional cloud integrations, linting
+# STAGE 2: TEST - Unit tests, integration tests, linting
 # ============================================================================
 
 test:unit:
@@ -86,7 +68,7 @@ test:unit:
     - curl -sSL https://install.python-poetry.org | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry install
-    - poetry run pytest tests/ -v --ignore=tests/integration --cov=src/cerebro --cov-report=xml --cov-report=term
+    - poetry run pytest tests/ -v --ignore=tests/integration --cov=src/phantom --cov-report=xml --cov-report=term
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     reports:
@@ -111,7 +93,7 @@ test:integration:
     - apt-get update && apt-get install -y git
     - curl -sSL https://install.python-poetry.org | python3 -
     - export PATH="/root/.local/bin:$PATH"
-    - poetry install --with gcp
+    - poetry install
     - poetry run pytest tests/integration/ -v -m integration --tb=short
   cache:
     paths:
@@ -120,7 +102,7 @@ test:integration:
   allow_failure: true
   only:
     - main
-  when: manual
+    - merge_requests
 
 test:lint:
   stage: test
@@ -198,17 +180,13 @@ build:docker:
   when: manual
 
 # ============================================================================
-# STAGE 4: OPTIONAL DEPLOY - Vendor-specific Cloud Run path
+# STAGE 4: DEPLOY - Deploy to Cloud Run
 # ============================================================================
 
-deploy:cloud-run:optional:
+deploy:cloud-run:
   stage: deploy
   image: google/cloud-sdk:alpine
-  variables:
-    GCP_REGION: "us-central1"
   script:
-    - test -n "$GCP_SERVICE_ACCOUNT_KEY" || (echo "Set GCP_SERVICE_ACCOUNT_KEY to run the optional Cloud Run deploy" && exit 1)
-    - test -n "$GCP_PROJECT_ID" || (echo "Set GCP_PROJECT_ID to run the optional Cloud Run deploy" && exit 1)
     # Authenticate with GCP using service account key
     - echo $GCP_SERVICE_ACCOUNT_KEY | base64 -d > ${HOME}/gcp-key.json
     - gcloud auth activate-service-account --key-file ${HOME}/gcp-key.json

@@ -94,6 +94,7 @@ nav:
       - Dashboard Integration: guides/DASHBOARD_INTEGRATION.md
       - Dashboard Quick Summary: guides/DASHBOARD_QUICK_SUMMARY.md
       - Dashboard UI/UX: guides/DASHBOARD_UI_UX_IMPROVEMENTS.md
+      - Docker & Compose: guides/DOCKER.md
       - GitLab CI/CD: guides/GITLAB_CI_CD.md
       - GitLab CI Migration: guides/GITLAB_CI_MIGRATION.md
       - Nix + GitLab Duo Setup: guides/NIX_GITLAB_DUO_SETUP.md
