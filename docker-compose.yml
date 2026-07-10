@@ -1,5 +1,4 @@
 services:
-
   # ── Cerebro RAG API ──────────────────────────────────────────────────────────
   cerebro:
     build:
@@ -32,6 +31,10 @@ services:
       ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
       OPENAI_COMPATIBLE_BASE_URL: "${OPENAI_COMPATIBLE_BASE_URL:-}"
+      # nats (spectre)
+      NATS_URL: "${NATS_URL:-nats://host.docker.internal:4222}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - cerebro_data:/app/data
     healthcheck:
@@ -106,7 +109,11 @@ services:
     volumes:
       - opensearch_data:/usr/share/opensearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:9200/_cluster/health || exit 1",
+        ]
       interval: 20s
       timeout: 10s
       start_period: 30s

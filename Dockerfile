@@ -18,9 +18,10 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
 
 # Copy project files
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 COPY docker-entrypoint.sh ./
 COPY src/ ./src/
+COPY poetry.lock ./
 
 # Install dependencies
 RUN poetry config virtualenvs.in-project true && \
@@ -50,7 +51,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
 
 # Create data directories
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
-    mkdir -p /app/data/analyzed /app/data/vector_db /app/data/reports
+    mkdir -p /app/data/analyzed /app/data/vector_db /app/data/reports && \
+    touch /app/README.md
 
 # Health check against the HTTP server used in containers.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

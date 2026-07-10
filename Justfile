@@ -171,7 +171,20 @@ docs-deploy:
 # Start the Dashboard API server (kills any stale process on port 8009 first)
 serve:
     @kill $(lsof -ti:8009) 2>/dev/null || true
-    nix develop --command uvicorn cerebro.api.server:app --host 0.0.0.0 --port 8009 --reload
+    nix develop --command poetry run uvicorn cerebro.api.server:app --host 0.0.0.0 --port 8009 --reload
+
+# Idempotent: sobe a API se não estiver rodando, mostra status do índice se já ativa
+up:
+    @if curl -fsS http://localhost:8009/health > /dev/null 2>&1; then \
+        echo "Cerebro já ativo — índice RAG:"; \
+        curl -s http://localhost:8009/rag/status; \
+    else \
+        just serve; \
+    fi
+
+# Benchmark local (embeddings, RAG latency, ingest throughput)
+bench:
+    nix develop --command poetry run cerebro benchmark run
 
 # Launch the web dashboard (React GUI → http://localhost:18321)
 dashboard:

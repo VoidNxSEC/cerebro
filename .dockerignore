@@ -27,5 +27,4 @@ scripts/
 Justfile
 flake.nix
 flake.lock
-poetry.lock
 requirements.txt
