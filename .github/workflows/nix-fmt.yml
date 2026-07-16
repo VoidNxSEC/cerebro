@@ -9,8 +9,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Inlined from VoidNxSEC/voidnxlabs-workflows reusable-nix-fmt.yml:
+# that repo is private and public repos cannot call private reusable workflows.
 jobs:
   nix-fmt:
-    uses: VoidNxSEC/voidnxlabs-workflows/.github/workflows/reusable-nix-fmt.yml@main
-    secrets: inherit
-
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+      - name: nix fmt check
+        run: nix fmt -- --check .

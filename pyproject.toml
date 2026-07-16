@@ -1,6 +1,6 @@
 [project]
 name = "cerebro"
-version = "0.1.0"
+version = "1.0.0b1"
 description = "Cerebro - Unified Framework for Code Analysis and RAG"
 authors = [{ name = "Kernel Core", email = "kernel@example.com" }]
 readme = "README.md"

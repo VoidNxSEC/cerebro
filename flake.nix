@@ -81,6 +81,7 @@
             # Web Framework
             fastapi
             uvicorn
+            pytest
 
             # ML/AI: torch + transformers installed via Poetry (torch-bin quebrou no nixpkgs-unstable 2.10.0)
             # sentence-transformers também via Poetry
@@ -507,6 +508,23 @@
           provider = "vertex-ai";
         };
         packages.dockerImage = self.packages.${system}.azureDockerImage;
+
+        # CI gate — `nix flake check` runs the unit suite hermetically
+        # (integration/slow tests need live backends and stay out of the sandbox)
+        checks.pytest =
+          pkgs.runCommand "cerebro-pytest"
+            {
+              nativeBuildInputs = [ corePythonEnv ];
+            }
+            ''
+              cp -r ${self} source
+              chmod -R +w source
+              cd source
+              export HOME="$TMPDIR"
+              export PYTHONPATH="$PWD/src"
+              pytest tests/ -q -m "not integration and not slow"
+              touch "$out"
+            '';
 
         # Development shell
         devShells.default = pkgs.mkShell {

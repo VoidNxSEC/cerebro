@@ -1,9 +1,9 @@
 name: Azure ACR Publish
 
+# Manual-only: requires AZURE_CREDENTIALS secret and AZURE_ACR_* variables,
+# which are not configured on this repo yet. Re-enable the push trigger once
+# they exist.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       image_tag:

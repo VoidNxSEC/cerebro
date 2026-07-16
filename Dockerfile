@@ -23,8 +23,13 @@ COPY docker-entrypoint.sh ./
 COPY src/ ./src/
 COPY poetry.lock ./
 
-# Install dependencies
+# Install dependencies.
+# POETRY_REQUESTS_TIMEOUT: default is 15s, too short for the large NVIDIA CUDA
+# wheels pulled in by torch (cublas/cudnn are 300-700MB each).
+# max-workers=4: fewer parallel downloads, less connection contention.
+ENV POETRY_REQUESTS_TIMEOUT=300
 RUN poetry config virtualenvs.in-project true && \
+    poetry config installer.max-workers 4 && \
     poetry install --only main --no-interaction --no-ansi
 
 # Stage 2: Runtime
@@ -47,7 +52,7 @@ COPY --from=builder /app/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.s
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH="/app/src:$PYTHONPATH"
+    PYTHONPATH="/app/src"
 
 # Create data directories
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \

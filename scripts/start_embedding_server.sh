@@ -30,7 +30,7 @@ echo "📍 Port: $PORT"
 
 # Run the server
 cd "$SCRIPT_DIR"
-python -m uvicorn cerebro.core.gcp_embedding_server:app \
+python -m uvicorn cerebro.services.gcp_embedding_server:app \
     --host 0.0.0.0 \
     --port "$PORT" \
     --log-level info \

@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "False positives: docs with example keys and test fixtures that intentionally contain fake secrets"
+paths = [
+  '''skills/.*/references/secure-patterns\.md''',
+  '''tests/test_metrics_collector\.py''',
+  '''__pycache__/''',
+]

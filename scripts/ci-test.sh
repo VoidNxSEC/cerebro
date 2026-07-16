@@ -42,11 +42,12 @@ echo "════════════════════════�
 echo "  Job: Import Tests"
 echo "═══════════════════════════════════════════════════════════"
 
+# GCP modules need the .#gcp devshell — the default shell has no google-* deps
 run_test "Import cerebro.core.gcp" \
-  "nix develop --command python -c 'from cerebro.core import gcp'"
+  "nix develop .#gcp --command python -c 'from cerebro.core import gcp'"
 
 run_test "Import cerebro.modules.credit_burner" \
-  "nix develop --command python -c 'from cerebro.modules import credit_burner'"
+  "nix develop .#gcp --command python -c 'from cerebro.modules import credit_burner'"
 
 run_test "Import typer" \
   "nix develop --command python -c 'import typer'"

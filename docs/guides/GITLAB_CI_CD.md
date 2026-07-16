@@ -43,7 +43,7 @@ This document describes the GitLab CI/CD pipeline for the Cerebro project. The p
 Go to **Project Settings → CI/CD → Variables** and add the following variables:
 
 ```
-GCP_PROJECT_ID = <your-gcp-project-id>
+GCP_PROJECT_ID = gen-lang-client-0530325234
 GCP_REGION = us-central1
 DATA_STORE_ID = <your-data-store-id>
 GCP_SERVICE_ACCOUNT_KEY = <base64-encoded-key>
@@ -59,10 +59,10 @@ GCP_SERVICE_ACCOUNT_KEY = <base64-encoded-key>
 # Pipeline will automatically use shared runners
 ```
 
-**Option B: Use a project-tagged runner**
+**Option B: Use self-hosted NixOS runner**
 ```bash
-# Ensure the project has an available tagged runner
-# Match job tags only when a pipeline requires them
+# Install GitLab Runner on NixOS
+# Configure to use NixOS executor
 # See: https://docs.gitlab.com/runner/
 ```
 

@@ -1,11 +1,10 @@
 name: Deploy to Cloud Run
 
+# Manual-only: requires GCP Workload Identity Federation secrets
+# (GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT) which are not
+# configured on this repo yet. Re-enable the push trigger once they exist.
 on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -39,7 +38,7 @@ jobs:
         uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
           service: 'phantom-cerebro'
-          region: '${{ vars.GCP_REGION || "us-central1" }}'
+          region: ${{ vars.GCP_REGION || 'us-central1' }}
           source: '.'
           env_vars: |
             GOOGLE_CLOUD_PROJECT_ID=${{ vars.GOOGLE_CLOUD_PROJECT_ID }}

@@ -70,3 +70,8 @@ Thumbs.db
 
 # ── Logs ──────────────────────────────────────────────────
 *.log
+
+# Coverage artifacts
+.coverage
+htmlcov/
+logs/
