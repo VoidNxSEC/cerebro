@@ -11,6 +11,11 @@ phantom = "cerebro.cli:app"
 cerebro = "cerebro.cli:app"
 
 [tool.poetry]
+# name/version duplicados do [project]: o poetry2nix (lockado no flake)
+# lê tool.poetry.name no eval; sem isso `packages.default` quebra.
+name = "cerebro"
+version = "1.0.0b1"
+license = "MIT"
 packages = [{ include = "cerebro", from = "src" }]
 
 [tool.poetry.dependencies]
