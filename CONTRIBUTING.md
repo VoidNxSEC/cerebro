@@ -15,7 +15,7 @@ Welcome to the Cerebro project! This document outlines the development workflow,
 
 ## Project Overview
 
-**Cerebro** (formerly Phantom) is a Knowledge Extraction and RAG (Retrieval Augmented Generation) platform that:
+**Cerebro** is a Knowledge Extraction and RAG (Retrieval Augmented Generation) platform that:
 - Extracts and analyzes code semantically
 - Builds a vector store for knowledge retrieval
 - Provides enterprise-grade data platform capabilities
@@ -53,7 +53,7 @@ Cerebro uses a **pluggable provider architecture** to decouple business logic fr
 ### Module Structure
 
 ```
-src/phantom/
+src/cerebro/
 ├── interfaces/              # Abstract base classes
 │   ├── llm.py              # LLMProvider interface
 │   └── vector_store.py     # VectorStoreProvider interface
@@ -116,7 +116,7 @@ All providers must implement one of the core interfaces:
 #### LLMProvider Interface
 
 ```python
-from phantom.interfaces.llm import LLMProvider
+from cerebro.interfaces.llm import LLMProvider
 
 class MyLLMProvider(LLMProvider):
     def embed(self, text: str) -> List[float]:
@@ -143,7 +143,7 @@ class MyLLMProvider(LLMProvider):
 #### VectorStoreProvider Interface
 
 ```python
-from phantom.interfaces.vector_store import VectorStoreProvider
+from cerebro.interfaces.vector_store import VectorStoreProvider
 
 class MyVectorStoreProvider(VectorStoreProvider):
     def add_documents(self, documents: List[Dict[str, Any]], embeddings: List[List[float]], **kwargs) -> int:
@@ -178,16 +178,16 @@ class MyVectorStoreProvider(VectorStoreProvider):
 1. **Create the provider file:**
 
 ```bash
-mkdir -p src/phantom/providers/openai
-touch src/phantom/providers/openai/__init__.py
-touch src/phantom/providers/openai/openai_llm.py
+mkdir -p src/cerebro/providers/openai
+touch src/cerebro/providers/openai/__init__.py
+touch src/cerebro/providers/openai/openai_llm.py
 ```
 
 2. **Implement the LLMProvider interface:**
 
 ```python
-# src/phantom/providers/openai/openai_llm.py
-from phantom.interfaces.llm import LLMProvider
+# src/cerebro/providers/openai/openai_llm.py
+from cerebro.interfaces.llm import LLMProvider
 import openai
 
 class OpenAILLMProvider(LLMProvider):
@@ -244,7 +244,7 @@ class OpenAILLMProvider(LLMProvider):
 3. **Update the provider's __init__.py:**
 
 ```python
-# src/phantom/providers/openai/__init__.py
+# src/cerebro/providers/openai/__init__.py
 from .openai_llm import OpenAILLMProvider
 
 __all__ = ["OpenAILLMProvider"]
@@ -253,8 +253,8 @@ __all__ = ["OpenAILLMProvider"]
 4. **Use the new provider in your code:**
 
 ```python
-from phantom.core.rag.engine import RigorousRAGEngine
-from phantom.providers.openai import OpenAILLMProvider
+from cerebro.core.rag.engine import RigorousRAGEngine
+from cerebro.providers.openai import OpenAILLMProvider
 
 llm = OpenAILLMProvider(api_key="sk-...")
 engine = RigorousRAGEngine(llm_provider=llm)
@@ -309,8 +309,8 @@ Tests should follow these patterns:
 
 ```python
 from unittest.mock import MagicMock, patch
-from phantom.core.rag.engine import RigorousRAGEngine
-from phantom.interfaces.llm import LLMProvider
+from cerebro.core.rag.engine import RigorousRAGEngine
+from cerebro.interfaces.llm import LLMProvider
 
 def test_rag_engine_with_mocked_providers():
     mock_llm = MagicMock(spec=LLMProvider)
@@ -332,7 +332,7 @@ def test_rag_engine_with_mocked_providers():
 ```python
 @pytest.mark.integration
 def test_vertex_ai_embeddings():
-    from phantom.providers.gcp.vertex_ai_llm import VertexAILLMProvider
+    from cerebro.providers.gcp.vertex_ai_llm import VertexAILLMProvider
     
     provider = VertexAILLMProvider(project_id="test-project")
     embeddings = provider.embed_batch(["hello", "world"])
@@ -421,7 +421,7 @@ Fixes #456
 
 ### Common Issues
 
-**Issue:** `ImportError: No module named 'phantom'`
+**Issue:** `ImportError: No module named 'cerebro'`
 
 **Solution:** Ensure you're in the Poetry virtual environment:
 ```bash

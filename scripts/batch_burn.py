@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Batch query processor - Consome créditos GCP em paralelo com Discovery Engine.
-Otimizado para máxima velocidade e valor.
+Batch query processor for GCP Discovery Engine with parallel execution.
 """
 
 import json
@@ -29,7 +28,7 @@ class QueryResult:
     error: Optional[str] = None
 
 
-class BatchBurner:
+class BatchQueryProcessor:
     def __init__(
         self,
         project_id: str,
@@ -59,26 +58,26 @@ class BatchBurner:
         self.start_time = None
 
     def query_with_rag(self, question: str) -> QueryResult:
-        """Executa query com RAG (summary_spec) para máximo custo."""
+        """Execute a RAG-enabled search query against Discovery Engine."""
         start = time.time()
 
         try:
             request = discoveryengine.SearchRequest(
                 serving_config=self.serving_config,
                 query=question,
-                page_size=10,  # Máximo de resultados
+                page_size=10,
                 content_search_spec=discoveryengine.SearchRequest.ContentSearchSpec(
                     summary_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec(
-                        summary_result_count=10,  # MÁXIMO para queimar mais crédito
+                        summary_result_count=10,
                         include_citations=True,
-                        language_code="pt-BR",
+                        language_code="en",
                         model_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec.ModelSpec(
-                            version="preview"  # Preview models podem custar mais
+                            version="preview"
                         ),
                         model_prompt_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec.ModelPromptSpec(
                             preamble=(
-                                "Você é um assistente técnico especializado. "
-                                "Forneça respostas detalhadas e práticas em português."
+                                "You are a specialized technical assistant. "
+                                "Provide detailed and practical answers."
                             )
                         ),
                         ignore_adversarial_query=True,
@@ -89,7 +88,6 @@ class BatchBurner:
 
             response = self.client.search(request)
 
-            # Extrair resposta e citações
             answer = None
             citations = []
 
@@ -108,7 +106,7 @@ class BatchBurner:
                 answer=answer,
                 citations=citations,
                 duration=duration,
-                cost=0.004,  # USD por query com RAG
+                cost=0.004,  # USD per RAG query
             )
 
         except Exception as e:
@@ -123,7 +121,7 @@ class BatchBurner:
             )
 
     def process_batch(self, questions: list[str], save_results: bool = True) -> list[QueryResult]:
-        """Processa batch de queries em paralelo."""
+        """Process a batch of queries in parallel."""
         self.start_time = time.time()
         results = []
 
@@ -142,18 +140,15 @@ class BatchBurner:
             )
 
             with ThreadPoolExecutor(max_workers=self.workers) as executor:
-                # Submit all tasks
                 future_to_question = {
                     executor.submit(self.query_with_rag, q): q
                     for q in questions
                 }
 
-                # Process as they complete
                 for future in as_completed(future_to_question):
                     result = future.result()
                     results.append(result)
 
-                    # Update stats
                     self.total_queries += 1
                     if result.error:
                         self.failed += 1
@@ -163,25 +158,21 @@ class BatchBurner:
 
                     progress.update(task, advance=1)
 
-                    # Rate limiting
                     if self.rate_limit:
                         time.sleep(1.0 / self.rate_limit)
 
-                    # Progress update every 50 queries
                     if self.total_queries % 50 == 0:
                         self._print_stats(interim=True)
 
-        # Final stats
         self._print_stats(interim=False)
 
-        # Save results
         if save_results:
             self._save_results(results)
 
         return results
 
     def _print_stats(self, interim: bool = False):
-        """Imprime estatísticas."""
+        """Print processing statistics."""
         elapsed = time.time() - self.start_time
         qps = self.total_queries / elapsed if elapsed > 0 else 0
 
@@ -198,12 +189,11 @@ class BatchBurner:
         table.add_row("Queries/sec", f"{qps:.2f}")
         table.add_row("", "")
         table.add_row("Cost (USD)", f"${self.total_cost:.2f}")
-        table.add_row("Cost (BRL)", f"R$ {self.total_cost * 5.5:.2f}")
 
         console.print(table)
 
     def _save_results(self, results: list[QueryResult]):
-        """Salva resultados em JSON."""
+        """Save results to JSON."""
         output_file = Path(f"batch_results_{int(time.time())}.json")
 
         data = {
@@ -212,7 +202,6 @@ class BatchBurner:
                 "successful": self.successful,
                 "failed": self.failed,
                 "total_cost_usd": self.total_cost,
-                "total_cost_brl": self.total_cost * 5.5,
                 "workers": self.workers,
                 "timestamp": time.time(),
             },
@@ -229,7 +218,7 @@ class BatchBurner:
             ],
         }
 
-        output_file.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+        output_file.write_text(json.dumps(data, indent=2))
         console.print(f"✅ Results saved to: {output_file}", style="green")
 
 
@@ -237,7 +226,7 @@ def main():
     import argparse
     import os
 
-    parser = argparse.ArgumentParser(description="Batch query processor for GCP credit burning")
+    parser = argparse.ArgumentParser(description="Batch query processor for GCP Discovery Engine")
     parser.add_argument("--file", type=str, required=True, help="Input file with queries (one per line)")
     parser.add_argument("--project", type=str, default=os.getenv("GOOGLE_CLOUD_PROJECT"), help="GCP Project ID")
     parser.add_argument("--location", type=str, default=os.getenv("GOOGLE_CLOUD_LOCATION", "global"), help="GCP Location")
@@ -249,7 +238,6 @@ def main():
 
     args = parser.parse_args()
 
-    # Validate args
     if not args.project:
         console.print("❌ Error: --project or GOOGLE_CLOUD_PROJECT env var required", style="red")
         return 1
@@ -258,7 +246,6 @@ def main():
         console.print("❌ Error: --engine or ENGINE_ID env var required", style="red")
         return 1
 
-    # Load queries
     queries_file = Path(args.file)
     if not queries_file.exists():
         console.print(f"❌ Error: File not found: {queries_file}", style="red")
@@ -271,13 +258,9 @@ def main():
 
     console.print(f"📋 Loaded {len(queries)} queries from {queries_file}", style="cyan")
 
-    # Confirm
     estimated_cost_usd = len(queries) * 0.004
-    estimated_cost_brl = estimated_cost_usd * 5.5
 
-    console.print(f"\n💰 Estimated cost:", style="yellow")
-    console.print(f"   USD: ${estimated_cost_usd:.2f}")
-    console.print(f"   BRL: R$ {estimated_cost_brl:.2f}")
+    console.print(f"\n💰 Estimated cost: ${estimated_cost_usd:.2f} USD", style="yellow")
     console.print(f"   Workers: {args.workers}")
     console.print(f"   Rate limit: {args.rate_limit or 'None'}")
 
@@ -285,8 +268,7 @@ def main():
         console.print("Cancelled.", style="yellow")
         return 0
 
-    # Process
-    burner = BatchBurner(
+    processor = BatchQueryProcessor(
         project_id=args.project,
         location=args.location,
         engine_id=args.engine,
@@ -294,7 +276,7 @@ def main():
         rate_limit=args.rate_limit,
     )
 
-    results = burner.process_batch(queries, save_results=not args.no_save)
+    processor.process_batch(queries, save_results=not args.no_save)
 
     console.print(f"\n✅ Batch processing complete!", style="green")
 

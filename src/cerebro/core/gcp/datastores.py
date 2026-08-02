@@ -95,7 +95,7 @@ class DataStoreManager:
     def create(
         self,
         data_store_id: str,
-        display_name: str = "Phantom Data Store",
+        display_name: str = "Cerebro Data Store",
         industry_vertical: str = "GENERIC",
         content_config: str = "CONTENT_REQUIRED"
     ) -> DataStore:
@@ -221,7 +221,7 @@ def main():
                 print(f"   export DATA_STORE_ID='{ds.id}'")
                 print("\n🔧 To add documents:")
                 print("   1. Via Console: https://console.cloud.google.com/gen-app-builder")
-                print("   2. Via API: phantom knowledge import")
+                print("   2. Via API: cerebro knowledge import")
         else:
             for ds in data_stores:
                 print(f"\n  📦 {ds.display_name}")

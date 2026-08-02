@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-STRATEGY OPTIMIZER - Meta-script que analisa todos os outros e sugere MELHOR estratégia
-
-ROI: Maximizar R$ 10k → $200k/year value através de execution inteligente
+Strategy optimizer — analyzes available query scripts and recommends an optimal
+execution plan based on current credit balance and learning goals.
 """
 
 import json

@@ -1,5 +1,5 @@
 """
-Phantom Core Extraction - Code knowledge extraction and analysis
+Cerebro Core Extraction - Code knowledge extraction and analysis
 """
 
 # Note: These modules are imported dynamically as needed

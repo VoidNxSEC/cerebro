@@ -1,5 +1,5 @@
 """
-Phantom Core - Framework core modules
+Cerebro Core - Framework core modules
 """
 
 __version__ = "2.0.0"

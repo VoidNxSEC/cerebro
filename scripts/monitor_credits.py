@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 """
-Real-time credit consumption monitor usando BigQuery.
+Real-time GCP credit consumption monitor using BigQuery billing export.
 """
 
 import os
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from google.cloud import bigquery
 from rich.console import Console
-from rich.live import Live
 from rich.table import Table
-from rich.panel import Panel
-from rich.layout import Layout
 
 console = Console()
 
@@ -32,19 +29,17 @@ class CreditMonitor:
         self.client = bigquery.Client(project=project_id)
         self.project_id = project_id
 
-        # Auto-detect billing table
         if not dataset or not table:
             dataset, table = self._detect_billing_table()
 
         self.dataset = dataset
         self.table = table
 
-        # Credit IDs
         self.GENAI_CREDIT_ID = "01fcba1620b82830ec89167e55e859767b7a8525813b0b87545996daede01b04"
         self.DIALOGFLOW_CREDIT_ID = "0195bdacde99b9b9ca3d87c9bf6cfec6ab3d34af5d42edbc30e5e3c856e6b2bd"
 
     def _detect_billing_table(self):
-        """Auto-detecta tabela de billing export."""
+        """Auto-detect billing export table."""
         query = f"""
         SELECT table_schema, table_name
         FROM `{self.project_id}.INFORMATION_SCHEMA.TABLES`
@@ -62,7 +57,7 @@ class CreditMonitor:
         return "billing_export", "gcp_billing_export_v1_*"
 
     def get_credit_status(self, days: int = 30) -> dict[str, CreditStatus]:
-        """Busca status dos créditos."""
+        """Query credit usage status from billing export."""
         query = f"""
         WITH credit_data AS (
             SELECT
@@ -100,7 +95,7 @@ class CreditMonitor:
         return results
 
     def generate_table(self, status: dict[str, CreditStatus]) -> Table:
-        """Gera tabela de status."""
+        """Generate credit status display table."""
         table = Table(title=f"💰 GCP Credit Consumption - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         table.add_column("Credit", style="cyan", width=20)
@@ -108,44 +103,35 @@ class CreditMonitor:
         table.add_column("Gross Cost", justify="right", style="yellow")
         table.add_column("Credits Applied", justify="right", style="blue")
         table.add_column("Net Cost", justify="right", style="red")
-        table.add_column("Remaining (BRL)", justify="right", style="magenta")
 
-        # GenAI
         if "genai" in status:
             s = status["genai"]
-            remaining = 6432.54 - (s.credits_applied * 5.5)
             table.add_row(
                 "GenAI App Builder",
                 f"{s.total_queries:,}",
                 f"${s.gross_cost:.2f}",
                 f"${s.credits_applied:.2f}",
                 f"${s.net_cost:.2f}",
-                f"R$ {remaining:.2f}",
             )
         else:
-            table.add_row("GenAI App Builder", "0", "$0.00", "$0.00", "$0.00", "R$ 6,432.54")
+            table.add_row("GenAI App Builder", "0", "$0.00", "$0.00", "$0.00")
 
-        # Dialogflow
         if "dialogflow" in status:
             s = status["dialogflow"]
-            remaining = 3646.57 - (s.credits_applied * 5.5)
             table.add_row(
                 "Dialogflow CX",
                 f"{s.total_queries:,}",
                 f"${s.gross_cost:.2f}",
                 f"${s.credits_applied:.2f}",
                 f"${s.net_cost:.2f}",
-                f"R$ {remaining:.2f}",
             )
         else:
-            table.add_row("Dialogflow CX", "0", "$0.00", "$0.00", "$0.00", "R$ 3,646.57")
+            table.add_row("Dialogflow CX", "0", "$0.00", "$0.00", "$0.00")
 
-        # Total
         total_queries = sum(s.total_queries for s in status.values())
         total_gross = sum(s.gross_cost for s in status.values())
         total_credits = sum(s.credits_applied for s in status.values())
         total_net = sum(s.net_cost for s in status.values())
-        total_remaining = 10079.11 - (total_credits * 5.5)
 
         table.add_row(
             "TOTAL",
@@ -153,14 +139,13 @@ class CreditMonitor:
             f"${total_gross:.2f}",
             f"${total_credits:.2f}",
             f"${total_net:.2f}",
-            f"R$ {total_remaining:.2f}",
             style="bold",
         )
 
         return table
 
     def monitor(self, interval: int = 60, days: int = 30):
-        """Monitor em tempo real."""
+        """Run continuous real-time monitoring."""
         console.print(f"🔍 Monitoring credits every {interval}s (Ctrl+C to stop)\n")
 
         try:
@@ -170,12 +155,8 @@ class CreditMonitor:
                 console.clear()
                 console.print(table)
 
-                # Stats
                 total_credits = sum(s.credits_applied for s in status.values())
-                total_remaining = 10079.11 - (total_credits * 5.5)
-                percent_used = ((10079.11 - total_remaining) / 10079.11) * 100
-
-                console.print(f"\n📊 Overall Progress: {percent_used:.1f}% used")
+                console.print(f"\n📊 Total credits applied: ${total_credits:.2f}")
                 console.print(f"⏰ Next update in {interval}s...")
 
                 time.sleep(interval)

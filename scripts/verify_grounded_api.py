@@ -95,8 +95,7 @@ try:
     print(f"   Endpoint: {client._api_endpoint}")
     print(f"   Transport: {type(client._transport).__name__}")
 
-    # Tenta obter metadata do serviço
-    print(f"\n📋 Métodos disponíveis no client:")
+    print(f"\n📋 Available client methods:")
     grounding_methods = [m for m in dir(client) if 'ground' in m.lower() and not m.startswith('_')]
     for method in grounding_methods:
         print(f"   - {method}")

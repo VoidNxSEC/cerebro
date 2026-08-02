@@ -261,7 +261,7 @@ def main():
     if not data_store_id:
         print("\n❌ DATA_STORE_ID not configured!")
         print("\n🔧 FIX:")
-        print("   1. Run: phantom gcp datastores list")
+        print("   1. Run: cerebro gcp datastores list")
         print("   2. Copy the data store ID")
         print("   3. Export: export DATA_STORE_ID='your-id-here'")
         sys.exit(1)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Auto-generator de queries para maximizar consumo de créditos com valor.
-Gera 10k+ queries técnicas baseadas em templates.
+Auto-generator for technical queries using template expansion.
+Generates large query sets for GCP Discovery Engine ingestion testing.
 """
 
 import itertools
