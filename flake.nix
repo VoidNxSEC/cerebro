@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,6 +19,7 @@
       self,
       nixpkgs,
       flake-utils,
+      poetry2nix,
       sops-nix,
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -130,44 +135,26 @@
             google-resumable-media
           ];
 
-        # ── Sinks (padrão spooknix/neoland): Poetry é dono do .venv;
-        # o Nix injeta suas libs via PYTHONPATH. poetry2nix foi
-        # abandonado — congelado em abr/2025, incompatível com nixpkgs
-        # atual (lib.licenses com funções, assinatura dos
-        # python-modules, tags de wheel riscv64 no pep599 vendorado).
-        poetryWrappedCommand =
-          name: command:
-          pkgs.writeShellApplication {
-            inherit name;
-            runtimeInputs = [ pkgs.poetry ];
-            text = ''
-              exec poetry run ${command} "$@"
-            '';
+        p2nix = poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
+
+        mkPoetryApp =
+          groups:
+          p2nix.mkPoetryApplication {
+            projectDir = self;
+            python = pkgs.python313;
+            inherit groups;
+            checkGroups = [ ];
           };
 
-        cerebroCmd = poetryWrappedCommand "cerebro" "cerebro";
-
-        # API: python do .venv + Nix libs via PYTHONPATH sink.
-        # CEREBRO_REPO aponta pro checkout (systemd usa isso); no shell
-        # o default é $PWD. O venv nasce do `poetry install` que o
-        # devShell já dispara na primeira entrada.
-        cerebroApiSink = pkgs.writeShellApplication {
-          name = "cerebro-api";
-          runtimeInputs = [ corePythonEnv ];
-          text = ''
-            REPO="''${CEREBRO_REPO:-$PWD}"
-            VENV_PYTHON="$REPO/.venv/bin/python"
-            if [ ! -x "$VENV_PYTHON" ]; then
-              echo "⚠️  .venv não encontrado em $REPO. Rode 'nix develop' (poetry install) primeiro." >&2
-              exit 1
-            fi
-            export PYTHONPATH="$REPO/src:${corePythonEnv}/${corePythonEnv.sitePackages}:''${PYTHONPATH:-}"
-            export CEREBRO_LLM_PROVIDER="''${CEREBRO_LLM_PROVIDER:-llamacpp}"
-            export CEREBRO_DATA_DIR="''${CEREBRO_DATA_DIR:-$REPO/data/intelligence}"
-            export CEREBRO_VECTOR_DB="''${CEREBRO_VECTOR_DB:-$REPO/data/vector_db}"
-            exec "$VENV_PYTHON" -m uvicorn cerebro.api.server:app --host 0.0.0.0 --port "''${PORT:-8000}" "$@"
-          '';
-        };
+        coreApp = mkPoetryApp [ "main" ];
+        azureApp = mkPoetryApp [
+          "main"
+          "azure"
+        ];
+        gcpApp = mkPoetryApp [
+          "main"
+          "gcp"
+        ];
 
         appSource = pkgs.runCommand "cerebro-app-source" { } ''
           mkdir -p "$out"
@@ -507,11 +494,9 @@
       in
       {
         # Installable package — enables `nix build` and `nix run`
-        # default = sink da API (bin/cerebro-api); cli = wrapper poetry.
-        # Os antigos packages.azure/gcp (poetry2nix) saíram: os grupos
-        # opcionais entram no venv via `poetry install --with <grupo>`.
-        packages.default = cerebroApiSink;
-        packages.cli = cerebroCmd;
+        packages.default = coreApp;
+        packages.azure = azureApp;
+        packages.gcp = gcpApp;
         packages.azureDockerImage = mkDockerImage {
           name = "cerebro-azure";
           pythonEnv = azurePythonEnv;
