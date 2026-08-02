@@ -84,7 +84,7 @@ src/cerebro/
 
 ```bash
 # Clone the repository
-git clone https://github.com/marcosfpina/cerebro.git
+git clone https://gitlab.com/voidnx/cerebro.git
 cd cerebro
 
 # Install dependencies

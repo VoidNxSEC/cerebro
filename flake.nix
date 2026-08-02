@@ -81,6 +81,7 @@
             # Web Framework
             fastapi
             uvicorn
+            pytest
 
             # ML/AI: torch + transformers installed via Poetry (torch-bin quebrou no nixpkgs-unstable 2.10.0)
             # sentence-transformers também via Poetry
@@ -354,7 +355,7 @@
                         "$(gum style --foreground 42 --bold '🧠 CEREBRO')" \
                         "Enterprise Knowledge Extraction & Distributed RAG Platform" \
                         "$(gum style --foreground 240 'Environment: Reproducible Flake')"
-                      
+
                       # Status Board
                       export STATUS_COLOR="42"
                       export ART_COLOR="42"
@@ -367,7 +368,7 @@
                       gum style --margin "0 2" "$(gum style --foreground 220 'System State:')"
                       gum style --margin "0 4" -- "- Metrics:   $(gum style --foreground $STATUS_COLOR 'Snapshot (cerebro metrics scan)')"
                       gum style --margin "0 4" -- "- Artifacts: $(gum style --foreground $ART_COLOR 'Indexed (cerebro knowledge analyze .)')"
-                      
+
                       echo ""
                       gum style --border rounded --border-foreground 81 --padding "1 1" --margin "0 2" "$(gum style --foreground 212 --bold 'Run [ cerebro setup ] to configure models and APIs!')
           Or type $(gum style --foreground 42 'chelp') for the quick reference guide."
@@ -401,7 +402,7 @@
           echo "Optional cloud integration shell active:"
           echo "  cerebro gcp status"
           echo "  cerebro gcp monitor"
-          echo "  ./start_embedding_server.sh"
+          echo "  ./scripts/start_embedding_server.sh"
         '';
 
         azureShellHook = ''
@@ -508,6 +509,23 @@
         };
         packages.dockerImage = self.packages.${system}.azureDockerImage;
 
+        # CI gate — `nix flake check` runs the unit suite hermetically
+        # (integration/slow tests need live backends and stay out of the sandbox)
+        checks.pytest =
+          pkgs.runCommand "cerebro-pytest"
+            {
+              nativeBuildInputs = [ corePythonEnv ];
+            }
+            ''
+              cp -r ${self} source
+              chmod -R +w source
+              cd source
+              export HOME="$TMPDIR"
+              export PYTHONPATH="$PWD/src"
+              pytest tests/ -q -m "not integration and not slow"
+              touch "$out"
+            '';
+
         # Development shell
         devShells.default = pkgs.mkShell {
           buildInputs = [ corePythonEnv ] ++ commonBuildInputs;
@@ -535,7 +553,7 @@
         devShells.rag-pgvector = pkgs.mkShell {
           buildInputs = [
             (pkgs.python313.withPackages (ps: (corePythonPackages ps) ++ [ ps.psycopg ]))
-            pkgs.postgresql
+            (pkgs.postgresql.withPackages (p: [ p.pgvector ]))
           ]
           ++ commonBuildInputs;
           shellHook = baseShellHook + ragPgvectorShellHook;

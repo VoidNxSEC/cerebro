@@ -76,9 +76,9 @@
 - **VICTORY_PLAYBOOK.md** - Personal manifesto
 
 ### Execution & Reference
-- **README_SPEEDRUN.md** - Execution guide
+- **../archive/gcp-credits/README_SPEEDRUN.md** - Execution guide
 - **README_ARSENAL.md** - Scripts documentation
-- **QUICKSTART_KB.md** - Technical deep dive
+- **../archive/QUICKSTART_KB.md** - Technical deep dive
 - **CHEATSHEET.md** - Quick reference
 - **INDEX.md** - Navigation hub
 

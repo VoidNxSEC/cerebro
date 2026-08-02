@@ -10,7 +10,7 @@
 
 ## 📚 Documentação Criada (8 documentos)
 
-### 1. **QUICKSTART_KB.md** - Technical Deep Dive
+### 1. **../../archive/QUICKSTART_KB.md** - Technical Deep Dive
 - Parâmetros completos do Discovery Engine
 - Scripts prontos para execução
 - Guia de setup BigQuery billing
@@ -20,7 +20,7 @@
 
 ---
 
-### 2. **README_SPEEDRUN.md** - Execution Guide
+### 2. **../../archive/gcp-credits/README_SPEEDRUN.md** - Execution Guide
 - Comandos práticos step-by-step
 - Workflows para diferentes velocidades (teste, scale, turbo)
 - Troubleshooting comum
@@ -57,7 +57,7 @@
 
 ---
 
-### 5. **HIGH_ROI_QUERIES.md** - Ready-to-Use Queries ⭐⭐⭐
+### 5. **../../archive/gcp-credits/HIGH_ROI_QUERIES.md** - Ready-to-Use Queries ⭐⭐⭐
 - 189 queries de alto valor (R$ 3.78 → R$ 500k-2M ROI)
 - 12 query sets categorizados
 - Execution framework
@@ -74,7 +74,7 @@
 
 ---
 
-### 6. **AUTOMATION_SYSTEMS.md** - Long-term Strategy ⭐⭐⭐
+### 6. **../../archive/gcp-credits/AUTOMATION_SYSTEMS.md** - Long-term Strategy ⭐⭐⭐
 - 7 sistemas automatizados
 - Cron jobs configurados
 - ROI composto (valor diário)
@@ -135,7 +135,7 @@ cat batch_results_*.json | jq '.results[0]'
 
 **Segunda:**
 ```bash
-# Escolher 1 query set de HIGH_ROI_QUERIES.md
+# Escolher 1 query set de ../../archive/gcp-credits/HIGH_ROI_QUERIES.md
 # Recomendado: Query Set 3 (Rust Production) ou Set 5 (NixOS)
 cat > my_queries.txt <<EOF
 [colar 15 queries do set escolhido]
@@ -150,7 +150,7 @@ EOF
 - Criar action items
 
 **Sábado:**
-- Implementar Daily Digest (AUTOMATION_SYSTEMS.md)
+- Implementar Daily Digest (../../archive/gcp-credits/AUTOMATION_SYSTEMS.md)
 - Setup cron job
 
 **Domingo:**
@@ -234,7 +234,7 @@ EOF
 - **ROI:** 1-2x (só conhecimento bruto)
 
 ### Abordagem 2: Targeted Queries (BOM)
-- Usar HIGH_ROI_QUERIES.md
+- Usar ../../archive/gcp-credits/HIGH_ROI_QUERIES.md
 - Processar 10k-50k queries estratégicas
 - Documentar e aplicar
 - **ROI:** 10-50x (conhecimento aplicado)
@@ -316,7 +316,7 @@ EOF
 ```bash
 # Executar Query Set 2 (Interview) ou Set 5 (NixOS)
 # Ver valor imediatamente
-./speedrun.sh generate 50  # Customize com queries de HIGH_ROI_QUERIES.md
+./speedrun.sh generate 50  # Customize com queries de ../../archive/gcp-credits/HIGH_ROI_QUERIES.md
 ./speedrun.sh burn queries.txt 10
 ```
 
@@ -324,7 +324,7 @@ EOF
 ```bash
 # Setup + primeiro sistema (Daily Digest)
 ./speedrun.sh setup
-# Implementar scripts/daily_digest.py (copy from AUTOMATION_SYSTEMS.md)
+# Implementar scripts/daily_digest.py (copy from ../../archive/gcp-credits/AUTOMATION_SYSTEMS.md)
 # Rodar primeira vez
 ```
 
@@ -341,7 +341,7 @@ EOF
 ## 🎯 Recomendação Final
 
 **FAÇA:**
-1. **Hoje (2h):** Setup + testar com 50 queries de HIGH_ROI_QUERIES.md
+1. **Hoje (2h):** Setup + testar com 50 queries de ../../archive/gcp-credits/HIGH_ROI_QUERIES.md
 2. **Esta semana:** Implementar Daily Digest + processar 1 query set/dia
 3. **Próximas semanas:** Adicionar 1 sistema novo por semana
 4. **Ongoing:** Monitorar ROI e ajustar estratégia
@@ -366,10 +366,10 @@ EOF
 phoenix-cloud-run/
 ├── EXECUTIVE_SUMMARY.md          ← VOCÊ ESTÁ AQUI
 ├── HACKS_ROI.md                  ← Strategy & mindset
-├── HIGH_ROI_QUERIES.md           ← Ready to execute
-├── AUTOMATION_SYSTEMS.md         ← Long-term systems
-├── QUICKSTART_KB.md              ← Technical reference
-├── README_SPEEDRUN.md            ← Detailed workflows
+├── ../../archive/gcp-credits/HIGH_ROI_QUERIES.md           ← Ready to execute
+├── ../../archive/gcp-credits/AUTOMATION_SYSTEMS.md         ← Long-term systems
+├── ../../archive/QUICKSTART_KB.md              ← Technical reference
+├── ../../archive/gcp-credits/README_SPEEDRUN.md            ← Detailed workflows
 ├── CHEATSHEET.md                 ← Quick reference
 ├── speedrun.sh                   ← CLI wrapper
 └── scripts/                      ← Automation tools
@@ -386,10 +386,10 @@ phoenix-cloud-run/
 # 1. Read this file (DONE ✓)
 
 # 2. Choose your goal:
-#    - New job? → HIGH_ROI_QUERIES.md (Query Set 2)
-#    - Promotion? → HIGH_ROI_QUERIES.md (Query Set 4)
-#    - Expertise? → HIGH_ROI_QUERIES.md (Query Set 3 or 5)
-#    - Long-term? → AUTOMATION_SYSTEMS.md (System 1)
+#    - New job? → ../../archive/gcp-credits/HIGH_ROI_QUERIES.md (Query Set 2)
+#    - Promotion? → ../../archive/gcp-credits/HIGH_ROI_QUERIES.md (Query Set 4)
+#    - Expertise? → ../../archive/gcp-credits/HIGH_ROI_QUERIES.md (Query Set 3 or 5)
+#    - Long-term? → ../../archive/gcp-credits/AUTOMATION_SYSTEMS.md (System 1)
 
 # 3. Execute:
 export ENGINE_ID=seu-engine-id

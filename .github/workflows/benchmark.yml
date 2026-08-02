@@ -1,0 +1,178 @@
+name: RAG Performance Benchmark
+
+on:
+  push:
+    paths:
+      - "src/cerebro/core/rag/**"
+      - "src/cerebro/providers/**"
+      - "src/cerebro/core/rerank*.py"
+      - "src/cerebro/core/rerank_client.py"
+      - "scripts/benchmark.py"
+  pull_request:
+    paths:
+      - "src/cerebro/core/rag/**"
+      - "src/cerebro/providers/**"
+      - "src/cerebro/core/rerank*.py"
+      - "src/cerebro/core/rerank_client.py"
+      - "scripts/benchmark.py"
+  workflow_dispatch:
+    inputs:
+      quick:
+        description: "Quick mode (fewer iterations)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  benchmark-regression:
+    name: Benchmark Regression Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install benchmark dependencies
+        run: |
+          pip install sentence-transformers psutil torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[rag]" --no-deps 2>/dev/null || pip install sentence-transformers psutil
+
+      - name: Start Cerebro API (for query/ingest benchmarks)
+        run: |
+          pip install -e ".[api]" --no-deps 2>/dev/null || true
+          python -m cerebro.api.server &
+          echo "CEREBRO_PID=$!" >> "$GITHUB_ENV"
+          # Give it time to start
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+              echo "Cerebro ready"; break
+            fi
+            sleep 3
+          done
+        env:
+          CEREBRO_VECTOR_STORE_PROVIDER: chroma
+          CEREBRO_LLM_PROVIDER: llamacpp
+        continue-on-error: true
+
+      - name: Run benchmark (embedding only in CI — no GPU)
+        id: benchmark
+        run: |
+          python scripts/benchmark.py \
+            --quick${{ github.event.inputs.quick == 'true' && ' --quick' || '' }} \
+            --cpu-only \
+            --api-url http://localhost:8000 \
+            --output /tmp/benchmark-current.json
+        env:
+          CEREBRO_API_URL: http://localhost:8000
+
+      - name: Check regression against baseline
+        id: regression
+        run: |
+          python - <<'EOF'
+          import json, sys
+          from pathlib import Path
+
+          current_path = Path("/tmp/benchmark-current.json")
+          baseline_path = Path("docs/benchmarks/baseline.json")
+
+          if not current_path.exists():
+              print("No benchmark results found — skipping regression check")
+              sys.exit(0)
+
+          with open(current_path) as f:
+              current = json.load(f)
+
+          if not baseline_path.exists():
+              print("No baseline found — saving current as baseline")
+              baseline_path.parent.mkdir(parents=True, exist_ok=True)
+              import shutil
+              shutil.copy(current_path, baseline_path)
+              sys.exit(0)
+
+          with open(baseline_path) as f:
+              baseline = json.load(f)
+
+          # Check RAG query p95 regression
+          curr_qb = current.get("rag_query_benchmark", {})
+          base_qb = baseline.get("rag_query_benchmark", {})
+
+          regressions = []
+          for metric in ["p50_ms", "p95_ms", "p99_ms"]:
+              curr_val = curr_qb.get(metric)
+              base_val = base_qb.get(metric)
+              if curr_val is not None and base_val is not None and base_val > 0:
+                  change_pct = (curr_val - base_val) / base_val * 100
+                  if change_pct > 20:
+                      regressions.append(f"{metric}: {base_val}ms → {curr_val}ms (+{change_pct:.1f}%)")
+                  print(f"{metric}: {base_val}ms → {curr_val}ms ({change_pct:+.1f}%)")
+
+          if regressions:
+              print("\nREGRESSION DETECTED (>20% slowdown):")
+              for r in regressions:
+                  print(f"  {r}")
+              sys.exit(1)
+          else:
+              print("\nNo regression detected.")
+          EOF
+
+      - name: Generate PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = '/tmp/benchmark-current.json';
+            if (!fs.existsSync(path)) return;
+
+            const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const qb = data.rag_query_benchmark || {};
+            const ib = data.ingest_benchmark || {};
+            const hw = data.hardware || {};
+
+            const device = hw.cuda_available ? `GPU (${hw.cuda_device_name})` : `CPU (${hw.cpu_count} cores)`;
+
+            let body = `## Benchmark Results — ${data.date}\n\n`;
+            body += `**Device:** ${device} | **RAM:** ${hw.ram_total_gb}GB\n\n`;
+
+            if (!qb.error) {
+              body += `### RAG Query Latency\n`;
+              body += `| p50 | p95 | p99 | avg | QPS |\n`;
+              body += `|-----|-----|-----|-----|-----|\n`;
+              body += `| ${qb.p50_ms}ms | ${qb.p95_ms}ms | ${qb.p99_ms}ms | ${qb.avg_ms}ms | ${qb.throughput_qps} |\n\n`;
+            }
+
+            if (!ib.error) {
+              body += `### Ingest Throughput\n`;
+              body += `${ib.n_docs} docs in ${ib.total_s}s = **${ib.docs_per_second} docs/s**\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Upload benchmark artifact
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: /tmp/benchmark-current.json
+          retention-days: 30
+
+      - name: Stop Cerebro API
+        if: always()
+        run: |
+          if [ -n "${CEREBRO_PID:-}" ]; then
+            kill "$CEREBRO_PID" 2>/dev/null || true
+          fi

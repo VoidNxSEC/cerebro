@@ -1,54 +1,134 @@
-# Cerebro Documentation
+# SecureLLM Bridge
 
-This directory contains the documentation for **Cerebro**, organized around a
-standalone, local-first product model with optional vendor-specific integrations.
+Sistema seguro e isolado para comunicação com LLMs (Cloud, Local, Provider, Serverless)
 
-## Documentation Layout
+## 🔒 Segurança por Design
 
-```text
-docs/
-  architecture/   System design, ADRs, data flow
-  commands/       CLI command reference
-  features/       Feature-specific documentation
-    intelligence/ Core analysis and intelligence features
-    gcp-credits/  Optional GCP-specific workflows
-    strategy/     Planning and value documents
-  guides/         Setup, cheatsheets, CI/CD, dashboard, shortcuts
-  phases/         Historical implementation milestones
-  project/        Status, roadmap, audits, execution plans
-  i18n/           Portuguese reference material
+- Isolamento máximo de ambiente
+- Autenticação mútua TLS
+- Rate limiting adaptativo
+- Auditoria completa
+- Sandboxing de execução
+- Zero-trust architecture
+
+## 🎯 Providers Suportados
+
+- **Cloud**: OpenAI, Anthropic, DeepSeek, Cohere
+- **Local**: Ollama, llama.cpp, LocalAI
+- **Custom**: Servidores próprios
+- **Serverless**: AWS Lambda, GCP Functions, Azure Functions
+
+## 🚀 Distribuição
+
+- Desktop integrado (Linux, NixOS, Windows)
+- Containers Docker/Podman
+- Binários standalone
+- Biblioteca Rust (crate)
+
+## 📦 Arquitetura
+
+```
+┌─────────────────────────────────────────────┐
+│         Application Layer                    │
+│  (CLI / Desktop / API Client)               │
+└─────────────┬───────────────────────────────┘
+              │
+┌─────────────▼───────────────────────────────┐
+│         SecureLLM Core                      │
+│  • Request Validation                       │
+│  • Rate Limiting                            │
+│  • Audit Logging                            │
+│  • Data Sanitization                        │
+└─────────────┬───────────────────────────────┘
+              │
+┌─────────────▼───────────────────────────────┐
+│         Security Layer                       │
+│  • TLS Mutual Auth                          │
+│  • Encryption (Transit + Rest)              │
+│  • Sandboxing                               │
+│  • Secret Management                        │
+└─────────────┬───────────────────────────────┘
+              │
+┌─────────────▼───────────────────────────────┐
+│         Provider Abstraction                 │
+│  • Unified Interface                        │
+│  • Provider-specific Logic                  │
+│  • Retry & Fallback                         │
+└─────────────┬───────────────────────────────┘
+              │
+    ┌─────────┴─────────┬──────────────┐
+    ▼                   ▼              ▼
+┌───────┐         ┌──────────┐    ┌────────┐
+│ Cloud │         │  Local   │    │ Custom │
+│ APIs  │         │ Inference│    │ Server │
+└───────┘         └──────────┘    └────────┘
 ```
 
-## Reading Order
+## 🏗️ Roadmap
 
-### Core product
+### Fase 1: Core Foundation (Atual)
+- [x] Estrutura base do projeto
+- [ ] Sistema de configuração seguro
+- [ ] Provider abstraction layer
+- [ ] Basic authentication
 
-- [Quick Start](guides/QUICK_START.md)
-- [CLI Commands](commands/README.md)
-- [Architecture Overview](architecture/ARCHITECTURE.md)
-- [ADR Summary](architecture/ADR_SUMMARY.md)
+### Fase 2: Security Hardening
+- [ ] TLS mutual authentication
+- [ ] Request sandboxing
+- [ ] Rate limiting adaptativo
+- [ ] Audit logging completo
 
-### Interfaces and operations
+### Fase 3: Provider Integration
+- [ ] OpenAI, Anthropic
+- [ ] DeepSeek API
+- [ ] Ollama local
+- [ ] llama.cpp integration
 
-- [Keyboard Shortcuts](guides/KEYBOARD_SHORTCUTS.md)
-- [Deployment Guide](guides/DEPLOYMENT.md)
-- [Dashboard Integration](guides/DASHBOARD_INTEGRATION.md)
-- [GitLab CI/CD](guides/GITLAB_CI_CD.md)
-- [Contributing](guides/CONTRIBUTING_DOCS.md)
+### Fase 4: Advanced Crypto
+- [ ] E2E encryption
+- [ ] Key rotation
+- [ ] HSM support
+- [ ] Zero-knowledge proofs
 
-### Integration-specific material
+### Fase 5: Distribution
+- [ ] Desktop apps
+- [ ] Container images
+- [ ] NixOS packages
+- [ ] Windows installers
 
-- [GCP Credits Overview](features/gcp-credits/README.md)
-- [Automation Systems](features/gcp-credits/AUTOMATION_SYSTEMS.md)
-- [High-ROI Queries](features/gcp-credits/HIGH_ROI_QUERIES.md)
+## 🛠️ Building
 
-These integration-specific documents describe optional workflows; they are not
-required to use the Cerebro core.
+### Prerequisites
 
-### Planning and status
+```bash
+# Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-- [Master Execution Plan](project/MASTER_EXECUTION_PLAN.md)
-- [RAG Production TODO](project/TODO_PLAN.md)
-- [Status](project/STATUS.md)
-- [Coverage Gaps](project/COVERAGE_GAP.md)
-- [Portfolio Audit](project/PORTFOLIO_AUDIT.md)
+# Nix (opcional, para NixOS users)
+curl -L https://nixos.org/nix/install | sh
+```
+
+### Build
+
+```bash
+# Development
+cargo build
+
+# Release
+cargo build --release
+
+# With Nix
+nix build
+```
+
+## 🔐 Filosofia de Segurança
+
+**Secure by Default**: Todas as comunicações são seguras por padrão, opt-out consciente
+**Zero Trust**: Validação em cada camada
+**Defense in Depth**: Múltiplas camadas de segurança
+**Least Privilege**: Mínimos privilégios necessários
+**Auditability**: Tudo é logado e rastreável
+
+## 📝 License
+
+MIT OR Apache-2.0

@@ -22,7 +22,7 @@ from cerebro.interfaces.llm import LLMProvider
 
 logger = logging.getLogger("cerebro.providers.llamacpp")
 
-_DEFAULT_URL = "http://localhost:8081"
+_DEFAULT_URL = "http://localhost:8080"
 _DEFAULT_MODEL = "current-model"
 
 

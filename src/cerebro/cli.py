@@ -3,6 +3,7 @@
 # Copyright (C) 2024-2026 VoidNxLabs
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -77,6 +78,56 @@ if content_app:
     app.add_typer(content_app, name="content")
 if testing_app:
     app.add_typer(testing_app, name="test")
+
+# Benchmark command group
+benchmark_app = typer.Typer(help="Performance benchmarks (GPU/CPU, RAG latency, ingest throughput)", no_args_is_help=True)
+app.add_typer(benchmark_app, name="benchmark")
+
+
+@benchmark_app.command("run")
+def benchmark_run(
+    quick: bool = typer.Option(False, "--quick", help="Fewer iterations (faster, ~2 min)"),
+    gpu_only: bool = typer.Option(False, "--gpu-only", help="Only benchmark GPU device"),
+    cpu_only: bool = typer.Option(False, "--cpu-only", help="Only benchmark CPU device"),
+    no_embed: bool = typer.Option(False, "--no-embed", help="Skip embedding benchmark"),
+    no_rag: bool = typer.Option(False, "--no-rag", help="Skip RAG query benchmark"),
+    no_ingest: bool = typer.Option(False, "--no-ingest", help="Skip ingest benchmark"),
+    api_url: str = typer.Option(
+        os.environ.get("CEREBRO_API_URL", "http://localhost:8009"),
+        "--api-url",
+        help="Cerebro API URL",
+    ),
+    output: str = typer.Option("", "--output", help="Output JSON path (default: docs/benchmarks/benchmark-DATE.json)"),
+):
+    """Run the full Cerebro RAG performance benchmark suite."""
+    import subprocess
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    script = _Path(__file__).parent.parent.parent.parent / "scripts" / "benchmark.py"
+    if not script.exists():
+        # Fallback: look relative to project root
+        script = _Path(__file__).parent.parent.parent / "scripts" / "benchmark.py"
+
+    cmd = [_sys.executable, str(script)]
+    if quick:
+        cmd.append("--quick")
+    if gpu_only:
+        cmd.append("--gpu-only")
+    if cpu_only:
+        cmd.append("--cpu-only")
+    if no_embed:
+        cmd.append("--no-embed")
+    if no_rag:
+        cmd.append("--no-rag")
+    if no_ingest:
+        cmd.append("--no-ingest")
+    if output:
+        cmd += ["--output", output]
+    cmd += ["--api-url", api_url]
+
+    result = subprocess.run(cmd)
+    raise typer.Exit(result.returncode)
 
 
 def load_config(config_path: str):

@@ -1,0 +1,25 @@
+name: Phoenix CI Validation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-commands:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      # Executa o runner de testes de CI que você já criou
+      - name: Run CI Test Runner
+        run: chmod +x ./scripts/ci-test.sh && ./scripts/ci-test.sh

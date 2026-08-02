@@ -13,7 +13,6 @@ try:
 except (ImportError, RuntimeError):
     pytest.skip("httpx required for FastAPI TestClient", allow_module_level=True)
 
-
 # ---------------------------------------------------------------------------
 # Sample snapshot data used across tests
 # ---------------------------------------------------------------------------
@@ -64,12 +63,12 @@ SAMPLE_SNAPSHOT = {
 @pytest.fixture
 def client():
     """Create a TestClient with mocked MetricsCollector."""
-    with patch("cerebro.dashboard_server._collector") as mock_coll:
+    with patch("cerebro.legacy.dashboard_server._collector") as mock_coll:
         mock_coll.load_snapshot.return_value = SAMPLE_SNAPSHOT
         mock_coll.discover_repos.return_value = [MagicMock()] * 2
         mock_coll.collect_all.return_value = [MagicMock(), MagicMock()]
 
-        from cerebro.dashboard_server import app
+        from cerebro.legacy.dashboard_server import app
         with TestClient(app) as c:
             yield c
 
@@ -77,11 +76,11 @@ def client():
 @pytest.fixture
 def empty_client():
     """TestClient where load_snapshot returns None (no data)."""
-    with patch("cerebro.dashboard_server._collector") as mock_coll:
+    with patch("cerebro.legacy.dashboard_server._collector") as mock_coll:
         mock_coll.load_snapshot.return_value = None
         mock_coll.discover_repos.return_value = []
 
-        from cerebro.dashboard_server import app
+        from cerebro.legacy.dashboard_server import app
         with TestClient(app) as c:
             yield c
 

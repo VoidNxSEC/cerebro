@@ -1,147 +1,98 @@
 [project]
-name = "cerebro-cli"
+name = "cerebro"
 version = "1.0.0b1"
-description = "Cerebro - Enterprise Knowledge Extraction Platform"
-authors = [{ name = "voidnxlabs", email = "sec@voidnxlabs.com" }]
-license = { text = "AGPL-3.0-or-later" }
+description = "Cerebro - Unified Framework for Code Analysis and RAG"
+authors = [{ name = "Kernel Core", email = "kernel@example.com" }]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "^3.13"
 
 [project.scripts]
-phantom = "cerebro.launcher:main"
-cerebro = "cerebro.launcher:main"
+phantom = "cerebro.cli:app"
+cerebro = "cerebro.cli:app"
 
 [tool.poetry]
-name = "cerebro-cli"
+# name/version duplicados do [project]: o poetry2nix (lockado no flake)
+# lê tool.poetry.name no eval; sem isso `packages.default` quebra.
+name = "cerebro"
 version = "1.0.0b1"
-description = "Cerebro - Enterprise Knowledge Extraction Platform"
-authors = ["voidnxlabs <sec@voidnxlabs.com>"]
+license = "MIT"
 packages = [{ include = "cerebro", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.13,<3.15"
-fastapi = ">=0.135.0,<1.0.0"
-uvicorn = ">=0.34.0,<1.0.0"
-chromadb = ">=1.5.0,<2.0.0"
-sentence-transformers = ">=5.0.0,<6.0.0"
-transformers = ">=4.50.0,<5.0.0"
-torch = ">=2.6.0,<3.0.0"
-accelerate = ">=1.0.0,<2.0.0"
-bitsandbytes = ">=0.45.0,<1.0.0"
-tree-sitter = ">=0.23.0,<1.0.0"
-tree-sitter-language-pack = ">=0.3.5,<1.0.0"
-gitpython = ">=3.1.46,<4.0.0"
-beautifulsoup4 = ">=4.13.0,<5.0.0"
-markdown = ">=3.7,<4.0"
-pygments = ">=2.19.0,<3.0.0"
-pydantic = ">=2.10.0,<3.0.0"
-typer = ">=0.15.0,<1.0.0"
-rich = ">=15.0.0,<16.0.0"
-tqdm = ">=4.67.0,<5.0.0"
-python-dotenv = ">=1.0.0,<2.0.0"
-pyyaml = ">=6.0.0,<7.0.0"
-langchain = ">=1.0.0,<2.0.0"
-langchain-chroma = ">=1.0.0,<2.0.0"
-langchain-community = ">=0.4.0,<2.0.0"
-langchain-text-splitters = ">=1.0.0,<2.0.0"
-click = ">=8.1.0,<9.0.0"
-textual = ">=8.0.0,<9.0.0"
-textual-dev = ">=1.5.0,<2.0.0"
-websockets = ">=13.0.0,<15.0.0"
-aiofiles = ">=23.2.0,<25.0.0"
-nats-py = ">=2.8.0,<3.0.0"
-dspy-ai = ">=3.2.0,<4.0.0"
-psycopg = ">=3.2.0,<4.0.0"
-
-[tool.poetry.group.gcp]
-optional = true
-
-[tool.poetry.group.gcp.dependencies]
-google-cloud-discoveryengine = ">=0.16.0,<1.0.0"
-google-cloud-storage = ">=3.7.0,<4.0.0"
-google-cloud-aiplatform = ">=1.133.0,<2.0.0"
-google-cloud-billing = ">=1.18.0,<2.0.0"
-google-cloud-bigquery = ">=3.40.0,<4.0.0"
-google-cloud-dialogflow-cx = ">=2.1.0,<3.0.0"
-google-auth = ">=2.47.0,<3.0.0"
-langchain-google-vertexai = ">=3.2.0,<4.0.0"
+python = "^3.13"
+google-cloud-discoveryengine = ">=0.11.0"
+google-cloud-storage = "*"
+google-cloud-aiplatform = "*"
+google-cloud-billing = "*"
+google-cloud-dialogflow-cx = "*"
+google-auth = "*"
+fastapi = "*"
+uvicorn = "*"
+chromadb = "*"
+sentence-transformers = "*"
+transformers = "*"
+torch = "*"
+accelerate = "*"
+bitsandbytes = "*"
+tree-sitter = "*"
+tree-sitter-language-pack = "^0.7.0"
+gitpython = "*"
+beautifulsoup4 = "*"
+markdown = "*"
+pygments = "*"
+pydantic = "*"
+typer = "^0.12.0"
+rich = "*"
+tqdm = "*"
+python-dotenv = "*"
+pyyaml = "^6.0.3"
+langchain = "^1.2.0"
+langchain-chroma = "^1.1.0"
+langchain-google-vertexai = "^3.2.0"
+langchain-community = "^0.4.1"
+langchain-text-splitters = "^1.1.0"
+click = "<8.1.0"
+nats-py = ">=2.6.0"
+psutil = ">=5.9.0"
 
 [tool.poetry.group.anthropic]
 optional = true
 
 [tool.poetry.group.anthropic.dependencies]
-anthropic = "0.45.0"
+anthropic = ">=0.40.0"
 
 [tool.poetry.group.groq]
 optional = true
 
 [tool.poetry.group.groq.dependencies]
-groq = "0.18.0"
+groq = ">=0.11.0"
 
 [tool.poetry.group.gemini]
 optional = true
 
 [tool.poetry.group.gemini.dependencies]
-google-genai = ">=1.0.0,<2.0.0"
+google-generativeai = ">=0.8.0"
 
-[tool.poetry.group.docs]
+[tool.poetry.group.openai]
 optional = true
 
-[tool.poetry.group.docs.dependencies]
-mkdocs-material = "9.5.42"
-mkdocs = "1.6.1"
-
-[tool.poetry.group.azure]
-optional = true
-
-[tool.poetry.group.azure.dependencies]
-langchain-openai = ">=1.0.0,<2.0.0"
-
-[tool.poetry.group.rag-pgvector]
-optional = true
-
-[tool.poetry.group.rag-pgvector.dependencies]
-psycopg = ">=3.2,<4.0"
-
-[tool.poetry.group.rag-qdrant]
-optional = true
-
-[tool.poetry.group.rag-qdrant.dependencies]
-qdrant-client = ">=1.9,<2.0"
-
-[tool.poetry.group.rag-opensearch]
-optional = true
-
-[tool.poetry.group.rag-opensearch.dependencies]
-opensearch-py = ">=2.7,<3.0"
-
-[tool.poetry.group.rag-azure-search]
-optional = true
-
-[tool.poetry.group.rag-azure-search.dependencies]
-azure-search-documents = ">=11.6,<12.0"
-azure-identity = ">=1.17,<2.0"
-
-[tool.poetry.group.rag-weaviate]
-optional = true
-
-[tool.poetry.group.rag-weaviate.dependencies]
-weaviate-client = ">=4.9,<5.0"
+[tool.poetry.group.openai.dependencies]
+openai = ">=1.30.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "8.3.4"
-pytest-cov = "6.0.0"
-pytest-asyncio = "0.25.3"
-black = "25.1.0"
-isort = "6.0.0"
-ruff = "0.9.6"
-mypy = "1.15.0"
-types-pyyaml = "6.0.12.20241230"
-types-requests = "2.32.0.20241016"
+pytest = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
+black = "*"
+isort = "*"
+ruff = "*"
+mypy = "*"
+types-pyyaml = "*"
+types-requests = "*"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-norecursedirs = ["scripts", "agents", "data"]
+norecursedirs = ["scripts", "agents", "data", "tests/tests"]
 markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -151,12 +102,10 @@ addopts = "--strict-markers"
 [tool.ruff]
 line-length = 100
 target-version = "py313"
-
-[tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "PIE", "PT", "RUF"]
-ignore = ["E501"]
+ignore = ["E501", "W503"]
 
-[tool.ruff.lint.per-file-ignores]
+[tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/**" = ["F841"]
 
