@@ -77,58 +77,121 @@ def scan(
                 console.print(f"  ✗ [red]{repo_path.name}[/red]: {e}")
             progress.advance(task)
 
+    # Centrality is a property of the dependency graph, so it can only be scored once
+    # every repo has been collected. Health is then recomputed with it in place.
+    collector._score_centrality(results)
+    for snapshot in results:
+        health = collector._calculate_health(snapshot)
+        snapshot.health = health.to_dict()
+        snapshot.health_score = health.score
+
     collector._save_snapshot(results)
 
-    # ---- summary table ------------------------------------------------
-    table = Table(
-        title=f"[bold]CEREBRO METRICS REPORT[/bold] — {len(results)} Repositories",
+    results.sort(key=lambda r: r.health_score, reverse=True)
+    status_color = {
+        "active": "green", "maintenance": "yellow", "stable": "cyan",
+        "dormant": "dim", "archived": "dim", "empty": "dim red",
+    }
+
+    # Documentation and engineering are different products with different quality bars.
+    # Reporting them in one table is what let 42K lines of ADR corpus read as if it were
+    # undocumented code, and let a docs site be judged for having no test suite.
+
+    # ---- table 1: engineering ------------------------------------------
+    code = Table(
+        title=f"[bold]CODE[/bold] — engineering metrics, {len(results)} repositories",
         box=box.HEAVY_HEAD, show_header=True, header_style="bold magenta",
     )
     for col, kw in [
         ("Repository", {"style": "cyan", "no_wrap": True}),
-        ("Status", {"justify": "center"}),
-        ("Health", {"justify": "center"}),
-        ("LoC", {"justify": "right", "style": "dim"}),
-        ("Files", {"justify": "right", "style": "dim"}),
-        ("Commits", {"justify": "right", "style": "dim"}),
-        ("Lang", {"style": "dim"}),
-        ("Deps", {"justify": "right", "style": "dim"}),
-        ("Security", {"justify": "right"}),
+        ("Profile", {"style": "dim", "no_wrap": True}),
+        ("Health", {"justify": "right"}),
+        ("Code LoC", {"justify": "right", "style": "dim"}),
+        ("Lang", {"style": "dim", "no_wrap": True}),
+        ("Cmts", {"justify": "right", "style": "dim"}),
+        ("Tst", {"justify": "right", "style": "dim"}),
+        ("Rpr", {"justify": "right", "style": "dim"}),
+        ("Sec", {"justify": "right"}),
     ]:
-        table.add_column(col, **kw)
+        code.add_column(col, **kw)
 
-    results.sort(key=lambda r: r.health_score, reverse=True)
-
-    t_loc = t_files = t_commits = t_deps = 0
-    status_color = {"active": "green", "maintenance": "yellow", "archived": "dim", "empty": "dim red"}
+    t_loc = t_commits = t_tests = 0
     for r in results:
         hc = "green" if r.health_score >= 70 else "yellow" if r.health_score >= 40 else "red"
         sc = status_color.get(r.status, "white")
-        commits = r.git.get("total_commits", 0)
-        t_loc += r.total_loc
-        t_files += r.total_files
-        t_commits += commits
-        t_deps += r.dep_count
         sec_c = "green" if r.security_score >= 70 else "yellow" if r.security_score >= 40 else "red"
-        table.add_row(
+        commits = r.git.get("total_commits", 0)
+        repro = r.reproducibility.get("score", 0) or 0
+        t_loc += r.loc_authored
+        t_commits += commits
+        t_tests += r.test_files
+        code.add_row(
             r.name,
-            f"[{sc}]{r.status}[/{sc}]",
-            f"[{hc}]{r.health_score}[/{hc}]",
-            f"{r.total_loc:,}", f"{r.total_files:,}", f"{commits:,}",
-            r.primary_language or "—", str(r.dep_count),
+            f"[{sc}]{r.archetype}[/{sc}]",
+            f"[{hc}]{r.health_score:.0f}[/{hc}]",
+            f"{r.loc_authored:,}",
+            r.primary_language or "—",
+            f"{commits:,}",
+            f"{r.test_files}" if r.test_files else "—",
+            f"{repro:.0f}",
             f"[{sec_c}]{r.security_score:.0f}[/{sec_c}]",
         )
 
-    table.add_section()
+    code.add_section()
     avg_h = sum(r.health_score for r in results) / len(results) if results else 0
-    table.add_row(
+    code.add_row(
         "[bold]TOTALS[/bold]", "",
-        f"[bold]{avg_h:.1f}[/bold]",
-        f"[bold]{t_loc:,}[/bold]", f"[bold]{t_files:,}[/bold]",
-        f"[bold]{t_commits:,}[/bold]", "",
-        f"[bold]{t_deps}[/bold]", "",
+        f"[bold]{avg_h:.0f}[/bold]",
+        f"[bold]{t_loc:,}[/bold]", "",
+        f"[bold]{t_commits:,}[/bold]",
+        f"[bold]{t_tests:,}[/bold]", "", "",
     )
-    console.print(table)
+    console.print(code)
+
+    # ---- table 2: documentation ----------------------------------------
+    docs = Table(
+        title="[bold]DOCS[/bold] — documentation & knowledge artifacts",
+        box=box.HEAVY_HEAD, show_header=True, header_style="bold blue",
+    )
+    for col, kw in [
+        ("Repository", {"style": "cyan", "no_wrap": True}),
+        ("Doc LoC", {"justify": "right", "style": "dim"}),
+        ("Config LoC", {"justify": "right", "style": "dim"}),
+        ("ADRs", {"justify": "right"}),
+        ("README", {"justify": "center"}),
+        ("ARCH.md", {"justify": "center"}),
+        ("Diagrams", {"justify": "right", "style": "dim"}),
+        ("Knowledge", {"justify": "right"}),
+    ]:
+        docs.add_column(col, **kw)
+
+    t_docs = t_cfg = t_adr = 0
+    for r in sorted(results, key=lambda x: x.knowledge.get("score", 0) or 0, reverse=True):
+        k = r.knowledge
+        adr = k.get("adr_count", 0)
+        ks = k.get("score", 0) or 0
+        t_docs += r.loc_docs
+        t_cfg += r.loc_config
+        t_adr += adr
+        kc = "green" if ks >= 60 else "yellow" if ks >= 30 else "red"
+        docs.add_row(
+            r.name,
+            f"{r.loc_docs:,}",
+            f"{r.loc_config:,}",
+            f"{adr}" if adr else "—",
+            "[green]✓[/green]" if r.has_readme else "[red]✗[/red]",
+            "[green]✓[/green]" if k.get("has_architecture_md") else "[red]✗[/red]",
+            f"{k.get('diagrams', 0)}" or "—",
+            f"[{kc}]{ks:.0f}[/{kc}]",
+        )
+
+    docs.add_section()
+    docs.add_row(
+        "[bold]TOTALS[/bold]",
+        f"[bold]{t_docs:,}[/bold]", f"[bold]{t_cfg:,}[/bold]",
+        f"[bold]{t_adr}[/bold]", "", "", "", "",
+    )
+    console.print(docs)
 
 
 # ---------------------------------------------------------------------------
